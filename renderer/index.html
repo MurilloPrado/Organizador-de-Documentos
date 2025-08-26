@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Início</title>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+
+    <header>
+      <div class="menu-icon">&#9776;</div>
+      <div class="title">Início</div>
+    </header>
+
+    <main class="container">
+      <section class="buttons">
+        <a href="documentos.html" class="card-button">
+          <img src="assets/documento.png" alt="Documentos"/>
+          Documentos
+        </a>
+        <div class="card-button">
+          <img src="assets/financeiro.png" alt="Financeiro"/>
+          Financeiro
+        </div>
+        <a href="clientes.html" class="card-button">
+          <img src="assets/pessoa.png" alt="Clientes"/>
+          Clientes
+        </a>
+        <div class="card-button">
+          <img src="assets/grafico.png" alt="Gestão"/>
+          Gestão
+        </div>
+      </section>
+
+      <section class="calendar"> 
+        <section class="calendar"> 
+            <div class="calendar-separator"></div>
+
+            <div class="calendar-content">
+              <button class="calendar-button" type="button" id="calendarButton">
+                <span class="calendar-icon"><img src="assets/calendario.png" alt="caelndario"></span>
+                <span class="arrow-icon">&#x25BC;</span>
+              </button>
+
+              <div class="calendar-popup" id="calendarPopup">
+              </div>
+
+              <div class="agenda">
+                <strong>Hoje</strong><br>
+                Nenhum compromisso
+              </div>
+                
+              <div class="fab">+</div>
+            </div>
+        </section>
+
+        <script src="scripts/calendar.js"></script>
+      </section>
+    </main>
+
+  </body>
+</html>

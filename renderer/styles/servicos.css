@@ -1,0 +1,103 @@
+main{
+    padding: 10px 40px 0 40px;
+}
+
+input {
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 16px;
+    flex: 1;
+    padding-left: 10px;
+    width: 100%;
+}
+
+.save-button{
+    position: fixed;
+    left: 42%;
+    bottom: 20px;
+}
+
+.servicos{
+    align-items: center;
+    background-color: #e6e6e6;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.servicos-rodape{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.servicos-rodape p{
+    margin-top: 2px;
+    color: #004aad;
+    font-weight: bold;
+}
+
+img{
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+p{
+    color:#747474;
+}
+
+.servico-button {
+  background-color: #004aad; /* azul parecido com o da imagem */
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 22px 84px;
+  border-radius: 20px; /* bordas bem arredondadas */
+  cursor: pointer;
+  font-size: 18px;
+  display: block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.servico-button:hover {
+  background-color: #003f99; /* tom mais escuro ao passar o mouse */
+}
+
+footer{
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    bottom: 90px;
+    width: 100%;
+}
+
+footer p{
+    font-weight: bold;
+    margin: 0 auto;
+    color: #004aad;
+    text-align: center;
+}
+
+.line{
+    height: 2px;
+    background-color: #ccc;
+    width: 95%;
+    margin-bottom: 10px;
+    border-radius: 1px;
+}
+
+.botoes{
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    z-index: 1000;
+}

@@ -1,0 +1,24 @@
+{
+  "name": "organizadordocumentos",
+  "version": "0.0.1",
+  "description": "Organizador de documentos",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "keywords": [
+    "electron",
+    "documentos",
+    "js"
+  ],
+  "author": "Murillo",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "electron": "^37.2.5"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.1"
+  }
+}

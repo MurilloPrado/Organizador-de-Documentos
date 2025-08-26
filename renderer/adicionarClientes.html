@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Início</title>
+        <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles/style.css">
+        <link rel="stylesheet" href="styles/adicionarDocumentos.css">
+        <link rel="stylesheet" href="styles/clientes.css">
+    </head>
+
+    <body>
+
+        <header>
+            <a href="clientes.html"><img src="assets/x.png" alt="cancelar" class="cancel-button"></a>
+            <div class="title">Adicionar cliente</div>
+        </header>
+
+        <main>
+            <fieldset class="annotation-box">
+                <legend>Nome do Cliente</legend>
+                <input id="nome" type="text">
+            </fieldset> 
+            
+            <legend>Tipo de cliente</legend>
+            <div class="tipo-cliente">
+                <label>
+                    <input type="radio" name="tipo" value="fisica"> Pessoa Física
+                </label>
+                <label>
+                    <input type="radio" name="tipo" value="juridica"> Pessoa Jurídica
+                </label>
+            </div>
+
+            <fieldset class="annotation-box">
+                <legend>CPF</legend>
+                <input type="text">
+            </fieldset> 
+
+            <fieldset class="annotation-box">
+                <legend>E-mail</legend>
+                <input type="email">
+            </fieldset> 
+
+            <fieldset class="annotation-box">
+                <legend>Telefone</legend>
+                <input id="tel" type="text">
+            </fieldset> 
+
+            <h2>Endereço</h2>
+
+            <fieldset class="annotation-box">
+                <legend>CEP</legend>
+                <input type="text">
+            </fieldset> 
+
+            <fieldset class="annotation-box">
+                <legend>Cidade</legend>
+                <input type="text">
+            </fieldset> 
+
+            <fieldset class="annotation-box">
+                <legend>Bairro</legend>
+                <input type="text">
+            </fieldset> 
+
+            <fieldset class="annotation-box">
+                <legend>Número</legend>
+                <input type="text">
+            </fieldset> 
+
+            <fieldset class="annotation-box">
+                <legend>Complemento</legend>
+                <input type="text">
+            </fieldset> 
+
+            <button id="save-button" class="save-button" style="margin-bottom: 20px;">Salvar cliente</button>
+
+            <script src="scripts/adicionarClientes.js"></script>
+
+        </main>
+    
+    </body>
+</html>

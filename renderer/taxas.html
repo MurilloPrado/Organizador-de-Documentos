@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Início</title>
+        <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles/style.css">
+        <link rel="stylesheet" href="styles/adicionarDocumentos.css">
+        <link rel="stylesheet" href="styles/servicos.css">
+    </head>
+
+    <body>
+
+        <header>
+            <a href="adicionarDocumentos.html"><img src="assets/x.png" alt="cancelar" class="cancel-button"></a>
+            <div class="title">Taxas</div>
+        </header>
+
+        <main>
+            <fieldset class="annotation-box">
+                <legend>Taxa</legend>
+                <input type="text" placeholder="Digite o tipo de taxa">
+            </fieldset>
+
+            <fieldset class="annotation-box">
+                <legend>Detalhes</legend>
+                <textarea placeholder="Escreva os detalhes adicionais... "></textarea>
+            </fieldset>
+
+            <fieldset class="annotation-box">
+                <legend>Valor</legend>
+                <input type="number" placeholder="Digite o valor da taxa">
+            </fieldset>
+
+         <!--Ids e required devem ser adicionados posteriormente
+            <input type="text" id="nome" required>
+            <textarea id="detalhes"></textarea>
+            <input type="number" id="valor" required>
+        -->
+
+            <button class="save-button" type="submit">Cadastrar taxa</button>
+
+            <div id="listContainer" class="container" style="display: none;">
+                <h2>Cadastrar taxa</h2>a
+                <div class="servicos">
+                    <h3>Nome da taxa</h3>
+                    <p>Detalhes adicionais que complementam ou explicam a taxa</p>
+                    <div class="servicos-rodape">
+                        <img src="assets/excluir.png" alt="excluir">
+                        <div class="valor">
+                            <h3>Valor</h3>
+                            <p>R$ 12,00</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <footer>
+                    <div class="line"></div>
+
+                    <p id="subtotal" class="subtotal">Subtotal: R$ 0,00</p>
+                    
+                    <div class="botoes">
+                        <button class="servico-button">Adicionar taxa</button>
+                        <button class="servico-button">Salvar taxa</button>
+                    </div>
+                </footer>
+            </div>
+        </main>
+            
+    </body>
+</html>

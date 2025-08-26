@@ -1,0 +1,67 @@
+.preview-cliente {
+    display: flex;
+    justify-content: space-between; /* textos de um lado e imagem do outro */
+    align-items: center;
+    background-color: #e6e6e6;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    margin-left: 20px;
+}
+
+.preview-cliente img{
+    width: 28px;
+    height: 28px;
+}
+
+.preview-cliente div {
+    display: flex;
+    flex-direction: column; /* um texto abaixo do outro */
+}
+
+.annotation-box {
+    border: 1px solid #000;
+    border-radius: 10px;
+    padding: 10px;
+    width: 100%;
+    margin: 20px 0;
+}
+
+legend {
+    font-size: 20px;
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+input {
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 16px;
+    flex: 1;
+    padding-left: 10px;
+    width: 100%;
+}
+
+h2{
+    margin-top: 50px;
+}
+
+.tipo-cliente {
+    display: flex;
+    align-items: center;  /* alinha no meio verticalmente */
+    gap: 40px;            /* espaço entre as opções */
+    margin-bottom: 35px;
+}
+
+
+.tipo-cliente label {
+    display: flex;
+    font-size: 20px;
+    margin-top: 12px;
+    margin-left: 12px;
+    align-items: center; /* mantém bolinha e texto alinhados */
+    gap: 6px; /* espaço entre a bolinha e o texto */
+    font-weight: bold;
+    cursor: pointer;
+}

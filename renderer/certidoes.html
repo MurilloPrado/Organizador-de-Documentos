@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Início</title>
+        <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles/style.css">
+        <link rel="stylesheet" href="styles/adicionarDocumentos.css">
+        <link rel="stylesheet" href="styles/certidoes.css">
+    </head>
+
+    <body>
+
+        <header>
+            <a href="adicionarDocumentos.html"><img src="assets/x.png" alt="cancelar" class="cancel-button"></a>
+            <div class="title">Certidões</div>
+        </header>
+    
+        <main>
+            <div class="image-preview-modal" style="display: none;">
+                <div class="modal-content">
+                    <img src="assets/x.png" alt="sair" class="cancel-button">
+                    <input type="text" placeholder="Nome da imagem" class="image-name-input" />
+                    <img src="assets/exemplo.png" alt="Preview da imagem" class="image-preview" />
+                    <button class="save-button">Salvar</button>
+                </div>
+            </div>
+
+            <div class="upload-button" id="uploadButton">
+                <input type="file" accept="image/*" id="fileInput" multiple>
+                <img src="assets/adicionar-foto.png" alt="Upload" class="upload-icon">
+            </div>
+        </main>
+
+    </body>
+</html>
