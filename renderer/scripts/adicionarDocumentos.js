@@ -1,6 +1,29 @@
 const tituloDocumento = document.getElementById("titulo-documento");
 const tituloInput = document.getElementById("titulo-input");
 const editar = document.getElementById("editar");
+const clienteInput = document.getElementById("clienteInput");
+const fileInput = document.getElementById("fileInput");
+const previewArquivo = document.querySelector(".preview-arquivo");
+
+// LocalStorage keys
+const LS_SERVICOS = 'lancamentos_servicos';
+const LS_TAXAS = 'lancamentos_taxas';
+const LS_CERTIDOES = 'arquivos_certidoes';
+const LS_ARQUIVOS = 'arquivos';
+
+// Função para obter dados do LocalStorage com fallback
+function getJSON(key, fallback = []) {
+    try {
+        return JSON.parse(localStorage.getItem(key) || '[]');
+    } catch {
+        return fallback;
+    }
+}
+
+// Função para salvar dados no LocalStorage
+function setJSON(key, value) {
+    localStorage.setItem(key, JSON.stringify(value || []));
+}
 
 // Texto padrão
 const tituloPadrao = "Documento";
@@ -52,3 +75,12 @@ tituloInput.addEventListener("keydown", (event) => {
         salvarTitulo();
     }
 });
+
+function mostrarPreviewArquivo() {
+    const arquivos = getJSON(LS_ARQUIVOS);
+    previewArquivo.innerHTML = '';
+
+    arquivos.foreach((f ) => {
+        const elemento = document.createElement('div');
+        elemento.classList.add('file-section');
+}

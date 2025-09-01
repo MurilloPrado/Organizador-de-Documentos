@@ -6,6 +6,7 @@
     <title>Início</title>
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/certidoes.css">
   </head>
   <body>
 
@@ -60,10 +61,22 @@
       </section>
 
     
-        <div class="file-button">
-          <img src="assets/arquivo.png" alt="Pasta dos arquivos">
+      <div class="file-button">
+        <img src="assets/arquivo.png" alt="Pasta dos arquivos" id="escolherDiretorioButton">
+      </div>
+
+      <!-- modal para selecionar pasta -->
+      <div id="diretorioPadrao" class="file-preview-modal" role="dialog">        
+        <div class="modal-content">
+          <h3>Selecionar pasta padrão</h3><br>
+          <p>Selecione uma pasta onde o app salvará os documentos, fotos e certidões.</p><br>
+          <button id="escolherDiretorio" class="pasta-button">Selecionar pasta</button>
         </div>
+      </div>
+
     </main>
+
+    <script src="scripts/adicionarDiretorioPadrao.js"></script>
 
   </body>
 </html>

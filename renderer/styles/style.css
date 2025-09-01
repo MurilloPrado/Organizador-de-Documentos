@@ -244,3 +244,19 @@ a.fab {
     background-color: #333; /* Tom mais claro ao hover */
     transform: scale(1.05);
 }
+
+.pasta-button {
+  background-color: #004aad; /* azul parecido com o da imagem */
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 22px 84px;
+  border-radius: 20px; /* bordas bem arredondadas */
+  cursor: pointer;
+  font-size: 18px;
+  display: block;
+  margin: 0 auto; /* centraliza horizontalmente */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+}
+

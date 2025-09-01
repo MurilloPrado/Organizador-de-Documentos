@@ -9,6 +9,13 @@ contextBridge.exposeInMainWorld('api', {
         list: () => ipcRenderer.invoke('clientes:list'),
         create: (data) => ipcRenderer.invoke('clientes:create', data),
     },
-
+    settings: {
+        chooseDirectory: () => ipcRenderer.invoke('settings:chooseDirectory'),
+        setDirectory: (path) => ipcRenderer.invoke('settings:setDirectory', path),
+        getDirectory: () => ipcRenderer.invoke('settings:getDirectory'),
+    },
+    documentos: {
+        create: (payload) => ipcRenderer.invoke('documentos:create', payload),
+    }
     //os outros ipcs irão aqui...
 })
