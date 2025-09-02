@@ -2,6 +2,7 @@
 
 const clientes = require('./clientes');
 const settings = require('./settings');
+const documentos = require('./documentos');
 
 module.exports = (ipcMain, db) => {
     clientes(ipcMain, db);

@@ -26,7 +26,7 @@ function createMainWindow() {
         slashes: true,
     });
 
-    Menu.setApplicationMenu(null);
+    //Menu.setApplicationMenu(null);
 
     mainWindow.loadURL(startUrl);
 }

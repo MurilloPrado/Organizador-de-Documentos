@@ -7,7 +7,7 @@
         <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="styles/style.css">
         <link rel="stylesheet" href="styles/adicionarDocumentos.css">
-                <link rel="stylesheet" href="styles/servicos.css">
+        <link rel="stylesheet" href="styles/lancamentos.css">
     </head>
 
     <body>
@@ -18,41 +18,34 @@
         </header>
 
         <main>
-            <fieldset class="annotation-box">
-                <legend>Serviço</legend>
-                <input type="text" placeholder="Digite o tipo de serviço">
-            </fieldset>
+            <div id="formContainer">
+                <fieldset class="annotation-box">
+                    <legend>Serviço</legend>
+                    <input type="text" id="nome" placeholder="Digite o tipo de serviço">
+                </fieldset>
 
-            <fieldset class="annotation-box">
-                <legend>Detalhes</legend>
-                <textarea placeholder="Escreva os detalhes adicionais... "></textarea>
-            </fieldset>
+                <fieldset class="annotation-box">
+                    <legend>Detalhes</legend>
+                    <textarea id="detalhes" placeholder="Escreva os detalhes adicionais... "></textarea>
+                </fieldset>
 
-            <fieldset class="annotation-box">
-                <legend>Valor</legend>
-                <input type="number" placeholder="Digite o valor do serviço">
-            </fieldset>
-
-         <!--Ids e required devem ser adicionados posteriormente
-            <input type="text" id="nome" required>
-            <textarea id="detalhes"></textarea>
-            <input type="number" id="valor" required>
-        -->
-
-            <button class="save-button" type="submit">Cadastrar serviço</button>
-
-            <div id="listContainer" class="container" style="display: none;">
-                <h2>Cadastrar serviço</h2>
-                <div class="servicos">
-                    <h3>Nome do serviço</h3>
-                    <p>Detalhes adicionais que complementam ou explicam o serviço</p>
-                    <div class="servicos-rodape">
-                        <img src="assets/excluir.png" alt="excluir">
-                        <div class="valor">
-                            <h3>Valor</h3>
-                            <p>R$ 12,00</p>
-                        </div>
+                <fieldset class="annotation-box">
+                    <legend>Valor</legend>
+                    <div class="money">
+                        <span class="prefixo">R$</span>
+                        <input type="text" id="valor" inputmode="numeric" placeholder="R$ 0,00">
                     </div>
+                </fieldset>
+
+                <input type="hidden" id="tipo" value="servico">
+
+                <button id="add-button" class="save-button" type="button">Cadastrar serviço</button>
+            </div>
+
+            <div id="listContainer" class="container" style="display:none;">
+                <h2>Cadastrar serviço</h2>
+                <div id="lista">
+                    <!-- Itens adicionados aqui -->
                 </div>
 
 
@@ -62,12 +55,13 @@
                     <p id="subtotal" class="subtotal">Subtotal: R$ 0,00</p>
                     
                     <div class="botoes">
-                        <button class="servico-button">Adicionar serviço</button>
-                        <button class="servico-button">Salvar serviço</button>
+                        <button id="new-item-button" class="servico-button">Adicionar serviço</button>
+                        <button id="save-button" class="servico-button">Salvar serviço</button>
                     </div>
                 </footer>
             </div>
-        </main>
-            
+
+            <script type="module" src="scripts/adicionarLancamento.js"></script>
+        </main>      
     </body>
 </html>

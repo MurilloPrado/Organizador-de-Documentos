@@ -75,12 +75,3 @@ tituloInput.addEventListener("keydown", (event) => {
         salvarTitulo();
     }
 });
-
-function mostrarPreviewArquivo() {
-    const arquivos = getJSON(LS_ARQUIVOS);
-    previewArquivo.innerHTML = '';
-
-    arquivos.foreach((f ) => {
-        const elemento = document.createElement('div');
-        elemento.classList.add('file-section');
-}
