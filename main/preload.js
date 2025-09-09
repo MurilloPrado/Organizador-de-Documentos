@@ -1,6 +1,16 @@
 //Ponte segura para a conexão entre o main e o renderer
 
-const{ contextBridge, ipcRenderer } = require('electron');
+const{ contextBridge, shell, ipcRenderer } = require('electron');
+const{ pathToFileURL } = require('node:url');
+
+contextBridge.exposeInMainWorld('electron', {
+    openExternal: (raw) => {
+        if(!raw) return;
+
+        const url = pathToFileURL(raw).href;
+        return shell.openExternal(url);
+    }
+});
 
 contextBridge.exposeInMainWorld('api', {
     //Aqui fica os arquivos IPCs que realizaram a conexão segura
