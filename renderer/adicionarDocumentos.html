@@ -23,8 +23,6 @@
             </div>
             <input type="text" id="titulo-input" class="titulo-input">
             <h3>16/08/2025</h3>
-
-            <script src="scripts/adicionarDocumentos.js"></script>
                 
             <input type="text" placeholder="Adicione o nome do cliente" class="cliente" id="clienteInput">
 
@@ -74,28 +72,25 @@
 
         <div class="file-section">
             <label>Arquivos</label>
+
+            <!--modal-->
+            <div id="file-preview-modal" class="file-preview-modal" style="display:none">
+                <div class="modal-content">
+                    <img src="assets/x.png" alt="sair" id="file-cancel-button" class="cancel-button">
+                    <div class="certidao-preview">
+                    <img src="assets/documento.png" alt="arquivo">
+                    <input type="text" class="tituloArquivo" id="file-title-input" placeholder="Nome do arquivo">
+                    </div>
+                    <button id="file-save-button" class="save-button">Salvar</button>
+                </div>
+            </div>
             
             <div class="file-preview">
                 <!-- Aqui ficarão as miniaturas das imagens adicionadas via JS futuramente -->
-                 <div class="files">
-                     <div class="delete-file-icon">
-                         <img src="assets/delete.png" alt="Remover">
-                     </div>
-                    <img src="assets/pdf.png" alt="${item.nomeArquivo}">
-                    <span class="tituloArquivo">titulo</span>
-                </div>
-
-                <div class="files">
-                     <div class="delete-file-icon">
-                         <img src="assets/delete.png" alt="Remover">
-                     </div>
-                    <img src="assets/pdf.png" alt="${item.nomeArquivo}">
-                    <span class="tituloArquivo">titulo</span>
-                </div>
             </div>
 
             <div class="upload-button" id="uploadButton">
-                <input type="file" accept="image/*" id="fileInput" multiple>
+                <input type="file" id="fileInput" multiple>
                 <img src="assets/novo-anexo.png" alt="Upload" class="upload-icon">
             </div>
         </div>
@@ -103,5 +98,7 @@
         <button class="save-button" style="margin: 0 auto;">Salvar documento</button>
 
         </main>
+
+        <script type="module" src="scripts/adicionarDocumentos.js"></script>
     </body>
 </html>

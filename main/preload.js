@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld('electron', {
     }
 });
 
+contextBridge.exposeInMainWorld('files', {
+    choose: (options) => ipcRenderer.invoke('files:choose', options || {}),
+    openPath: (absPath) => ipcRenderer.invoke('files:openPath', absPath),
+})
+
 contextBridge.exposeInMainWorld('api', {
     //Aqui fica os arquivos IPCs que realizaram a conexão segura
     clientes: {

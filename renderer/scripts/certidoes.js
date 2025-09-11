@@ -12,23 +12,10 @@ let currentItem = null;
 const fileInput = document.getElementById('fileInput');
 const listaArquivos = document.getElementById('lista-arquivos');
 
-async function convertFileUrl(url) {
-    if(!url) return;
-    const fileUrl = await window.electron?.convertPathToUrl?.(url);
 
-    if(fileUrl){
-        window.electron?.openExternal?.(fileUrl);
-    }
-}
-
-function openFileInBrowser(url){
-    if(!url) {
-        console.log("Url vazia");
-        return;
-    }
-
-    console.log("caminho do arquivo:", url);
-    window.electron?.openExternal?.(url);
+function openFileExtern(absPath){
+  if(!absPath) return;
+  window.files?.openPath?.(absPath);
 }
 
 function getExtension(name = '') {
@@ -37,8 +24,8 @@ function getExtension(name = '') {
     return index >= 0 ? base.substring(index + 1) : '';
 }
 
+// Separa os tipos de arquivos
 const imageExtensions = new Set(['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'tiff', 'svg']);
-
 function isImageFile(name, mime = '') {
     const ext = getExtension(name);
     return mime.startsWith('image/') || imageExtensions.has(ext);
@@ -68,6 +55,7 @@ function suggestTitleFromName(name = '') {
     return base.replace(/\.[^.]+$/, '');
 }
 
+// Renderiza a lista de arquivos
 function renderList() {
     const itens = getArray(KEY.certidoes);
     if(!listaArquivos) return;
@@ -104,7 +92,7 @@ function renderList() {
         // abre o arquivo no navegador
         card.addEventListener('click', () => {
             if(!item?.urlArquivo) return;
-            openFileInBrowser(item.urlArquivo);
+            openFileExtern(item.urlArquivo);
         });
 
         // remover item
@@ -125,16 +113,16 @@ function renderList() {
 async function showModal(item) {
     currentItem = item;
 
+    //console.log('[Modal] item.urlArquivo:', item.urlArquivo, 'item.nomeOriginal:', item.nomeOriginal);
+
     if (modalIcon) {
-       modalIcon.src = iconForItem(item);
+      modalIcon.src = iconForItem(item);
     }
-
     if (modalTitle) {
-        modalTitle.value = suggestTitleFromName(item.nomeOriginal || item.nomeArquivo || '');
+      modalTitle.value = suggestTitleFromName(item.nomeOriginal || item.nomeArquivo || '');
     }
-
     if (modal) {
-        modal.style.display = 'flex';
+      modal.style.display = 'flex';
     }
 }
 
@@ -170,6 +158,8 @@ function saveFromModal() {
         mimeArquivo: guessMimeFromName(currentItem.nomeOriginal || ''),
     };
 
+    //console.log('Salvando arquivo:', toSave);
+
     pushArray(KEY.certidoes, toSave);
     renderList();
     processNextInQueue();
@@ -179,22 +169,31 @@ function cancelModal(){
     processNextInQueue();
 }
 
-if(fileInput) {
-    fileInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files || []);
-        if(files.length === 0) return;
+uploadButton?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
 
-        files.forEach((f) => {
-            pendingQueue.push({
-                urlArquivo: f.path || null,
-                nomeOriginal: f.name
-            });
+  try {
+    if (window.files?.choose) {
+      const paths = await window.files.choose({ multi: true });
+      if (!paths || !paths.length) return;   // <- CORRETO
+
+      for (const p of paths) {
+        const nome = p.split('/').pop().split('\\').pop();
+        //console.log('[IPC choose] path selecionado:', p);
+        pendingQueue.push({
+          urlArquivo: p,         // <- CAMINHO ABSOLUTO DO MAIN (com path real)
+          nomeOriginal: nome,
         });
-
-        fileInput.value = '';
-        if(!currentItem) processNextInQueue();
-    });
-}
+      }
+      if (!currentItem) processNextInQueue();
+    } else {
+      // fallback só se o IPC não existir
+      fileInput?.click();
+    }
+  } catch (error) {
+    console.error('Erro ao selecionar arquivos:', error);
+  }
+});
 
 renderList();
-
