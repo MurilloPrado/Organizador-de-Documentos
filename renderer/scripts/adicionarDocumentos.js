@@ -1,3 +1,12 @@
+// scripts/adicionarDocumentos.js
+import { KEY, getArray, removeArray } from './common/localStorage.js';
+import { iconFor, openFileExtern, setupSharedModal, pickPaths } from './common/filesSection.js';
+
+const STORAGE_KEY = KEY.arquivos; // troque quando separar os storages
+
+const listEl      = document.querySelector('.file-preview'); // container inline
+const uploadBtn   = document.getElementById('uploadButton');
+
 const tituloDocumento = document.getElementById("titulo-documento");
 const tituloInput = document.getElementById("titulo-input");
 const editar = document.getElementById("editar");
@@ -75,3 +84,56 @@ tituloInput.addEventListener("keydown", (event) => {
         salvarTitulo();
     }
 });
+
+// Render inline (apenas para adicionarDocumentos)
+function renderInline(){
+  const items = getArray(STORAGE_KEY) || [];
+  listEl.innerHTML = '';
+  if(!items.length){
+    listEl.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;color:#6b7280;padding:24px;font-weight:600;">Não existem arquivos adicionados.</div>`;
+    return;
+  }
+
+  items.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = 'files';
+    row.innerHTML = `
+      <div class="delete-file-icon"><img src="assets/delete.png" alt="Remover"></div>
+      <img src="${iconFor(item)}" alt="arquivo">
+      <span class="tituloArquivo">${item.nomeArquivo}</span>
+    `;
+
+    row.addEventListener('click', ()=> openFileExtern(item.urlArquivo));
+    row.querySelector('.delete-file-icon')?.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      removeArray(STORAGE_KEY, x => x.nomeArquivo===item.nomeArquivo && (x.urlArquivo||'')===(item.urlArquivo||''));
+      renderInline();
+    });
+
+    listEl.appendChild(row);
+  });
+}
+
+// Modal compartilhado (reaproveita o MESMO modal/IDs dessa página)
+const modalCtl = setupSharedModal({
+  storageKey: STORAGE_KEY,
+  modalIds: {
+    modalId:      'file-preview-modal',
+    titleId:      'file-title-input',
+    saveBtnId:    'file-save-button',
+    cancelBtnId:  'file-cancel-button',
+    iconSelector: '#file-preview-modal .certidao-preview > img'
+  },
+  defaultTipo: 'arquivo',
+  onAfterSave: ()=> renderInline(),
+});
+
+// Botão: usa o mesmo picker via IPC e envia para o modal
+uploadBtn?.addEventListener('click', async (e)=>{
+  e.preventDefault(); e.stopPropagation();
+  const paths = await pickPaths({ multi: true });
+  if(!paths?.length) return;
+  modalCtl.enqueuePaths(paths);
+});
+
+renderInline();
