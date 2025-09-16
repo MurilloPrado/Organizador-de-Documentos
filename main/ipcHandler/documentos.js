@@ -1,6 +1,7 @@
 const { ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const fsp = require('fs/promises');
 
 // Garante que o diretório exista
 function garantirDiretorio(caminho) {
@@ -37,7 +38,8 @@ function criarPastaCliente(diretorioBase, nomeCliente, idCliente) {
     return caminhoSomenteNome;
 }
 
-module.exports = (db) => {
+
+module.exports = (ipcMain, db) => {
     // Payload:
     //   nomeDocumento: string,
     //   nomeCliente: string,
@@ -77,9 +79,13 @@ module.exports = (db) => {
 
         // cria a pasta do cliente
         const caminhoPastaCliente = criarPastaCliente(diretorioBase, registroCliente.nome, registroCliente.id);
+        const pastaDocumento = gerarNomeSeguro(payload.nomeDocumento);
+        const caminhoPastaDocumento = path.join(caminhoPastaCliente, pastaDocumento);
+        garantirDiretorio(caminhoPastaDocumento);
 
         // Cria o documento no banco de dados
         const transacao = db.transaction(() => {
+            const createdAt = payload.createdAt || new Date().toISOString();
             // Insere o documento
             const inserirDocumento = db.prepare(`
                 INSERT INTO documentos (idCliente, nomeDocumento, dataCriado, statusDocumento, detalhes)
@@ -88,7 +94,7 @@ module.exports = (db) => {
             const resultadoDocumento = inserirDocumento.run(
                 registroCliente.id,
                 payload.nomeDocumento,
-                payload.dataCriado || null,
+                payload.createdAt || null,
                 payload.statusDocumento || 'Pendente',
                 payload.detalhes || null,
             );
@@ -125,9 +131,9 @@ module.exports = (db) => {
                     const nomeArquivo = path.basename(origem);
 
                     // Evita conflitos de nome
-                    const destinoArquivo = path.join(caminhoPastaCliente, nomeArquivo);
+                    const destinoArquivo = path.join(caminhoPastaDocumento, nomeArquivo);
                     const destinoFinal = fs.existsSync(destinoArquivo)
-                        ? path.join(caminhoPastaCliente, `doc-${idDocumento}-${nomeArquivo}`)
+                        ? path.join(caminhoPastaDocumento, `doc-${idDocumento}-${nomeArquivo}`)
                         : destinoArquivo;
 
                     // Copia o arquivo para a pasta do cliente
@@ -147,4 +153,11 @@ module.exports = (db) => {
         
         return transacao();
     });
+
+    // Retorna o último ID de documento inserido
+    ipcMain.handle('documentos:getUltimoId', async (_evt) => {
+        const row = db.prepare('SELECT MAX(idDocumento) as ultimo FROM documentos').get();
+        return row?.ultimo || 0;
+    });
+
 }

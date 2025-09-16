@@ -239,3 +239,8 @@ legend {
 .save-button:hover {
   background-color: #003f99; /* tom mais escuro ao passar o mouse */
 }
+
+.cliente-suggest {
+    position: relative;
+    width: 100%;
+}

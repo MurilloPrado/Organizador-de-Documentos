@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('api', {
     },
     documentos: {
         create: (payload) => ipcRenderer.invoke('documentos:create', payload),
+        getUltimoId: () => ipcRenderer.invoke('documentos:getUltimoId'),
     }
     //os outros ipcs irão aqui...
 })

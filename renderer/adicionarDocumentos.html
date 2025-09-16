@@ -19,13 +19,14 @@
 
         <main style="padding: 40px">
             <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <h2 id="titulo-documento">Documento123</h2>
+                <h2 id="titulo-documento"></h2>
                 <img src="assets/edit.png" alt="editar" id="editar" style="cursor: pointer;">
             </div>
             <input type="text" id="titulo-input" class="titulo-input">
             <h3>16/08/2025</h3>
-                
+            
             <input type="text" placeholder="Adicione o nome do cliente" class="cliente" id="clienteInput">
+            <div id="clienteSuggest" class="cliente-suggest"></div>
 
             <div class="section">
                 <h2>Compromissos</h2>
@@ -68,7 +69,7 @@
 
         <fieldset class="annotation-box">
             <legend>Detalhes</legend>
-            <textarea placeholder="Escreva os detalhes adicionais... "></textarea>
+            <textarea id="detalhes" placeholder="Escreva os detalhes adicionais... "></textarea>
         </fieldset>
 
         <div class="file-section">
@@ -96,7 +97,7 @@
             </div>
         </div>
 
-        <button class="save-button" style="margin: 0 auto;">Salvar documento</button>
+        <button id="salvarDocumento" class="save-button" style="margin: 0 auto;">Salvar documento</button>
 
         </main>
 

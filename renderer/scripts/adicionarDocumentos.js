@@ -1,16 +1,19 @@
 // scripts/adicionarDocumentos.js
-import { KEY, getArray, removeArray } from './common/localStorage.js';
+import { KEY, clear, getArray, removeArray } from './common/localStorage.js';
 import { iconFor, openFileExtern, setupSharedModal, pickPaths } from './common/filesSection.js';
 
 const STORAGE_KEY = KEY.arquivos; // troque quando separar os storages
 
 const listEl      = document.querySelector('.file-preview'); // container inline
 const uploadBtn   = document.getElementById('uploadButton');
+const saveDocumentBtn = document.getElementById('salvarDocumento');
+const detalhesEl = document.getElementById('detalhes');
 
 const tituloDocumento = document.getElementById("titulo-documento");
 const tituloInput = document.getElementById("titulo-input");
 const editar = document.getElementById("editar");
 const clienteInput = document.getElementById("clienteInput");
+const detalhesInput = document.getElementById("detalhes");
 const fileInput = document.getElementById("fileInput");
 const previewArquivo = document.querySelector(".preview-arquivo");
 
@@ -34,56 +37,100 @@ function setJSON(key, value) {
     localStorage.setItem(key, JSON.stringify(value || []));
 }
 
-// Texto padrão
-const tituloPadrao = "Documento";
+// titulo padrão 
+let tituloPadrao = 'Documento 0001';
+(async () => {
+  try {
+    const ultimoId = await window.api?.documentos?.getUltimoId?.(); // retorna número ou 0
+    const proximo  = String((ultimoId || 0) + 1).padStart(4, '0');
+    tituloPadrao   = `Documento ${proximo}`;
+  } finally {
+    // inicializa valor exibido e input com draft OU padrão
+    const inicial = loadDraft(DRAFT.titulo) || tituloPadrao;
+    tituloDocumento.textContent = inicial;
+    tituloInput.value = inicial;
+  }
+})();
 
-const salvarTitulo = () => {
-        // Pega o texto do input
-    const novoTexto = tituloInput.value.trim();
+// salvar título
+function salvarTitulo() {
+  const novo = (tituloInput.value || '').trim();
+  const val  = novo || tituloPadrao;
 
-    // Se o input estiver vazio, volta ao texto padrão, se não, usa o texto do input
-    if (novoTexto === "") {
-        tituloDocumento.textContent = tituloPadrao;
-    } else {
-        tituloDocumento.textContent = novoTexto;
-    }
+  tituloDocumento.textContent = val;
+  tituloInput.value = val;
+  saveDraft(DRAFT.titulo, val);
 
-    // Esconde o input e mostra o título
-    tituloInput.style.display = "none";
-    editar.style.display = "block";
-    tituloDocumento.style.display = "block";
+  // alterna visibilidade
+  tituloInput.style.display = 'none';
+  editar.style.display = 'block';
+  tituloDocumento.style.display = 'block';
+}
+
+// entrar no modo edição
+editar.addEventListener('click', () => {
+  // mostra input com o valor atual
+  const atual = (tituloDocumento.textContent || '').trim();
+  tituloInput.value = (atual === tituloPadrao) ? '' : atual;
+
+  tituloDocumento.style.display = 'none';
+  editar.style.display = 'none';
+  tituloInput.style.display = 'block';
+  tituloInput.focus();
+  // seleciona o conteúdo pra editar rápido
+  tituloInput.select?.();
+});
+
+// sair do modo edição
+tituloInput.addEventListener('blur', salvarTitulo);
+tituloInput.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') salvarTitulo();
+  if (ev.key === 'Escape') {
+    // cancelar: volta ao valor exibido (sem salvar)
+    tituloInput.value = tituloDocumento.textContent || tituloPadrao;
+    tituloInput.blur();
+  }
+});
+
+const DRAFT = {
+  titulo: 'draft.tituloDocumento',
+  cliente: 'draft.nomeCliente',
+  detalhes: 'draft.detalhesDocumento',
 };
 
-editar.addEventListener("click", () => {
-    const textoAtual = tituloDocumento.textContent;
+const saveDraft = (k,v) => localStorage.setItem(k, v ?? '');
+const loadDraft = (k)  => localStorage.getItem(k);
 
-    // Esconde o título e mostra o input
-    tituloDocumento.style.display = "none";
-    editar.style.display = "none";
-    tituloInput.style.display = "block";
+// Inicialização
+(async function initDraft(){
+  // pega o último id do banco
+  const ultimoId = await window.api.documentos.getUltimoId();
+  const proximoId = String((ultimoId || 0) + 1).padStart(4, '0');
+  const tituloPadrao = `Documento ${proximoId}`;
 
-    // Verifica se o texto atual é o padrão, se não, mantém o texto
-    if (textoAtual === tituloPadrao) {
-        tituloInput.value = "";
-    } else {
-        tituloInput.value = textoAtual;
-    }
+  // restaura drafts ou usa defaults
+  const draftTitulo   = loadDraft(DRAFT.titulo)   || tituloPadrao;
+  const draftCliente  = loadDraft(DRAFT.cliente)  || '';
+  const draftDetalhes = loadDraft(DRAFT.detalhes) || '';
 
-    // Foca o input para edição imediata
-    tituloInput.focus();
+  if (tituloInput)   tituloInput.value = draftTitulo;
+  if (clienteInput)  clienteInput.value = draftCliente;
+  if (detalhesInput) detalhesInput.value = draftDetalhes;
+})();
+
+// salvar rascunho sempre que o usuário alterar
+tituloInput?.addEventListener('input', ()=>{
+  saveDraft(DRAFT.titulo, tituloInput.value);
+  if (tituloDocumento) tituloDocumento.textContent = tituloInput.value;
 });
+clienteInput?.addEventListener('input', ()=> saveDraft(DRAFT.cliente, clienteInput.value));
+detalhesInput?.addEventListener('input', ()=> saveDraft(DRAFT.detalhes, detalhesInput.value));
 
-// Quando o input perder o foco, atualiza o título e esconde o input
-tituloInput.addEventListener("blur", () => {
-    salvarTitulo();
-});
-
-// Quando o usuário pressionar Enter, atualiza o título e esconde o input
-tituloInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        salvarTitulo();
-    }
-});
+// limpar tudo (usar após salvar documento)
+function clearAllStates(){
+  [DRAFT.titulo, DRAFT.cliente, DRAFT.detalhes].forEach(k=> localStorage.removeItem(k));
+  [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.taxas].forEach(k=> localStorage.removeItem(k));
+}
 
 // Render inline (apenas para adicionarDocumentos)
 function renderInline(){
@@ -137,3 +184,55 @@ uploadBtn?.addEventListener('click', async (e)=>{
 });
 
 renderInline();
+
+// Botão salvar documento, envia os dados para o payload
+async function salvarDocumento() {
+  try {
+    const nomeDocumento = String(tituloDocumento.textContent || '').trim();
+    const nomeCliente = String(clienteInput.value || '').trim();
+    const detalhesDocumento = String(detalhesEl.value || '').trim() || null;
+
+    if(!nomeCliente) {
+      alert('Por favor, informe o nome do cliente antes de salvar o documento.');
+      return;
+    }
+
+    // Junta serviços e taxas
+    const servicos = getArray(KEY.servicos) || [];
+    const taxas = getArray(KEY.taxas) || [];
+    const lancamentos = [...servicos, ...taxas].map(item => ({
+      tipoLancamento: String(item.tipo || '').toLowerCase(),
+      detalhes: item?.detalhes || null,
+      valor: Number(item?.valor) || 0,
+      tituloLancamento: item?.nome || null,
+    }));
+
+    // Junta todos os arquivos
+    const arquivosInline = getArray(KEY.arquivos) || [];
+    const certidoes = getArray(KEY.certidoes) || [];
+    const arquivos = [...arquivosInline, ...certidoes];
+
+    // Cria o payload
+    const payload = {
+      nomeDocumento,
+      nomeCliente,
+      detalhes: detalhesDocumento,
+      lancamentos,
+      arquivos,
+      createdAt: new Date().toISOString(),
+    };
+    const res = await window.api.documentos.create(payload);
+
+    // Ao finalizar, redireciona para documentos.html
+    clearAllStates();
+    window.location.href = 'documentos.html';
+  } catch (err) {
+    console.error('Falha ao salvar documento:', err);
+    alert('Não foi possível salvar o documento: ' + (err?.message || err));
+  }
+}
+
+saveDocumentBtn?.addEventListener('click', (e)=>{
+  e.preventDefault(); e.stopPropagation();
+  salvarDocumento();
+});
