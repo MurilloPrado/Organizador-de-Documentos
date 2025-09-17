@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('api', {
         //funções que serão responsáveis pelos dados
         list: () => ipcRenderer.invoke('clientes:list'),
         create: (data) => ipcRenderer.invoke('clientes:create', data),
+        searchPrefix: (prefix) => ipcRenderer.invoke('clientes:searchPrefix', prefix),
     },
     settings: {
         chooseDirectory: () => ipcRenderer.invoke('settings:chooseDirectory'),

@@ -183,6 +183,89 @@ uploadBtn?.addEventListener('click', async (e)=>{
   modalCtl.enqueuePaths(paths);
 });
 
+// Sugestão de clientes
+let suggestBox = document.getElementById('clienteSuggest');
+if(!suggestBox) {
+  suggestBox = document.createElement('div');
+  suggestBox.id = 'clienteSuggest';
+  Object.assign(suggestBox.style, {
+    position: 'absolute', zIndex: '9999', background: '#fff',
+    border: '1px solid #e5e7eb', borderRadius: '8px',
+    boxShadow: '0 8px 24px rgba(0,0,0,.08)', padding: '6px 0',
+    display: 'none', maxHeight: '220px', overflowY: 'auto',
+    width: clienteInput?.offsetWidth ? `${clienteInput.offsetWidth}px` : '100%',
+  });
+
+  const wrap = document.createElement('div');
+  wrap.style.position = 'relative';
+  clienteInput?.parentNode?.insertBefore(wrap, clienteInput);
+  wrap.appendChild(clienteInput);
+  wrap.appendChild(suggestBox);
+}
+
+function renderClientSuggestions(names) {
+  if (!names?.length) {
+    suggestBox.style.display = 'none';
+    suggestBox.innerHTML = '';
+    return;
+  }
+
+  // limpa sugestões antigas
+  suggestBox.innerHTML = '';
+
+  console.log('sugestões:', names);
+
+  names.forEach((n) => {
+    const el = document.createElement('div');
+    el.className = 'client-suggest';
+
+    const icon = document.createElement('span');
+    icon.className = 'client-suggest-icon';
+    icon.innerHTML = '<img src="./assets/pessoa.png">';
+
+    const label = document.createElement('span');
+    label.className = 'client-suggest-label';
+    label.textContent   = n; // mantém o nome como está no banco
+
+
+    el.append(icon, label);
+
+    el.addEventListener('mousedown', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      clienteInput.value = n;
+      saveDraft(DRAFT.cliente, clienteInput.value);
+      suggestBox.style.display = 'none';
+    });
+    suggestBox.appendChild(el);
+  });
+
+  suggestBox.style.display = 'block';
+}
+
+let suggestTimer = null;
+clienteInput?.addEventListener('input', ()=>{
+  const q = (clienteInput.value || '').trim();
+  clearTimeout(suggestTimer);
+  suggestTimer = setTimeout( async()=>{
+    if(q.length < 2) {
+      renderClientSuggestions([]);
+      return;
+    }
+
+    try {
+      const names = await window.api.clientes.searchPrefix(q) || [];
+      renderClientSuggestions([...new Set(names)].slice(0,6));
+    } catch(err) {
+      console.error('autocomplete cliente falhou:', err);
+      renderClientSuggestions([]);
+    }
+  }, 220);
+});
+clienteInput?.addEventListener('blur', ()=>setTimeout(()=> renderClientSuggestions([]), 200));
+  
+
+
 renderInline();
 
 // Botão salvar documento, envia os dados para o payload

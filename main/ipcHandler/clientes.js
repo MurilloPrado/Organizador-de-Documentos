@@ -12,4 +12,17 @@ module.exports = (ipcMain, db) => {
         const info = db.prepare('INSERT INTO clientes (nome, tel) VALUES (?,?)').run(nome.trim(), tel || null);
         return { id: info.lastInsertRowid};
     });
+
+    ipcMain.handle('clientes:searchPrefix', async(_evt, q) => {
+        const prefix = String(q || '').trim();
+        if(prefix.length < 2) return [];
+        const stmt = db.prepare(`
+            SELECT nome FROM clientes
+            WHERE nome LIKE ? COLLATE NOCASE
+            ORDER BY nome    
+        `);
+
+        const rows = stmt.all(prefix + '%'); 
+        return rows.map(r => r.nome);
+    });
 }
