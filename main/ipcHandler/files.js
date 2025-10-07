@@ -19,4 +19,12 @@ module.exports = function registerFiles(ipcMain) {
         if(err) throw new Error(err);
         return true;  
     });
+
+    ipcMain.handle('files:exists', async (_e, absPath) => {
+        try { 
+            return fs.existsSync(absPath); 
+        } catch { 
+            return false; 
+        }
+    });
 }

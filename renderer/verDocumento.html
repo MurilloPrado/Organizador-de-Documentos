@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+    <html lang="pt-br">
+        <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Documento</title>
+
+        <!-- Estilos globais já existentes -->
+        <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles/style.css">
+        <link rel="stylesheet" href="styles/adicionarDocumentos.css">
+        <link rel="stylesheet" href="styles/certidoes.css">
+
+        <!-- Estilos específicos da view -->
+        <link rel="stylesheet" href="styles/verDocumento.css">
+        </head>
+
+    <body>
+        <header class="document-view-header">
+            <a href="documentos.html" class="back-button" aria-label="Voltar">&#x25C0;</a>
+
+            <div class="document-view-header-center">
+                <h1 class="document-view-title" id="headerDocumentTitle">Documento</h1>
+                <span class="document-created-date" id="headerDocumentDate">--/--/----</span>
+            </div>
+
+            <button id="optionsKebabButton" class="kebab-button" aria-haspopup="menu" aria-expanded="false" aria-controls="optionsKebabMenu" title="Mais opções">⋮</button>
+
+            <div id="optionsKebabMenu" class="kebab-menu" role="menu" aria-hidden="true">
+                <button id="editDocumentButton" class="kebab-menu-item" role="menuitem">Editar</button>
+                <button id="deleteDocumentButton" class="kebab-menu-item danger" role="menuitem">Excluir</button>
+            </div>
+        </header>
+
+        <main class="document-view-main" style="padding: 40px">
+            <!-- STATUS -->
+            <section class="status-section">
+                <button id="statusSelectorButton" class="status-selector" aria-haspopup="listbox" aria-expanded="false" aria-controls="statusOptionsList">
+                    <div>
+                        <span id="statusDot" class="status-dot status-dot-pendente"></span>
+                        <strong class="status-label" id="statusLabel">Pendente</strong>
+                    </div>
+                    <span class="status-caret">▾</span>
+                </button>
+
+                <div id="statusOptionsList" class="status-dropdown" role="listbox" aria-hidden="true">
+                    <div class="status-option" data-status="Pendente">
+                    <span class="status-dot status-dot-pendente"></span> Pendente
+                    </div>
+                    <div class="status-option" data-status="Em Andamento">
+                    <span class="status-dot status-dot-andamento"></span> Em andamento
+                    </div>
+                    <div class="status-option" data-status="Concluído">
+                    <span class="status-dot status-dot-concluido"></span> Concluído
+                    </div>
+                </div>
+            </section>
+
+            <!-- CLIENTE -->
+            <section class="customer-section">
+            <div class="customer-box">
+                <img src="assets/pessoa.png" width="24" height="24" alt="" aria-hidden="true">
+                <strong id="customerName">Nome do cliente</strong>
+            </div>
+            </section>
+
+            <!-- AGENDADO -->
+            <section class="scheduled-section">
+                <div class="scheduled-card">
+                    <h3 class="scheduled-title">Agendado</h3>
+                    <p id="scheduledDescription">[Descrição do compromisso]</p>
+                    <p id="scheduledWhen">Amanhã, 16/07/2025 às 16hrs</p>
+                </div>
+            </section>
+
+            <!-- ITENS -->
+            <div class="section">
+                <h2>Detalhes</h2>
+                <a href="servicos.html" class="item">
+                    <div class="tipo">
+                        <img src="assets/documento.png" alt="serviços">
+                        <p>Serviços</p>
+                    </div>
+
+                    <img src="assets/seta.png">
+                </a>
+
+                <a href="certidoes.html" class="item">
+                    <div class="tipo">
+                        <img src="assets/certidoes.png" alt="serviços">
+                        <p>Certidões</p>
+                    </div>
+
+                    <img src="assets/seta.png">
+                </a>
+
+                <a href="taxas.html" class="item">
+                    <div class="tipo">
+                        <img src="assets/taxas.png" alt="serviços">
+                        <p>Taxas</p>
+                    </div>
+
+                    <img src="assets/seta.png">
+                </a>
+            </div>
+
+            <!-- DETALHES -->
+            <fieldset class="annotation-box">
+                <legend>Detalhes</legend>
+                <textarea id="documentDetails" readonly placeholder="Sem detalhes"></textarea>
+            </fieldset>
+
+            <!-- ARQUIVOS -->
+            <div class="file-section">
+            <label>Arquivos</label>
+            <div id="documentFilesContainer" class="file-preview"></div>
+            </div>
+
+            <!-- PAGAMENTOS -->
+            <section class="fixed-card-section">
+            <div class="fixed-card">
+                <h3>Últimos pagamentos</h3>
+                <div class="fixed-card-separator"></div>
+                <div id="lastPaymentsList">
+                <p>R$ 10,00 recebido no dia 16/07/2025</p>
+                <p>R$ 15,00 recebido no dia 18/07/2025</p>
+                </div>
+            </div>
+            </section>
+
+            <!-- CUSTOS -->
+            <section class="fixed-card-section">
+            <div class="fixed-card">
+                <h3>Últimos custos</h3>
+                <div class="fixed-card-separator"></div>
+                <div id="lastCostsList">
+                <p>R$ 20,00 gastos no dia 16/07/2025</p>
+                </div>
+            </div>
+            </section>
+        </main>
+
+        <footer class="result-footer">
+            <div id="resultValue" class="result-text">Resultado: R$ 35,00</div>
+        </footer>
+
+        <script type="module" src="scripts/verDocumento.js"></script>
+    </body>
+</html>

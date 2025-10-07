@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('electron', {
 
 contextBridge.exposeInMainWorld('files', {
     choose: (options) => ipcRenderer.invoke('files:choose', options || {}),
+    exists: (absPath) => ipcRenderer.invoke('files:exists', absPath),
     openPath: (absPath) => ipcRenderer.invoke('files:openPath', absPath),
 })
 
@@ -33,6 +34,10 @@ contextBridge.exposeInMainWorld('api', {
     documentos: {
         create: (payload) => ipcRenderer.invoke('documentos:create', payload),
         getUltimoId: () => ipcRenderer.invoke('documentos:getUltimoId'),
+        getById: (id) => ipcRenderer.invoke('documentos:getById', id),
+        updateStatus: ({ id, status }) => ipcRenderer.invoke('documentos:updateStatus', { id, status }),
+        update: (payload) => ipcRenderer.invoke('documentos:update', payload),
+        delete: (id) => ipcRenderer.invoke('documentos:delete', id),
     },
     listDocumentos: {
         list: (opts) => ipcRenderer.invoke('listDocumentos:list', opts),

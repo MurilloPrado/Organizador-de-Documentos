@@ -20,7 +20,7 @@ function isPdf(name, mime=''){ const e=getExt(name); return mime==='application/
 function isDoc(name, mime=''){ const e=getExt(name); return mime==='application/msword' || mime==='application/vnd.openxmlformats-officedocument.wordprocessingml.document' || e==='doc' || e==='docx'; }
 
 export function iconFor(item){
-  const nome = item?.nomeOriginal || '';
+  const nome = item?.nomeOriginal || item?.nomeArquivo || item?.urlArquivo || '';
   const mime = (item?.mimeArquivo || guessMimeFromName(nome) || '').toLowerCase();
   if (isImg(nome, mime)) return 'assets/img.png';
   if (isPdf(nome, mime)) return 'assets/pdf.png';

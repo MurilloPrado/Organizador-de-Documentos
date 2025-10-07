@@ -160,4 +160,139 @@ module.exports = (ipcMain, db) => {
         return row?.ultimo || 0;
     });
 
+    ipcMain.handle('documentos:getById', async (_event, idDocumento) => {
+  const documento = db.prepare(`
+    SELECT d.idDocumento, d.idCliente, d.nomeDocumento, d.dataCriado, d.statusDocumento, d.detalhes
+    FROM documentos d
+    WHERE d.idDocumento = ?
+  `).get(idDocumento);
+
+  if (!documento) return null;
+
+  const cliente = db.prepare(`
+    SELECT idCliente, nome
+    FROM clientes
+    WHERE idCliente = ?
+  `).get(documento.idCliente);
+
+  const arquivos = db.prepare(`
+    SELECT idArquivo, idDocumento, urlArquivo, tipoArquivo, nomeArquivo
+    FROM arquivosDocumento
+    WHERE idDocumento = ?
+    ORDER BY idArquivo ASC
+  `).all(idDocumento);
+
+  const lancamentos = db.prepare(`
+    SELECT idLancamento, idDocumento, tipoLancamento, tituloLancamento, detalhes, valor
+    FROM lancamentos
+    WHERE idDocumento = ?
+    ORDER BY idLancamento ASC
+  `).all(idDocumento);
+
+  return { documento, cliente, arquivos, lancamentos };
+});
+
+
+// Atualizar apenas o status do documento
+ipcMain.handle('documentos:updateStatus', async (_event, { id, status }) => {
+  const allowedStatuses = ['Pendente', 'Em Andamento', 'Concluído'];
+  if (!allowedStatuses.includes(status)) {
+    throw new Error('Status inválido.');
+  }
+
+  db.prepare(`
+    UPDATE documentos
+    SET statusDocumento = ?
+    WHERE idDocumento = ?
+  `).run(status, id);
+
+  return { ok: true };
+});
+
+
+// Atualizar documento completo (nome, detalhes, cliente, status)
+ipcMain.handle('documentos:update', async (_event, payload) => {
+  const { idDocumento, nomeDocumento, detalhes, idCliente, nomeCliente, statusDocumento } = payload;
+
+  // Obter documento atual
+  const documentoAtual = db.prepare(`
+    SELECT d.idDocumento, d.idCliente, d.nomeDocumento, c.nome AS nomeCliente
+    FROM documentos d
+    JOIN clientes c ON c.idCliente = d.idCliente
+    WHERE d.idDocumento = ?
+  `).get(idDocumento);
+
+  if (!documentoAtual) throw new Error('Documento não encontrado.');
+
+  // Verifica cliente novo
+  let clienteNovo = null;
+  if (idCliente) {
+    clienteNovo = db.prepare(`SELECT idCliente, nome FROM clientes WHERE idCliente = ?`).get(idCliente);
+  } else if (nomeCliente) {
+    clienteNovo = db.prepare(`SELECT idCliente, nome FROM clientes WHERE nome = ?`).get(nomeCliente);
+    if (!clienteNovo) {
+      const res = db.prepare(`INSERT INTO clientes (nome) VALUES (?)`).run(nomeCliente);
+      clienteNovo = { idCliente: res.lastInsertRowid, nome: nomeCliente };
+    }
+  } else {
+    clienteNovo = { idCliente: documentoAtual.idCliente, nome: documentoAtual.nomeCliente };
+  }
+
+  // Diretório padrão
+  const row = db.prepare('SELECT caminho FROM diretorioPadrao WHERE id = 1').get();
+  if (!row?.caminho) throw new Error('Diretório padrão não configurado.');
+  const basePath = row.caminho;
+
+  // Caminho antigo
+  const nomeClienteAntigoSafe = gerarNomeSeguro(documentoAtual.nomeCliente);
+  const pastaClienteAntiga = path.join(basePath, `${nomeClienteAntigoSafe}-${documentoAtual.idCliente}`);
+  const pastaDocumentoAntiga = path.join(pastaClienteAntiga, gerarNomeSeguro(documentoAtual.nomeDocumento));
+
+  // Caminho novo
+  const nomeClienteNovoSafe = gerarNomeSeguro(clienteNovo.nome);
+  const pastaClienteNova = path.join(basePath, `${nomeClienteNovoSafe}-${clienteNovo.idCliente}`);
+  garantirDiretorio(pastaClienteNova);
+  const pastaDocumentoNova = path.join(pastaClienteNova, gerarNomeSeguro(nomeDocumento || documentoAtual.nomeDocumento));
+  garantirDiretorio(pastaDocumentoNova);
+
+  // Move a pasta se necessário
+  if (pastaDocumentoAntiga !== pastaDocumentoNova && fs.existsSync(pastaDocumentoAntiga)) {
+    await fsp.cp(pastaDocumentoAntiga, pastaDocumentoNova, { recursive: true });
+    // opcional: remover antiga depois de copiar
+    // await fsp.rm(pastaDocumentoAntiga, { recursive: true, force: true });
+
+    // Atualizar urls dos arquivos
+    const arquivos = db.prepare(`SELECT idArquivo, nomeArquivo FROM arquivosDocumento WHERE idDocumento = ?`).all(idDocumento);
+    const updateArquivo = db.prepare(`UPDATE arquivosDocumento SET urlArquivo = ? WHERE idArquivo = ?`);
+
+    for (const arquivo of arquivos) {
+      const novoCaminho = path.join(pastaDocumentoNova, arquivo.nomeArquivo);
+      if (fs.existsSync(novoCaminho)) {
+        updateArquivo.run(novoCaminho, arquivo.idArquivo);
+      }
+    }
+  }
+
+  // Atualizar registro do documento
+  db.prepare(`
+    UPDATE documentos
+    SET idCliente = ?, nomeDocumento = ?, detalhes = ?, statusDocumento = ?
+    WHERE idDocumento = ?
+  `).run(clienteNovo.idCliente, nomeDocumento || documentoAtual.nomeDocumento, detalhes || null, statusDocumento || documentoAtual.statusDocumento, idDocumento);
+
+  return { ok: true };
+})
+
+
+// Excluir documento
+ipcMain.handle('documentos:delete', async (_event, idDocumento) => {
+  const tx = db.transaction((id) => {
+    db.prepare(`DELETE FROM arquivosDocumento WHERE idDocumento = ?`).run(id);
+    db.prepare(`DELETE FROM lancamentos WHERE idDocumento = ?`).run(id);
+    db.prepare(`DELETE FROM documentos WHERE idDocumento = ?`).run(id);
+  });
+  tx(idDocumento);
+  return { ok: true };
+});
+
 }

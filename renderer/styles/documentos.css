@@ -132,15 +132,15 @@
   
   /* Cores específicas */
   .status-bar.pending {
-    background-color: #f4c430; /* amarelo */
+    background-color: #ffde59; /* amarelo */
   }
   
   .status-bar.completed {
-    background-color: #2ecc71; /* verde */
+    background-color: #00bf63; /* verde */
   }
   
   .status-bar.progress {
-    background-color: #00bcd4; /* azul claro */
+    background-color: #0cc0df; /* azul claro */
   }
   
   .doc-content div {

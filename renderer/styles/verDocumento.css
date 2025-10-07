@@ -1,0 +1,181 @@
+/* Cabeçalho do documento */
+.document-view-header{
+  background:#f1f1f1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:15px 20px;
+  border-bottom:4px solid #0057d9;
+}
+
+/* Container central do header (título + data) */
+.document-view-header-center{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  margin:auto;
+  gap:2px;
+}
+
+.document-view-title{
+  font-size:24px;
+  font-weight:700;
+  margin:0;
+  line-height:1.2;
+}
+
+.document-created-date{
+  font-size:12px;
+  font-weight:600;
+  opacity:.8;
+}
+
+/* Botão de opções (três pontos) */
+.kebab-button{
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  font-size:40px;
+  line-height:1;
+}
+
+/* Menu de opções */
+.kebab-menu{
+  position:absolute;
+  right:16px;
+  top:64px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+  padding:8px 0;
+  display:none;
+  z-index:1000;
+}
+.kebab-menu[aria-hidden="false"]{ display:block; }
+.kebab-menu-item{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:transparent;
+  border:none;
+  padding:10px 14px;
+  cursor:pointer;
+  font-size:15px;
+}
+.kebab-menu-item:hover{ background:#f5f5f5; }
+.kebab-menu-item.danger{ color:#b91c1c; }
+
+/* Seções */
+.document-view-main{ padding:40px; }
+
+.status-section{ margin-bottom:24px; position:relative; }
+.status-selector{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#e6e6e6;
+  padding:1px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  border:none;
+}
+.status-caret{ 
+  font-size:40px; 
+  margin-top: 5px;
+}
+.status-dot{ 
+  width:20px; 
+  height:20px; 
+  border-radius:50%; 
+  margin-right:20px; 
+  display:inline-block; 
+}
+.status-label{
+  font-size: 20px;
+}
+
+.status-dot-pendente{ background:#ffde59; }
+.status-dot-andamento{ background:#0cc0df; }
+.status-dot-concluido{ background:#00bf63; }
+.status-dropdown{
+  position:absolute;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  margin-top:6px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+  padding:6px 0;
+  display:none;
+  z-index:1000;
+  width:100%;
+}
+.status-dropdown[aria-hidden="false"]{ display:block; }
+.status-option{ display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; }
+.status-option:hover{ background:#f5f5f5; }
+
+.customer-section{ margin:20px 0; }
+.customer-box{
+  border:1px solid #000;
+  border-radius:12px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+
+.scheduled-section{ margin:12px 0 24px; }
+.scheduled-card{
+  background:#e6e6e6;
+  border-radius:12px;
+  padding:16px 20px;
+}
+.scheduled-title{ color:#0b74de; margin:0 0 6px; }
+
+
+.item img{
+  height: 30px;
+  width: 30px;
+}
+
+.item img:hover {
+  transform: scale(1.10);
+}
+
+.fixed-card-section{ margin:22px 0; }
+.fixed-card{
+  background:#e6e6e6;
+  border-radius:12px;
+  padding:16px 20px;
+}
+.fixed-card-separator{
+  height:1px;
+  background:#000;
+  opacity:.2;
+  margin:8px 0 12px;
+}
+.fixed-card p{ margin:6px 0; }
+
+#documentDetails[readonly] {
+  cursor: default;     /* seta normal, não de texto */
+  pointer-events: none;/* evita clique e foco */
+  background: #f5f5f5; /* opcional: deixa mais parecido com div */
+}
+
+.result-footer{
+  position:fixed;
+  left:0; right:0; bottom:0;
+  border-top:4px solid #0057d9;
+  background:#f1f1f1;
+  padding:10px 0;
+  text-align:center;
+}
+.result-text{ font-weight:700; }
