@@ -292,4 +292,25 @@ module.exports = (ipcMain, db) => {
     tx(idDocumento);
     return { ok: true };
   });
+
+  // Lançamentos
+  ipcMain.handle('documentos:addLancamento', async (_evt, payload) => {
+    const stmt = db.prepare(`
+      INSERT INTO lancamentos (idDocumento, tipoLancamento, tituloLancamento, detalhes, valor)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const resultado = stmt.run(
+      Number(payload.idDocumento),
+      String(payload.tipoLancamento || 'servico'),
+      payload.tituloLancamento || null,
+      payload.detalhes || null,
+      Number(payload.valor) || 0,
+    );
+    return { idLancamento: resultado.lastInsertRowid } 
+  });
+
+  ipcMain.handle('documentos:deleteLancamento', async (_evt, idLancamento) => {
+    db.prepare(`DELETE FROM lancamentos WHERE idLancamento = ?`).run(Number(idLancamento));
+    return { ok: true };
+  });
 };
