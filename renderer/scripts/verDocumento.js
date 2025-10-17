@@ -1,10 +1,7 @@
-// scripts/verDocumento.js
-// Página "verDocumento": carrega dados do documento, controla dropdown de status,
 // renderiza arquivos e gerencia menu de opções (editar/excluir).
 import { iconFor, openFileExtern } from './common/filesSection.js';
 
 
-// =============== Utilidades de seleção ===============
 function selectOne(selector) {
   return document.querySelector(selector);
 }
@@ -12,7 +9,7 @@ function selectMany(selector) {
   return Array.from(document.querySelectorAll(selector));
 }
 
-// =============== Referências de UI ===============
+
 const headerDocumentTitleElement = selectOne('#headerDocumentTitle');
 const headerDocumentDateElement = selectOne('#headerDocumentDate');
 
@@ -33,7 +30,7 @@ const optionsKebabMenu = selectOne('#optionsKebabMenu');
 const editDocumentButton = selectOne('#editDocumentButton');
 const deleteDocumentButton = selectOne('#deleteDocumentButton');
 
-// =============== Estado local ===============
+// Estado carregado
 let loadedDocumentBundle = null;
 
 // =============== Leitura do ID via URL ===============
@@ -43,7 +40,7 @@ function getDocumentIdFromUrl() {
   return Number.isFinite(idAsNumber) ? idAsNumber : 0;
 }
 
-// =============== Helpers visuais e formatações ===============
+// botão status
 function toggleElementVisibility(element, shouldShow) {
   element.style.display = shouldShow ? 'block' : 'none';
   element.setAttribute('aria-hidden', String(!shouldShow));
@@ -60,6 +57,7 @@ function setStatusVisual(statusText) {
   statusDotElement.className = `status-dot ${info.dotClass}`;
 }
 
+// formatação de data
 function setCreatedDateInHeader(createdAtRaw) {
   if (!createdAtRaw) {
     headerDocumentDateElement.textContent = '--/--/----';
@@ -77,6 +75,7 @@ function setCreatedDateInHeader(createdAtRaw) {
   headerDocumentDateElement.textContent = `${day}/${month}/${year}`;
 }
 
+// conversão de moeda
 function formatCurrencyToBRL(value) {
   try {
     return (value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -86,7 +85,7 @@ function formatCurrencyToBRL(value) {
   }
 }
 
-// =============== Arquivos (render-only) ===============
+//
 function renderFilesReadOnly(fileItems) {
   documentFilesContainer.innerHTML = '';
   if (!fileItems || fileItems.length === 0) {
@@ -228,5 +227,24 @@ deleteDocumentButton.addEventListener('click', async () => {
   }
 });
 
-// =============== Inicialização ===============
+// 
+(() => {
+  const url = new URL(window.location.href);
+  const documentId = Number(url.searchParams.get('id') || 0);
+  if (!documentId) return;
+
+  const srv = document.querySelector('a[href="servicos.html"]');
+  if (srv) srv.href = `servicos.html?ctx=view&id=${documentId}&tipo=servico`;
+
+  const taxas = document.querySelector('a[href="taxas.html"]');
+  if (taxas) taxas.href = `taxas.html?ctx=view&id=${documentId}&tipo=taxa`;
+
+  console.log('[verDocumento] links setados:', {
+    id: documentId,
+    servicosHref: srv?.href,
+    taxasHref: taxas?.href,
+  });
+})();
+
+
 loadDocumentAndRender();

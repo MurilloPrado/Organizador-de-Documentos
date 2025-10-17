@@ -1,6 +1,28 @@
 import{ KEY, pushArray, setArray, removeArray, getArray } from './common/localStorage.js';
 import { toNumber, toBRL } from './common/money.js';
 
+// identificar modo da página (create/view)
+const params = new URLSearchParams(window.location.search);
+const ctx = (params.get('ctx') || 'create').toLowerCase();
+const isViewMode = ctx === 'view';
+const docId = Number(params.get('id') || 0);
+let isDeleting = false;
+
+/* verificação */
+console.groupCollapsed('SERVIÇOS :: contexto');
+console.log('search =>', window.location.search);
+console.log('ctx =>', ctx);
+console.log('docId =>', docId);
+console.log('isViewMode =>', isViewMode);
+console.groupEnd();
+
+
+let tipoLancamento = (params.get('tipo') || '').toLowerCase();
+if (!tipoLancamento) {
+  if (window.location.pathname.includes('taxa')) tipoLancamento = 'taxa';
+  else tipoLancamento = 'servico'; // padrão
+}
+
 const tipoElement = document.getElementById('tipo');
 const formContainer = document.getElementById('formContainer');
 const listContainer = document.getElementById('listContainer');
@@ -12,6 +34,7 @@ const newItemButton = document.getElementById('new-item-button');
 const saveButton = document.getElementById('save-button');
 const listaElement = document.getElementById('lista');
 const subtotal = document.getElementById('subtotal');
+const topLink = document.querySelector('header a');
 
 const MAP = {
     servico: KEY.servicos,
@@ -29,6 +52,14 @@ inputValor.addEventListener('input', () => {
     const numero = Number(digitos) / 100;
     inputValor.value = toBRL(numero);
 });
+
+// troca icone
+if (topLink && isViewMode) {
+    topLink.href = docId ? `verDocumento.html?id=${docId}` : 'verDocumento.html';
+    topLink.innerHTML = '&#x25C0;'; // ◀
+    topLink.classList.remove('cancel-button');
+    topLink.classList.add('back-button');
+} 
 
 function getAll() {
     return getArray(currentKey()) || [];
@@ -57,7 +88,7 @@ export function remove(index){
 }
 
 function setMode(mode){
-    const showForm = mode === 'form';
+    const showForm = isViewMode && mode === 'form';
     if(formContainer) formContainer.style.display = showForm ? 'block' : 'none';
     if(listContainer) listContainer.style.display = showForm ? 'none' : 'block';
 }
@@ -70,6 +101,15 @@ function renderList() {
     if(!listContainer) return;
     const itens = getAll();
     listaElement.innerHTML = '';
+
+    if(!itens || itens.length === 0) {
+        listaElement.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;text-align:center;color:#6b7280;padding:24px;font-weight:600;">
+        Não existem ${tipoLancamento === 'taxa' ? 'taxas adicionadas' : 'serviços adicionados'}.  
+        </div>`;
+        if (subtotal) subtotal.textContent = 'Subtotal: R$ 0,00';
+        return;
+    }
 
     itens.forEach((item, i) => {
         const card = document.createElement('div');
@@ -85,14 +125,17 @@ function renderList() {
         const rodape = document.createElement('div');
         rodape.className = 'servicos-rodape';
 
-        const remover = document.createElement('img');
-        remover.src = 'assets/excluir.png';
-        remover.alt = 'Excluir';
-        remover.style.cursor = 'pointer';
-        remover.onclick = () => {
-            remove(i);
-            refresh();
-        };
+        if (!isViewMode || isDeleting){
+            const remover = document.createElement('img');
+            remover.src = 'assets/excluir.png';
+            remover.alt = 'Excluir';
+            remover.style.cursor = 'pointer';
+            remover.onclick = async () => {
+                remove(i);
+                await refresh();
+            };
+            rodape.append(remover);
+        }
 
         const valorBox = document.createElement('div');
         valorBox.className = 'valor';
@@ -102,7 +145,7 @@ function renderList() {
         vp.textContent = `R$ ${toBRL(item.valor)}`;
         valorBox.append(vh3, vp);
 
-        rodape.append(remover, valorBox);
+        rodape.append(valorBox);
         card.append(h3, p, rodape);
         listaElement.appendChild(card);
     });
@@ -113,7 +156,13 @@ function renderList() {
     }
 }
 
-function refresh() {
+async function refresh() {
+    if(isViewMode){
+        setMode('list');
+        await renderList();
+        return;
+    }
+
     if(hasItens()) {
         setMode('list');
         renderList();
@@ -142,10 +191,14 @@ if(newItemButton){
     newItemButton.onclick = () => setMode('form');
 }
 
-if(saveButton){
-    saveButton.onclick = () => {
-        window.location.href = 'adicionarDocumentos.html';
-    }
+if (saveButton){
+  saveButton.onclick = () => {
+    // se veio do verDocumento (view), volta para ele com o mesmo id; senão, volta para adicionarDocumentos
+    const back = isViewMode
+      ? (docId ? `verDocumento.html?id=${docId}` : 'verDocumento.html')
+      : 'adicionarDocumentos.html';
+    window.location.href = back;
+  }
 };
 
 refresh();
