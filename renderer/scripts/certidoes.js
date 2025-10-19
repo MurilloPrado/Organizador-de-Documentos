@@ -123,7 +123,7 @@ function makeCard(item, {allowDelete}) {
   card.innerHTML = `
     <img src="${iconFor(item)}" alt="arquivo">
     <span class="tituloArquivo">${titulo}</span>
-    ${allowDelete && allowDelete ? `<div class="delete-icon" data-url="${item.urlArquivo}"><img src="assets/delete.png" alt="Remover"></div>` : ''}
+    ${allowDelete && isDeleting ? `<div class="delete-icon" data-url="${item.urlArquivo}"><img src="assets/delete.png" alt="Remover"></div>` : ''}
   `;
 
   card.addEventListener('click', async (e) => {
@@ -145,6 +145,9 @@ function makeCard(item, {allowDelete}) {
       renderList();
       return;
     };
+    if(!isDeleting && item.urlArquivo){
+      openFileExtern(item.urlArquivo);
+    }
   });
 
   return card;

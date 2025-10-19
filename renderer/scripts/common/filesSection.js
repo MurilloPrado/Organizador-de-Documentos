@@ -9,7 +9,7 @@ export function openFileExtern(absPath){
 }
 
 function getExt(name=''){
-  const b = name.toLowerCase().split('/').pop().split('\\').pop();
+  const b = String(name).toLowerCase().split('/').pop().split('\\').pop();
   const i = b.lastIndexOf('.');
   return i >= 0 ? b.substring(i+1) : '';
 }
@@ -20,7 +20,7 @@ function isPdf(name, mime=''){ const e=getExt(name); return mime==='application/
 function isDoc(name, mime=''){ const e=getExt(name); return mime==='application/msword' || mime==='application/vnd.openxmlformats-officedocument.wordprocessingml.document' || e==='doc' || e==='docx'; }
 
 export function iconFor(item){
-  const nome = item?.nomeOriginal || item?.nomeArquivo || item?.urlArquivo || '';
+  const nome = item?.urlArquivo || item?.nomeOriginal || item?.nomeArquivo || '';
   const mime = (item?.mimeArquivo || guessMimeFromName(nome) || '').toLowerCase();
   if (isImg(nome, mime)) return 'assets/img.png';
   if (isPdf(nome, mime)) return 'assets/pdf.png';

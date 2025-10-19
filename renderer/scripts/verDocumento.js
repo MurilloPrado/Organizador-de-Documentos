@@ -1,6 +1,6 @@
 // renderiza arquivos e gerencia menu de opções (editar/excluir).
-import { iconFor, openFileExtern } from './common/filesSection.js';
-
+import { iconFor, openFileExtern, setupSharedModal, pickPaths } from './common/filesSection.js';
+import { KEY } from './common/localStorage.js';
 
 function selectOne(selector) {
   return document.querySelector(selector);
@@ -29,6 +29,8 @@ const optionsKebabButton = selectOne('#optionsKebabButton');
 const optionsKebabMenu = selectOne('#optionsKebabMenu');
 const editDocumentButton = selectOne('#editDocumentButton');
 const deleteDocumentButton = selectOne('#deleteDocumentButton');
+
+const addFileFab = document.getElementById('addFileFab');
 
 // Estado carregado
 let loadedDocumentBundle = null;
@@ -110,6 +112,41 @@ function renderFilesReadOnly(fileItems) {
     documentFilesContainer.appendChild(fileRowElement);
   });
 }
+
+const currentDocIdForFab = getDocumentIdFromUrl();
+const addFileModal = setupSharedModal({
+  storageKey: KEY.arquivos,
+  modalIds: {
+    modalId: 'file-preview-modal',
+    titleId: 'file-title-input',
+    saveBtnId: 'file-save-button',
+    cancelBtnId: 'file-cancel-button',
+    iconSelector: '#file-preview-modal .certidao-preview > img',
+  },
+
+  defaultTipo: 'arquivo',
+  onAfterSave: async () => {
+    // recarrega a lista de arquivos
+    await loadDocumentAndRender();
+  },
+  persist: async (item) => {
+    const payload = {
+      idDocumento:  currentDocIdForFab,
+      urlArquivo:   String(item.urlArquivo || '').trim(),
+      tipoArquivo:  'arquivo',
+      tituloArquivo:String(item.nomeArquivo || item.nomeOriginal || '').trim(),
+    };
+    await window.api.documentos.addArquivo(payload);
+  },
+});
+
+addFileFab.addEventListener('click', async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const paths = await pickPaths({ multi: true });
+  if(!paths?.length) return;
+  addFileModal.enqueuePaths(paths);
+});
 
 // =============== Carregar e renderizar documento ===============
 async function loadDocumentAndRender() {

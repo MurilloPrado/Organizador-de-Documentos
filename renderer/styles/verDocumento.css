@@ -179,3 +179,12 @@
   text-align:center;
 }
 .result-text{ font-weight:700; }
+
+.caixa-arquivos{ position: relative; }
+.caixa-arquivos .add {
+  position: absolute; 
+  right: 35px; 
+  top: 50%; 
+  transform: translateY(-50%);
+  /* resto do seu estilo do FAB */
+}

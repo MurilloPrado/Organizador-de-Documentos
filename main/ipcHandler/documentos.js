@@ -356,6 +356,7 @@ module.exports = (ipcMain, db) => {
     fs.copyFileSync(urlOrigem, destino);
 
     // insere no banco 
+    const nomeBanco = (tituloArquivo || '').trim() || path.basename(destino);
     const stmt = db.prepare(`
       INSERT INTO arquivosDocumento (idDocumento, urlArquivo, tipoArquivo, nomeArquivo)
       VALUES (?, ?, ?, ?)
@@ -364,7 +365,7 @@ module.exports = (ipcMain, db) => {
       idDocumento,
       destino,
       tipoArquivo,
-      path.basename(destino),
+      nomeBanco,
     );
 
     return {
@@ -372,8 +373,8 @@ module.exports = (ipcMain, db) => {
       idDocumento,
       urlArquivo: destino,
       tipoArquivo,
-      nomeArquivo: path.basename(destino),
-      tituloArquivo: tituloArquivo,
+      nomeArquivo: nomeBanco,
+      tituloArquivo: nomeBanco,
     };
   });
 
