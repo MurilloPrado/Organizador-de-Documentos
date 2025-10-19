@@ -45,6 +45,7 @@ export function setupSharedModal({
   modalIds: { modalId, titleId, saveBtnId, cancelBtnId, iconSelector },
   defaultTipo = 'arquivo',
   onAfterSave,                      // callback opcional (ex.: re-render)
+  persist, // salva fora do localStorage (ex.: DB)
 }){
   const modal        = document.getElementById(modalId);
   const modalTitle   = document.getElementById(titleId);
@@ -69,7 +70,7 @@ export function setupSharedModal({
     showModal(pendingQueue.shift());
   }
 
-  function saveFromModal(){
+  async function saveFromModal(){
     if(!currentItem) return;
     const titulo = (modalTitle?.value || '').trim() || titleFrom(currentItem.nomeOriginal || '');
     const toSave = {
@@ -79,12 +80,24 @@ export function setupSharedModal({
       nomeOriginal: currentItem.nomeOriginal || '',
       mimeArquivo:  guessMimeFromName(currentItem.nomeOriginal || ''),
     };
-    pushArray(storageKey, toSave);
-    onAfterSave?.(toSave);
-    processNext();
+    
+    try {
+      if(typeof persist === 'function'){
+        // modo view
+        await persist(toSave);
+      } else {
+        // modo create
+        await pushArray(storageKey, toSave);
+      }
+      onAfterSave?.(toSave);
+    } catch(err){
+        console.error('Erro ao salvar arquivo:', err);
+    } finally {
+        processNext();
+    }
   }
 
-  saveButton?.addEventListener('click', saveFromModal);
+  saveButton?.addEventListener('click', () => { saveFromModal(); });
   cancelButton?.addEventListener('click', processNext);
 
   return {
@@ -92,7 +105,11 @@ export function setupSharedModal({
     enqueuePaths(paths){
       for(const p of paths){
         const nome = p.split('/').pop().split('\\').pop();
-        pendingQueue.push({ urlArquivo: p, nomeOriginal: nome });
+        pendingQueue.push({ 
+          urlArquivo: p, 
+          nomeOriginal: nome,
+          tipoArquivo: defaultTipo, 
+        });
       }
       if(!currentItem) processNext();
     }

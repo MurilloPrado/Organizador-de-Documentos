@@ -313,4 +313,95 @@ module.exports = (ipcMain, db) => {
     db.prepare(`DELETE FROM lancamentos WHERE idLancamento = ?`).run(Number(idLancamento));
     return { ok: true };
   });
+
+  ipcMain.handle('documentos:addArquivo', async (_evt, payload) => {
+    const idDocumento = Number(payload?.idDocumento);
+    const urlOrigem = String(payload?.urlArquivo || '').trim();
+    const tipoArquivo = String(payload?.tipoArquivo || 'arquivo');
+    const tituloArquivo = String(payload?.tituloArquivo || '').trim();
+
+    if (!idDocumento || !urlOrigem) {
+      throw new Error('ID do documento e URL do arquivo são obrigatórios.');
+    }
+
+    // obtem documento e cliente
+    const doc = db.prepare(`
+      SELECT d.idDocumento, d.nomeDocumento, c.idCliente, c.nome AS nomeCliente 
+      FROM documentos d 
+      JOIN clientes c ON c.idCliente = d.idCliente
+      WHERE idDocumento = ?
+    `).get(idDocumento);
+    if(!doc) throw new Error('Documento não encontrado.');
+
+    // monta pasta
+    const row = db.prepare('SELECT caminho FROM diretorioPadrao WHERE id = 1').get();
+    if (!row?.caminho) {
+      throw new Error('Diretório padrão não está configurado.');
+    }
+    const base = row.caminho;
+
+    const nomeClienteSeguro = gerarNomeSeguro(doc.nomeCliente);
+    const nomeDocumentoSeguro = gerarNomeSeguro(doc.nomeDocumento);
+    const caminhoPastaCliente = path.join(base, nomeClienteSeguro);
+    const caminhoPastaDocumento = path.join(caminhoPastaCliente, nomeDocumentoSeguro);
+    garantirDiretorio(caminhoPastaCliente);
+    garantirDiretorio(caminhoPastaDocumento);
+  
+    // copia o arquivo
+    const nomeOrigem = path.basename(urlOrigem);
+    let destino = path.join(caminhoPastaDocumento, nomeOrigem);
+    if (fs.existsSync(destino)) {
+      destino = path.join(caminhoPastaDocumento, `doc-${idDocumento}-${nomeOrigem}`);
+    }
+    fs.copyFileSync(urlOrigem, destino);
+
+    // insere no banco 
+    const stmt = db.prepare(`
+      INSERT INTO arquivosDocumento (idDocumento, urlArquivo, tipoArquivo, nomeArquivo)
+      VALUES (?, ?, ?, ?)
+    `);
+    const resultado = stmt.run(
+      idDocumento,
+      destino,
+      tipoArquivo,
+      path.basename(destino),
+    );
+
+    return {
+      idArquivo: resultado.lastInsertRowid,
+      idDocumento,
+      urlArquivo: destino,
+      tipoArquivo,
+      nomeArquivo: path.basename(destino),
+      tituloArquivo: tituloArquivo,
+    };
+  });
+
+  ipcMain.handle('documentos:removeArquivo', async (_evt, arg) => {
+    const payload = typeof arg === 'number' ? { idArquivo: arg } : (arg || {});
+    const idArquivo = Number(payload.idArquivo || 0);
+    const removePhysical = payload.removePhysical !== false; // default: true
+
+    if (!idArquivo) throw new Error('idArquivo obrigatório.');
+
+    const row = db.prepare(`
+      SELECT idArquivo, idDocumento, urlArquivo
+      FROM arquivosDocumento
+      WHERE idArquivo = ?
+    `).get(idArquivo);
+
+    if (!row) throw new Error('Arquivo não encontrado.');
+
+    const del = db.prepare(`DELETE FROM arquivosDocumento WHERE idArquivo = ?`).run(idArquivo);
+
+    if (removePhysical && row.urlArquivo) {
+      try {
+        if (fs.existsSync(row.urlArquivo)) fs.unlinkSync(row.urlArquivo);
+      } catch (e) {
+        console.warn('[documentos:removeArquivo] falha ao remover arquivo físico:', e);
+      }
+    }
+
+    return { ok: true, deleted: del.changes, idArquivo, urlArquivo: row.urlArquivo };
+  });
 };

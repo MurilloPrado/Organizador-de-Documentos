@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld('api', {
         delete: (id) => ipcRenderer.invoke('documentos:delete', id),
         addLancamento: (payload) => ipcRenderer.invoke('documentos:addLancamento', payload),
         deleteLancamento: (id) => ipcRenderer.invoke('documentos:deleteLancamento', id),
+        addArquivo: (payload) => ipcRenderer.invoke('documentos:addArquivo', payload),
+        removeArquivo: (args) => ipcRenderer.invoke('documentos:removeArquivo', args),
     },
     listDocumentos: {
         list: (opts) => ipcRenderer.invoke('listDocumentos:list', opts),

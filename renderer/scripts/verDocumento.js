@@ -153,7 +153,11 @@ async function loadDocumentAndRender() {
   documentDetailsTextarea.value = documento?.detalhes || '';
 
   // Arquivos
-  renderFilesReadOnly(arquivos);
+  const somenteArquivos = Array.isArray(arquivos)
+    ? arquivos.filter(a => String(a?.tipoArquivo).toLowerCase() === 'arquivo')
+    : [];
+
+  renderFilesReadOnly(somenteArquivos);
 
   // Resultado (fixo por enquanto, pronto para cálculo real depois)
   const fixedResultValue = 35;
@@ -235,6 +239,11 @@ deleteDocumentButton.addEventListener('click', async () => {
 
   const srv = document.querySelector('a[href="servicos.html"]');
   if (srv) srv.href = `servicos.html?ctx=view&id=${documentId}&tipo=servico`;
+  
+  const cert = document.querySelector('a[href="certidoes.html"]');
+  if (cert) {
+    cert.href = `certidoes.html?ctx=view&id=${documentId}`;
+  }
 
   const taxas = document.querySelector('a[href="taxas.html"]');
   if (taxas) taxas.href = `taxas.html?ctx=view&id=${documentId}&tipo=taxa`;
@@ -242,6 +251,7 @@ deleteDocumentButton.addEventListener('click', async () => {
   console.log('[verDocumento] links setados:', {
     id: documentId,
     servicosHref: srv?.href,
+    certidoesHref: cert?.href,
     taxasHref: taxas?.href,
   });
 })();
