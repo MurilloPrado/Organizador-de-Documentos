@@ -123,7 +123,7 @@ function makeCard(item, {allowDelete}) {
   card.innerHTML = `
     <img src="${iconFor(item)}" alt="arquivo">
     <span class="tituloArquivo">${titulo}</span>
-    ${allowDelete && isDeleting ? `<div class="delete-icon" data-url="${item.urlArquivo}"><img src="assets/delete.png" alt="Remover"></div>` : ''}
+    ${ allowDelete ? `<div class="delete-icon" data-url="${item.urlArquivo}"><img src="assets/delete.png" alt="Remover"></div>` : ''}
   `;
 
   card.addEventListener('click', async (e) => {
@@ -168,7 +168,7 @@ async function renderList(){
 
   listaArquivos.innerHTML = '';
   itens.forEach((item)=>{
-    const card = makeCard(item, { allowDelete: isViewMode ? isDeleting : true });
+    const card = makeCard(item, { allowDelete: !isViewMode || isDeleting });
     listaArquivos.appendChild(card);
   });
 }

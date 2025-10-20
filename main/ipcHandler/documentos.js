@@ -127,7 +127,11 @@ module.exports = (ipcMain, db) => {
           const origem = String(arquivo.urlArquivo || '').trim();
           if (!origem) continue;
 
-          const nomeArquivo = path.basename(origem);
+          const ext = path.extname(origem);
+          const nomeEditado = String(arquivo.nomeArquivo || arquivo.tituloArquivo || '').trim();
+
+          const nomeArquivo = nomeEditado ? `${nomeEditado}${ext}` : path.basename(origem);
+
           // Evita conflitos de nome
           const destinoArquivo = path.join(caminhoPastaDocumento, nomeArquivo);
           const destinoFinal = fs.existsSync(destinoArquivo)
