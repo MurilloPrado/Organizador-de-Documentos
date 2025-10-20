@@ -177,6 +177,7 @@ async function addLancamentosToDB({ nome, detalhes, valor }) {
         tituloLancamento: String(nome||'').trim() || 'Sem nome',
         detalhes: detalhes || null,
         valor: toNumber(valor) || 0,
+        createdAt: new Date().toISOString(),
     };
 
     await window.api.documentos.addLancamento(payload);

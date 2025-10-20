@@ -101,8 +101,8 @@ module.exports = (ipcMain, db) => {
       // Insere os arquivos relacionados
       if (Array.isArray(payload.lancamentos)) {
         const inserirLancamento = db.prepare(`
-          INSERT INTO lancamentos (idDocumento, tipoLancamento, detalhes, valor, tituloLancamento)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO lancamentos (idDocumento, tipoLancamento, detalhes, valor, tituloLancamento, createdAt)
+          VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
         `);
 
         for (const item of payload.lancamentos) {
@@ -112,6 +112,7 @@ module.exports = (ipcMain, db) => {
             item.detalhes || null,
             Number(item.valor) || 0,
             item.tituloLancamento || null,
+            item.createdAt || null,
           );
         }
       }
@@ -178,7 +179,7 @@ module.exports = (ipcMain, db) => {
     `).all(idDocumento);
 
     const lancamentos = db.prepare(`
-      SELECT idLancamento, idDocumento, tipoLancamento, tituloLancamento, detalhes, valor
+      SELECT idLancamento, idDocumento, tipoLancamento, tituloLancamento, detalhes, valor, createdAt
       FROM lancamentos
       WHERE idDocumento = ?
       ORDER BY idLancamento ASC
@@ -282,22 +283,97 @@ module.exports = (ipcMain, db) => {
     return { ok: true };
   });
 
-  // Excluir documento
+  function isSubPath(parent, child) {
+    const rel = path.relative(parent, child);
+    return rel && !rel.startsWith('..') && !path.isAbsolute(rel);
+  }
+
+  // Excluir documento (FS + DB)
   ipcMain.handle('documentos:delete', async (_event, idDocumento) => {
+    idDocumento = Number(idDocumento);
+
+    // 1) Descobrir baseDir e dados do documento/cliente
+    const rowBase = db.prepare('SELECT caminho FROM diretorioPadrao WHERE id = 1').get();
+    const baseDir = rowBase?.caminho || null;
+
+    const doc = db.prepare(`
+      SELECT d.idDocumento, d.nomeDocumento, d.idCliente, c.nome AS nomeCliente
+      FROM documentos d
+      JOIN clientes c ON c.idCliente = d.idCliente
+      WHERE d.idDocumento = ?
+    `).get(idDocumento);
+
+    // 2) Coletar todos os caminhos de arquivo do doc
+    const arquivos = db.prepare(`
+      SELECT urlArquivo
+      FROM arquivosDocumento
+      WHERE idDocumento = ?
+    `).all(idDocumento);
+
+    // 3) Remover os arquivos individuais
+    for (const a of arquivos) {
+      const filePath = a?.urlArquivo;
+      if (!filePath) continue;
+      try {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn('[documentos:delete] falha ao remover arquivo:', filePath, e);
+      }
+    }
+
+    // 4) Tentar remover as pastas do documento (com base nos pais dos arquivos)
+    const docDirs = new Set(
+      arquivos
+        .map(a => a?.urlArquivo ? path.dirname(a.urlArquivo) : null)
+        .filter(Boolean)
+    );
+
+    for (const dir of docDirs) {
+      try {
+        if (baseDir && isSubPath(baseDir, dir) && fs.existsSync(dir)) {
+          await fsp.rm(dir, { recursive: true, force: true });
+        }
+      } catch (e) {
+        console.warn('[documentos:delete] falha ao remover pasta do doc:', dir, e);
+      }
+    }
+
+    // 5) Caso não haja arquivos no banco (ou pastas detectadas), tenta caminhos "esperados"
+    if (baseDir && doc) {
+      const clienteSafe = gerarNomeSeguro(doc.nomeCliente);
+      const docSafe = gerarNomeSeguro(doc.nomeDocumento);
+
+      // Suporta os dois padrões existentes no seu código (com e sem "-id")
+      const candidateA = path.join(baseDir, `${clienteSafe}-${doc.idCliente}`, docSafe);
+      const candidateB = path.join(baseDir, clienteSafe, docSafe);
+
+      for (const cand of [candidateA, candidateB]) {
+        try {
+          if (isSubPath(baseDir, cand) && fs.existsSync(cand)) {
+            await fsp.rm(cand, { recursive: true, force: true });
+          }
+        } catch (e) {
+          console.warn('[documentos:delete] falha ao remover pasta esperada:', cand, e);
+        }
+      }
+    }
+
+    // 6) Por fim, limpar o banco
     const tx = db.transaction((id) => {
       db.prepare(`DELETE FROM arquivosDocumento WHERE idDocumento = ?`).run(id);
-      db.prepare(`DELETE FROM lancamentos WHERE idDocumento = ?`).run(id);
-      db.prepare(`DELETE FROM documentos WHERE idDocumento = ?`).run(id);
+      db.prepare(`DELETE FROM lancamentos       WHERE idDocumento = ?`).run(id);
+      db.prepare(`DELETE FROM documentos        WHERE idDocumento = ?`).run(id);
     });
     tx(idDocumento);
+
     return { ok: true };
   });
 
   // Lançamentos
   ipcMain.handle('documentos:addLancamento', async (_evt, payload) => {
     const stmt = db.prepare(`
-      INSERT INTO lancamentos (idDocumento, tipoLancamento, tituloLancamento, detalhes, valor)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO lancamentos (idDocumento, tipoLancamento, tituloLancamento, detalhes, valor, createdAt)
+      VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
     `);
     const resultado = stmt.run(
       Number(payload.idDocumento),
@@ -305,6 +381,7 @@ module.exports = (ipcMain, db) => {
       payload.tituloLancamento || null,
       payload.detalhes || null,
       Number(payload.valor) || 0,
+      payload.createdAt || null,
     );
     return { idLancamento: resultado.lastInsertRowid } 
   });

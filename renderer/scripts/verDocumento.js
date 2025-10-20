@@ -24,6 +24,7 @@ const documentDetailsTextarea = selectOne('#documentDetails');
 const documentFilesContainer = selectOne('#documentFilesContainer');
 
 const resultValueElement = selectOne('#resultValue');
+const lastCostList = selectOne('#lastCostsList');
 
 const optionsKebabButton = selectOne('#optionsKebabButton');
 const optionsKebabMenu = selectOne('#optionsKebabMenu');
@@ -79,12 +80,62 @@ function setCreatedDateInHeader(createdAtRaw) {
 
 // conversão de moeda
 function formatCurrencyToBRL(value) {
+  const num = Number(value) || 0;
+
   try {
-    return (value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return num.toLocaleString('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL',  
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   } catch {
-    const normalized = Number(value || 0).toFixed(2).replace('.', ',');
-    return `R$ ${normalized}`;
+    const normalized = num.toFixed(2).replace('.', ',');
+    return `${normalized}`;
   }
+}
+
+// formatação de data
+function formatDateBR(value){
+  if(!value) return '--/--/----';
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return '--/--/----';
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth() + 1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function getLancamentoDate(l){
+  return (
+    l?.dataLancamento ||
+    l?.criadoEm ||
+    l?.createdAt ||
+    l?.dataCriado ||
+    l?.updatedAt ||
+    null
+  );
+}
+
+function renderTaxasList(taxas = []){
+  if(!lastCostList) return;
+  if(!Array.isArray(taxas) || taxas.length === 0){
+    lastCostList.innerHTML = '<p>Nenhum custo registrado.</p>';
+    return;
+  }
+
+  const ordered = [...taxas].sort((a,b) => {
+    const da = new Date(getLancamentoDate(a)).getTime() || 0;
+    const db = new Date(getLancamentoDate(b)).getTime() || 0;
+    return db - da;
+  });
+
+  const lastest = ordered.slice(0,10);
+  lastCostList.innerHTML = lastest.map(t => {
+    const valor = formatCurrencyToBRL(t?.valor || 0);
+    const quando = formatDateBR(getLancamentoDate(t));
+    return `<p style="margin-left: 10px">${valor} gasto no dia ${quando}</p>`;
+  }).join('');
 }
 
 //
@@ -196,9 +247,28 @@ async function loadDocumentAndRender() {
 
   renderFilesReadOnly(somenteArquivos);
 
-  // Resultado (fixo por enquanto, pronto para cálculo real depois)
-  const fixedResultValue = 35;
-  resultValueElement.textContent = `Resultado: ${formatCurrencyToBRL(fixedResultValue)}`;
+  // Resultado 
+  const lancs = Array.isArray(loadedDocumentBundle?.lancamentos)
+    ? loadedDocumentBundle.lancamentos
+    : [];
+
+  const servicos = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'servico');
+  const taxas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'taxa');
+
+  const totalServicos = servicos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
+  const totalTaxas = taxas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
+  const resultadoFinal = totalServicos - totalTaxas;
+
+  resultValueElement.textContent = `Resultado: ${formatCurrencyToBRL(resultadoFinal)}`;
+  if (resultadoFinal > 0) {
+    resultValueElement.style.color = '#004aad'; 
+  } else if (resultadoFinal < 0) {
+    resultValueElement.style.color = '#dc3545'; 
+  } else {
+    resultValueElement.style.color = 'black'; 
+  }
+
+  renderTaxasList(taxas);
 }
 
 // =============== Interações: Status (dropdown) ===============
