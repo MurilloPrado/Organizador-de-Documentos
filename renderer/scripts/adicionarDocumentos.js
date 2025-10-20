@@ -16,6 +16,7 @@ const clienteInput = document.getElementById("clienteInput");
 const detalhesInput = document.getElementById("detalhes");
 const fileInput = document.getElementById("fileInput");
 const previewArquivo = document.querySelector(".preview-arquivo");
+const dataCriacaoEl = document.getElementById("data-criado");
 
 // LocalStorage keys
 const LS_SERVICOS = 'lancamentos_servicos';
@@ -91,6 +92,14 @@ tituloInput.addEventListener('keydown', (ev) => {
     tituloInput.blur();
   }
 });
+
+if(dataCriacaoEl){
+  const hoje = new Date();
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const ano = hoje.getFullYear();
+  dataCriacaoEl.textContent = `${dia}/${mes}/${ano}`;
+}
 
 const DRAFT = {
   titulo: 'draft.tituloDocumento',
