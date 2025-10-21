@@ -321,7 +321,7 @@ document.addEventListener('click', (event) => {
 editDocumentButton.addEventListener('click', () => {
   const documentId = getDocumentIdFromUrl();
   // Mantém a tela de adicionar como "modo edição"
-  window.location.href = `adicionarDocumentos.html?mode=edit&id=${encodeURIComponent(documentId)}`;
+  //window.location.href = `adicionarDocumentos.html?mode=edit&id=${encodeURIComponent(documentId)}`;
 });
 
 deleteDocumentButton.addEventListener('click', async () => {

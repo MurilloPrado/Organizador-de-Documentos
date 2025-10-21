@@ -446,7 +446,7 @@ module.exports = (ipcMain, db) => {
     fs.copyFileSync(urlOrigem, destino);
 
     // insere no banco 
-    const ext = path.extname(origem);
+    const ext = path.extname(urlOrigem);
     const nomeDesejado = (tituloArquivo || '').trim();
     const nomeBanco = ensureExt(nomeDesejado || path.basename(destino), ext);
     const stmt = db.prepare(`
