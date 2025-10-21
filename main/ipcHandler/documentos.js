@@ -22,6 +22,15 @@ function gerarNomeSeguro(texto) {
     .trim(); // Remove espaços em branco do início e fim
 }
 
+// remove extensão
+function ensureExt (name, fallbackExt) {
+  const n = String (name || '').trim();
+  const ext = path.extname(n);
+  if(ext) return n; //ja tem extensão
+  const f = String(fallbackExt || '');
+  return f ? `${n}${f}` : n; // adiciona a extensão
+}
+
 // Cria a pasta do cliente, garantindo que não haja conflitos
 function criarPastaCliente(diretorioBase, nomeCliente, idCliente) {
   const nomeClienteSeguro = gerarNomeSeguro(nomeCliente || 'cliente');
@@ -130,7 +139,7 @@ module.exports = (ipcMain, db) => {
           const ext = path.extname(origem);
           const nomeEditado = String(arquivo.nomeArquivo || arquivo.tituloArquivo || '').trim();
 
-          const nomeArquivo = nomeEditado ? `${nomeEditado}${ext}` : path.basename(origem);
+          const nomeArquivo = nomeEditado ? ensureExt(nomeEditado, ext) : path.basename(origem);
 
           // Evita conflitos de nome
           const destinoArquivo = path.join(caminhoPastaDocumento, nomeArquivo);
@@ -437,7 +446,9 @@ module.exports = (ipcMain, db) => {
     fs.copyFileSync(urlOrigem, destino);
 
     // insere no banco 
-    const nomeBanco = (tituloArquivo || '').trim() || path.basename(destino);
+    const ext = path.extname(origem);
+    const nomeDesejado = (tituloArquivo || '').trim();
+    const nomeBanco = ensureExt(nomeDesejado || path.basename(destino), ext);
     const stmt = db.prepare(`
       INSERT INTO arquivosDocumento (idDocumento, urlArquivo, tipoArquivo, nomeArquivo)
       VALUES (?, ?, ?, ?)

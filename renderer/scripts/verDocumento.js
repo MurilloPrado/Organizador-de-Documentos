@@ -154,8 +154,8 @@ function renderFilesReadOnly(fileItems) {
     fileRowElement.className = 'files';
     const iconPath = iconFor(fileItem);
     fileRowElement.innerHTML = `
-      <img src="${iconPath}" alt="">
-      <span class="tituloArquivo">${fileItem?.nomeArquivo || 'arquivo'}</span>
+      <img src="${iconPath}" alt="" title="${fileItem.nomeArquivo}">
+      <span class="tituloArquivo" title="${fileItem.nomeArquivo}">${fileItem?.nomeArquivo || 'arquivo'}</span>
     `;
     fileRowElement.addEventListener('click', () => {
       if (fileItem?.urlArquivo) openFileExtern(fileItem.urlArquivo);

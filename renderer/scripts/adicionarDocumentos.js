@@ -155,8 +155,8 @@ function renderInline(){
     row.className = 'files';
     row.innerHTML = `
       <div class="delete-file-icon"><img src="assets/delete.png" alt="Remover"></div>
-      <img src="${iconFor(item)}" alt="arquivo">
-      <span class="tituloArquivo">${item.nomeArquivo}</span>
+      <img src="${iconFor(item)}" alt="arquivo" title="${item.nomeArquivo}">
+      <span class="tituloArquivo" title="${item.nomeArquivo}">${item.nomeArquivo}</span>
     `;
 
     row.addEventListener('click', ()=> openFileExtern(item.urlArquivo));
@@ -286,6 +286,7 @@ async function salvarDocumento() {
 
     if(!nomeCliente) {
       alert('Por favor, informe o nome do cliente antes de salvar o documento.');
+      clienteInput?.focus();
       return;
     }
 

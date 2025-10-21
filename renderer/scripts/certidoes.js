@@ -121,8 +121,8 @@ function makeCard(item, {allowDelete}) {
   card.className = 'certidao-preview';
   const titulo = item.nomeArquivo || item.tituloArquivo || item.nomeOriginal || 'arquivo';
   card.innerHTML = `
-    <img src="${iconFor(item)}" alt="arquivo">
-    <span class="tituloArquivo">${titulo}</span>
+    <img src="${iconFor(item)}" alt="arquivo" title="${titulo}">
+    <span class="tituloArquivo" title="${titulo}">${titulo}</span>
     ${ allowDelete ? `<div class="delete-icon" data-url="${item.urlArquivo}"><img src="assets/delete.png" alt="Remover"></div>` : ''}
   `;
 
