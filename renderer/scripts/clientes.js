@@ -52,4 +52,15 @@ async function carregarClientes() {
   }
 }
 
+container.addEventListener('click', (e) => {
+  const card = e.target.closest('.preview-cliente');
+  if (!card) return;
+  const id = card.getAttribute('data-id');
+  if (!id) return;
+
+  // redireciona para o modo "view"
+  window.location.href = `adicionarClientes.html?id=${encodeURIComponent(id)}`;
+});
+
+
 document.addEventListener('DOMContentLoaded', carregarClientes);

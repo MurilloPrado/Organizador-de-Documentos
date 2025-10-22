@@ -13,8 +13,16 @@
     <body>
 
         <header>
-            <a href="clientes.html"><img src="assets/x.png" alt="cancelar" class="cancel-button"></a>
+            <a id="headerBackLink" href="clientes.html" class="back-button" aria-label="Voltar">&#x25C0;</a>
+            <a href="clientes.html"><img id="headerCancelImg" src="assets/x.png" alt="cancelar" class="cancel-button" style="display:none; cursor:pointer;"></a>
             <div class="title">Adicionar cliente</div>
+
+            <button id="optionsKebabButton" class="kebab-button" aria-haspopup="menu" aria-expanded="false" aria-controls="optionsKebabMenu" title="Mais opções">⋮</button>
+
+            <div id="optionsKebabMenu" class="kebab-menu hidden" role="menu" aria-hidden="true">
+                <button id="editClienteButton" class="kebab-menu-item" role="menuitem">Editar</button>
+                <button id="deleteClienteButton" class="kebab-menu-item danger" role="menuitem">Excluir</button>
+            </div>
         </header>
 
         <main>

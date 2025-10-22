@@ -25,6 +25,9 @@ contextBridge.exposeInMainWorld('api', {
         list: () => ipcRenderer.invoke('clientes:list'),
         create: (payload) => ipcRenderer.invoke('clientes:create', payload),
         searchPrefix: (prefix) => ipcRenderer.invoke('clientes:searchPrefix', prefix),
+        getById:     (id)=> ipcRenderer.invoke('clientes:getById', id),
+        update:      (p) => ipcRenderer.invoke('clientes:update', p),
+        delete:      (id)=> ipcRenderer.invoke('clientes:delete', id),
     },
     settings: {
         chooseDirectory: () => ipcRenderer.invoke('settings:chooseDirectory'),
