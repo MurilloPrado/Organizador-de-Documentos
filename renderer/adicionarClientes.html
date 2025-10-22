@@ -18,68 +18,67 @@
         </header>
 
         <main>
-            <fieldset class="annotation-box">
-                <legend>Nome do Cliente</legend>
-                <input id="nome" type="text">
-            </fieldset> 
-            
-            <legend>Tipo de cliente</legend>
-            <div class="tipo-cliente">
-                <label>
-                    <input type="radio" name="tipo" value="fisica"> Pessoa Física
-                </label>
-                <label>
-                    <input type="radio" name="tipo" value="juridica"> Pessoa Jurídica
-                </label>
-            </div>
+        <fieldset class="annotation-box">
+            <legend>Nome do Cliente</legend>
+            <input id="nome" type="text">
+        </fieldset> 
 
-            <fieldset class="annotation-box">
-                <legend>CPF</legend>
-                <input type="text">
-            </fieldset> 
+        <legend>Tipo de cliente</legend>
+        <div class="tipo-cliente">
+            <label>
+                <input id="tipo-fisica" type="radio" name="tipo" value="fisica"> Pessoa Física
+            </label>
+            <label>
+                <input id="tipo-juridica" type="radio" name="tipo" value="juridica"> Pessoa Jurídica
+            </label>
+        </div>
 
-            <fieldset class="annotation-box">
-                <legend>E-mail</legend>
-                <input type="email">
-            </fieldset> 
+        <fieldset class="annotation-box">
+            <legend id="cadastro-label">CPF</legend>
+            <input id="cadastro-geral" type="text">
+        </fieldset> 
 
-            <fieldset class="annotation-box">
-                <legend>Telefone</legend>
-                <input id="tel" type="text">
-            </fieldset> 
+        <fieldset class="annotation-box">
+            <legend>E-mail</legend>
+            <input id="email" type="email">
+        </fieldset> 
 
-            <h2>Endereço</h2>
+        <fieldset class="annotation-box">
+            <legend>Telefone</legend>
+            <input id="tel" type="text">
+        </fieldset> 
 
-            <fieldset class="annotation-box">
-                <legend>CEP</legend>
-                <input type="text">
-            </fieldset> 
+        <h2>Endereço</h2>
 
-            <fieldset class="annotation-box">
-                <legend>Cidade</legend>
-                <input type="text">
-            </fieldset> 
+        <fieldset class="annotation-box">
+            <legend>CEP</legend>
+            <input id="cep" type="text">
+        </fieldset> 
 
-            <fieldset class="annotation-box">
-                <legend>Bairro</legend>
-                <input type="text">
-            </fieldset> 
+        <fieldset class="annotation-box">
+            <legend>Cidade</legend>
+            <input id="cidade" type="text"> 
+        </fieldset> 
 
-            <fieldset class="annotation-box">
-                <legend>Número</legend>
-                <input type="text">
-            </fieldset> 
+        <fieldset class="annotation-box">
+            <legend>Bairro</legend>
+            <input id="bairro" type="text"> 
+        </fieldset> 
 
-            <fieldset class="annotation-box">
-                <legend>Complemento</legend>
-                <input type="text">
-            </fieldset> 
+        <fieldset class="annotation-box">
+            <legend>Número</legend>
+            <input id="numero" type="text">
+        </fieldset> 
 
-            <button id="save-button" class="save-button" style="margin-bottom: 20px;">Salvar cliente</button>
+        <fieldset class="annotation-box">
+            <legend>Complemento</legend>
+            <input id="complemento" type="text">
+        </fieldset> 
 
-            <script src="scripts/adicionarClientes.js"></script>
+        <button id="save-button" class="save-button" style="margin-bottom: 20px;">Salvar cliente</button>
 
+        <script src="scripts/adicionarClientes.js"></script>
         </main>
-    
+
     </body>
 </html>

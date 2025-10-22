@@ -3,6 +3,17 @@
 // Seleciona o container onde os cards vão ser inseridos
 const container = document.getElementById('cliente-container');
 
+function formatPhone(v) {
+  const d = String(v ?? '').replace(/\D+/g, '');
+  if (d.length === 10) {
+    return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6,10)}`;
+  }
+  if (d.length === 11) {
+    return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7,11)}`;
+  }
+  return v || '-';
+}
+
 // Função para escapar HTML e evitar XSS
 function safe(v) {
   return String(v ?? '')
@@ -11,15 +22,15 @@ function safe(v) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
-}
+};
 
 // Função para criar o HTML de um card
 function renderCard(cliente) {
   return `
-    <div class="preview-cliente">
+    <div class="preview-cliente" data-id="${safe(cliente.id)}">
       <div>
         <h3>${safe(cliente.nome)}</h3>
-        <p>${safe(cliente.tel || '-')}</p>
+        <p>${safe(formatPhone(cliente.tel))}</p>
       </div>
       <img src="assets/seta.png">
     </div>

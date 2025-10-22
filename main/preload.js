@@ -23,7 +23,7 @@ contextBridge.exposeInMainWorld('api', {
     clientes: {
         //funções que serão responsáveis pelos dados
         list: () => ipcRenderer.invoke('clientes:list'),
-        create: (data) => ipcRenderer.invoke('clientes:create', data),
+        create: (payload) => ipcRenderer.invoke('clientes:create', payload),
         searchPrefix: (prefix) => ipcRenderer.invoke('clientes:searchPrefix', prefix),
     },
     settings: {
