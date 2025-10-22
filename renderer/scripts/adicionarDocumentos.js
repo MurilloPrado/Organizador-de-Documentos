@@ -329,3 +329,29 @@ saveDocumentBtn?.addEventListener('click', (e)=>{
   e.preventDefault(); e.stopPropagation();
   salvarDocumento();
 });
+
+function handleSair(ev) {
+  ev?.preventDefault?.();
+
+  try {
+    // 1) limpa estados conhecidos do app (rascunhos e listas)
+    clearAllStates(); // já existe no arquivo
+
+    // 2) limpa quaisquer outras chaves residuais do localStorage
+    localStorage.clear();
+  } catch (e) {
+    console.warn('[logout] falha ao limpar cache:', e);
+  }
+
+  window.location.href = 'documentos.html';
+}
+
+function bindLogoutButtons() {
+  ['#sair', '[data-action="sair"]', '.btn-sair'].forEach((sel) => {
+    document.querySelectorAll(sel).forEach((el) => {
+      el.addEventListener('click', handleSair);
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', bindLogoutButtons);
