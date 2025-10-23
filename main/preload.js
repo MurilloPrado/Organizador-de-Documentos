@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld('api', {
     //Aqui fica os arquivos IPCs que realizaram a conexão segura
     clientes: {
         //funções que serão responsáveis pelos dados
-        list: () => ipcRenderer.invoke('clientes:list'),
+        list: (opts) => ipcRenderer.invoke('clientes:list', opts),
         create: (payload) => ipcRenderer.invoke('clientes:create', payload),
         searchPrefix: (prefix) => ipcRenderer.invoke('clientes:searchPrefix', prefix),
         getById:     (id)=> ipcRenderer.invoke('clientes:getById', id),

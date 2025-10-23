@@ -1,10 +1,71 @@
 //Recolhe os dados de clientes
 
 module.exports = (ipcMain, db) => {
-    //Lista todos os clientes
-    ipcMain.handle('clientes:list', () => {
-        return db.prepare('SELECT IDcliente AS id, nome, tel FROM clientes ORDER BY IDcliente DESC').all();
+    // Função para normalizar texto (remove acentos e força minúsculas)
+    function normalize(text) {
+      return String(text || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/ç/g, 'c')
+        .toLowerCase();
+    }
+    if (!db.__norm_registered) {
+      db.function('norm', normalize);
+      db.__norm_registered = true;
+    }
+
+    ipcMain.handle('clientes:list', (_evt, opts = {}) => {
+      const { query = '', limit = 200, offset = 0 } = opts;
+
+      const q = normalize(query);
+
+      let sql = `
+        SELECT DISTINCT
+          c.IDcliente AS id,
+          c.nome,
+          c.tel
+        FROM clientes c
+        LEFT JOIN endereco e ON e.idCliente = c.IDcliente
+        WHERE 1=1
+      `;
+      const params = [];
+
+      if (q) {
+        sql += `
+          AND (
+            norm(c.nome)             LIKE ?
+            OR norm(c.cadastroGeral) LIKE ?
+            OR norm(c.email)         LIKE ?
+            OR norm(c.tel)           LIKE ?
+            OR norm(e.cidade)        LIKE ?
+            OR norm(e.bairro)        LIKE ?
+            OR norm(e.cep)           LIKE ?
+          )
+        `;
+        params.push(
+          `%${q}%`, // nome
+          `%${q}%`, // cadastroGeral
+          `%${q}%`, // email
+          `%${q}%`, // telefone
+          `%${q}%`, // cidade
+          `%${q}%`, // bairro
+          `%${q}%`  // cep
+        );
+      }
+
+      sql += ` ORDER BY c.IDcliente DESC LIMIT ? OFFSET ? `;
+      params.push(Number(limit) || 200, Number(offset) || 0);
+
+      try {
+        console.log('[SQL clientes:list]', sql);
+        console.log('[params]', params);
+        return db.prepare(sql).all(...params);
+      } catch (err) {
+        console.error('[SQL ERROR clientes:list]', err);
+        throw err;
+      }
     });
+
 
     //Cria um novo cliente
     ipcMain.handle('clientes:create', (_evt, payload) => {

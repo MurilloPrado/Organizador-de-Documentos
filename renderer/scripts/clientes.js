@@ -2,6 +2,7 @@
 
 // Seleciona o container onde os cards vão ser inseridos
 const container = document.getElementById('cliente-container');
+const input = document.querySelector('.search-box input');
 
 function formatPhone(v) {
   const d = String(v ?? '').replace(/\D+/g, '');
@@ -24,6 +25,7 @@ function safe(v) {
     .replaceAll("'", '&#039;');
 };
 
+
 // Função para criar o HTML de um card
 function renderCard(cliente) {
   return `
@@ -38,14 +40,12 @@ function renderCard(cliente) {
 }
 
 //Carrega os clientes
-async function carregarClientes() {
+async function carregarClientes(query = '') {
   try {
-    const clientes = await window.api.clientes.list();
-    if (!clientes.length) {
-      container.innerHTML = '<p>Nenhum cliente cadastrado.</p>';
-      return;
-    }
-    container.innerHTML = clientes.map(renderCard).join('');
+    const clientes = await window.api.clientes.list({ query, limit: 200 });
+    container.innerHTML = clientes.length
+      ? clientes.map(renderCard).join('')
+      : '<p>Nenhum cliente encontrado.</p>';
   } catch (err) {
     console.error('Erro ao carregar clientes:', err);
     container.innerHTML = '<p>Erro ao carregar clientes.</p>';
@@ -62,5 +62,12 @@ container.addEventListener('click', (e) => {
   window.location.href = `adicionarClientes.html?id=${encodeURIComponent(id)}`;
 });
 
+let t;
+input.addEventListener('input', () => {
+  clearTimeout(t);
+  const q = input.value || '';
+  t = setTimeout(() => carregarClientes(q), 200);
+});
 
-document.addEventListener('DOMContentLoaded', carregarClientes);
+
+document.addEventListener('DOMContentLoaded', () => carregarClientes(''));
