@@ -31,7 +31,7 @@ function createMainWindow() {
         });
 
 
-    //Menu.setApplicationMenu(null);
+    Menu.setApplicationMenu(null);
 
     mainWindow.loadURL(startUrl);
 
