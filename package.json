@@ -5,7 +5,38 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.organizadordocumentos.app",
+    "productName": "Organizador Documentos",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist/**/*",
+      "main/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    },
+
+    "publish": [
+      { "provider": "github", "owner": "MurilloPrado", "repo": "Organizador-de-Documentos" }
+    ]
   },
   "keywords": [
     "electron",
@@ -15,10 +46,12 @@
   "author": "Murillo",
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^12.2.0",
-    "electron": "^37.2.5"
+    "better-sqlite3": "^12.2.0"
   },
   "devDependencies": {
-    "@electron/rebuild": "^4.0.1"
+    "@electron/rebuild": "^4.0.1",
+    "builder": "^5.0.0",
+    "electron": "^38.4.0",
+    "electron-updater": "^6.6.2"
   }
 }
