@@ -1,6 +1,6 @@
 {
   "name": "organizadordocumentos",
-  "version": "0.0.2",
+  "version": "0.2.0",
   "description": "Organizador de documentos",
   "main": "main.js",
   "scripts": {
@@ -52,10 +52,10 @@
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^12.2.0",
+    "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2"
   },
   "devDependencies": {
-    "builder": "^5.0.0",
     "electron": "^38.4.0",
     "electron-builder": "^26.0.12"
   }
