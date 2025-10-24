@@ -10,7 +10,7 @@
   },
   "build": {
     "appId": "com.organizadordocumentos.app",
-    "productName": "Organizador Documentos",
+    "productName": "Organizador de Documentos",
     "directories": {
       "output": "dist"
     },
