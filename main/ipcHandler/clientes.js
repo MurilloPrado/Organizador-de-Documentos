@@ -39,6 +39,7 @@ module.exports = (ipcMain, db) => {
             OR norm(c.tel)           LIKE ?
             OR norm(e.cidade)        LIKE ?
             OR norm(e.bairro)        LIKE ?
+            OR norm(e.rua)           LIKE ?
             OR norm(e.cep)           LIKE ?
           )
         `;
@@ -49,6 +50,7 @@ module.exports = (ipcMain, db) => {
           `%${q}%`, // telefone
           `%${q}%`, // cidade
           `%${q}%`, // bairro
+          `%${q}%`,
           `%${q}%`  // cep
         );
       }
@@ -86,6 +88,7 @@ module.exports = (ipcMain, db) => {
         const bairro = e?.bairro || null;
         const numero = e?.numero || null;
         const complemento = e?.complemento || null;
+        const rua = e?.rua || null;
 
         const insertCliente = db.prepare(`
             INSERT INTO clientes (nome, tipoCliente, cadastroGeral, email, tel)
@@ -93,8 +96,8 @@ module.exports = (ipcMain, db) => {
         `);
 
         const insertEndereco = db.prepare(`
-            INSERT INTO endereco (idCliente, cep, cidade, bairro, numero, complemento)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO endereco (idCliente, cep, cidade, bairro, numero, complemento, rua)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
 
         const tx = db.transaction(() => {
@@ -102,7 +105,7 @@ module.exports = (ipcMain, db) => {
             const idCliente = Number(info.lastInsertRowid);
 
             if(endereco) {
-                insertEndereco.run(idCliente, cep, cidade, bairro, numero, complemento);
+                insertEndereco.run(idCliente, cep, cidade, bairro, numero, complemento, rua);
             }
 
             return { id: idCliente };
@@ -137,7 +140,7 @@ module.exports = (ipcMain, db) => {
         if(!cliente) return null;
 
         const endereco = db.prepare(`
-            SELECT cep, cidade, bairro, numero, complemento
+            SELECT cep, cidade, bairro, numero, complemento, rua
             FROM endereco
             WHERE idCliente = ?
             LIMIT 1
@@ -166,6 +169,7 @@ module.exports = (ipcMain, db) => {
     const bairro = e?.bairro || null;
     const numero = e?.numero || null;
     const complemento = e?.complemento || null;
+    const rua = e?.rua || null;
 
     const updateCliente = db.prepare(`
       UPDATE clientes
@@ -175,12 +179,12 @@ module.exports = (ipcMain, db) => {
 
     const selectEndereco = db.prepare(`SELECT COUNT(*) AS n FROM endereco WHERE idCliente = ?`).get(id);
     const insertEndereco = db.prepare(`
-      INSERT INTO endereco (idCliente, cep, cidade, bairro, numero, complemento)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO endereco (idCliente, cep, cidade, bairro, numero, complemento, rua)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
     const updateEndereco = db.prepare(`
       UPDATE endereco
-      SET cep = ?, cidade = ?, bairro = ?, numero = ?, complemento = ?
+      SET cep = ?, cidade = ?, bairro = ?, numero = ?, complemento = ?, rua = ?,
       WHERE idCliente = ?
     `);
 
@@ -188,9 +192,9 @@ module.exports = (ipcMain, db) => {
       updateCliente.run(nome, tipoCliente, cadastroGeral, email, tel, id);
 
       if(selectEndereco?.n > 0){
-        updateEndereco.run(cep, cidade, bairro, numero, complemento, id);
+        updateEndereco.run(cep, cidade, bairro, numero, complemento, rua, id);
       } else {
-        insertEndereco.run(id, cep, cidade, bairro, numero, complemento);
+        insertEndereco.run(id, cep, cidade, bairro, numero, complemento, rua);
       }
 
       return { ok: true };

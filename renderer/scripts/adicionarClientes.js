@@ -9,6 +9,7 @@ const tipoJuridica = document.getElementById('tipo-juridica');
 const cep = document.getElementById('cep');
 const cidade = document.getElementById('cidade');
 const bairro = document.getElementById('bairro');
+const rua = document.getElementById('rua');
 const numero = document.getElementById('numero');
 const complemento = document.getElementById('complemento');
 const saveButton = document.getElementById('save-button');
@@ -101,6 +102,7 @@ async function fillAddressFromCEP(cepStr) {
 
     if (cidade && !norm(cidade.value))  cidade.value  = norm(data.localidade);
     if (bairro && !norm(bairro.value))  bairro.value  = norm(data.bairro);
+    if (rua && !norm(rua.value))  rua.value  = norm(data.rua);
     if (complemento && !norm(complemento.value)) complemento.value = norm(data.complemento);
   } catch (e) {
     console.warn('[viacep] falhou:', e);
@@ -134,7 +136,7 @@ function isEditing()  { return editing; }
 
 // ===== NOVO: utilitários de modo leitura/edição =====
 function setInputsDisabled(disabled) {
-  const allInputs = [nome, tel, email, cadastroGeral, cep, cidade, bairro, numero, complemento, tipoFisica, tipoJuridica];
+  const allInputs = [nome, tel, email, cadastroGeral, cep, cidade, bairro, rua, numero, complemento, tipoFisica, tipoJuridica];
   allInputs.forEach(el => { if (el) el.disabled = disabled; });
 }
 function showSaveButton(show) {
@@ -205,6 +207,7 @@ function fillFormWithData(data) {
   if (cep)          cep.value          = norm(e.cep);
   if (cidade)       cidade.value       = norm(e.cidade);
   if (bairro)       bairro.value       = norm(e.bairro);
+  if (rua)       rua.value       = norm(e.rua);
   if (numero)       numero.value       = norm(e.numero);
   if (complemento)  complemento.value  = norm(e.complemento);
 
@@ -324,6 +327,7 @@ async function handleSalvar() {
   const cepValue = onlyDigits(cep?.value);
   const cidadeValue = norm(cidade?.value);
   const bairroValue = norm(bairro?.value);
+  const ruaValue = norm(rua?.value);
   const numeroValue = norm(numero?.value);
   const complementoValue = norm(complemento?.value);
 
@@ -353,6 +357,7 @@ async function handleSalvar() {
           bairro: bairroValue,
           numero: numeroValue,
           complemento: complementoValue,
+          rua: ruaValue,
         }
       });
       // após salvar, volta a "view" bloqueada de novo
@@ -376,6 +381,7 @@ async function handleSalvar() {
           bairro: bairroValue,
           numero: numeroValue,
           complemento: complementoValue,
+          rua: ruaValue,
         }
       });
       window.location.href = 'clientes.html';
