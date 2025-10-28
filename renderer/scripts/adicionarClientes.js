@@ -102,7 +102,7 @@ async function fillAddressFromCEP(cepStr) {
 
     if (cidade && !norm(cidade.value))  cidade.value  = norm(data.localidade);
     if (bairro && !norm(bairro.value))  bairro.value  = norm(data.bairro);
-    if (rua && !norm(rua.value))  rua.value  = norm(data.rua);
+    if (rua && !norm(rua.value))  rua.value  = norm(data.logradouro);
     if (complemento && !norm(complemento.value)) complemento.value = norm(data.complemento);
   } catch (e) {
     console.warn('[viacep] falhou:', e);

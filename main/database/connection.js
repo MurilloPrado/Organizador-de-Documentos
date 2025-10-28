@@ -45,10 +45,7 @@ function runPragmas(_db) {
 }
 
 function runMigrations(_db) {
-  // Exemplo básico usando PRAGMA user_version
-  // - mantenha suas migrações idempotentes
-  // - sempre em transação quando alterar schema
-
+  // faz atualizações no banco
   const row = _db.prepare('PRAGMA user_version').get();
   const current = row?.user_version ?? 0;
 
@@ -63,14 +60,18 @@ function runMigrations(_db) {
     tx();
   }
 
-  // // Exemplo: próxima versão
-  // if (current < 2) {
-  //   const tx = _db.transaction(() => {
-  //     // ...
-  //     _db.prepare('PRAGMA user_version = 2').run();
-  //   });
-  //   tx();
-  // }
+  if (current < 2) {
+    const tx = _db.transaction(() => {
+      try {
+        _db.prepare('ALTER TABLE endereco ADD COLUMN rua TEXT').run();
+      } catch (err) {
+        // se já existir, ignora o erro (útil em reinstalações)
+        if (!/duplicate column/i.test(err.message)) throw err;
+      }
+      _db.prepare('PRAGMA user_version = 2').run();
+    });
+    tx();
+  }
 }
 
 function initDatabase(app) {
