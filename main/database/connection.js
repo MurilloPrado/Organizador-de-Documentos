@@ -52,14 +52,12 @@ function runMigrations(_db) {
   // Exemplo: migrar para versão 1
   if (current < 1) {
     const tx = _db.transaction(() => {
-      // coloque aqui seus ALTER TABLE / CREATE INDEX etc.
-      // _db.prepare("ALTER TABLE clientes ADD COLUMN createdAt TEXT").run();
-
       _db.prepare('PRAGMA user_version = 1').run();
     });
     tx();
   }
 
+  // adição do campo rua a tabela endereco
   if (current < 2) {
     const tx = _db.transaction(() => {
       try {
@@ -69,6 +67,27 @@ function runMigrations(_db) {
         if (!/duplicate column/i.test(err.message)) throw err;
       }
       _db.prepare('PRAGMA user_version = 2').run();
+    });
+    tx();
+  }
+
+  // adição da tabela contato
+  if (current < 3) {
+    const tx = _db.transaction(() => {
+      try {
+        _db.prepare(`
+          CREATE TABLE IF NOT EXISTS contato (
+            idContato INTEGER PRIMARY KEY AUTOINCREMENT,
+            idCliente INTEGER,
+            nome TEXT,
+            tel TEXT,
+            FOREIGN KEY (idCliente) REFERENCES clientes(IDcliente) ON DELETE CASCADE
+          )
+        `).run();
+      } catch (err) {
+        console.error('Erro ao criar tabela contato:', err);
+      }
+      _db.prepare('PRAGMA user_version = 3').run();
     });
     tx();
   }

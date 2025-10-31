@@ -6,6 +6,8 @@ const cadastroLabel = document.getElementById('cadastro-label');
 const cadastroGeral = document.getElementById('cadastro-geral');
 const tipoFisica = document.getElementById('tipo-fisica');
 const tipoJuridica = document.getElementById('tipo-juridica');
+const nomeContato = document.getElementById('nome-contato');
+const telContato = document.getElementById('tel-contato');
 const cep = document.getElementById('cep');
 const cidade = document.getElementById('cidade');
 const bairro = document.getElementById('bairro');
@@ -200,6 +202,7 @@ if (deleteClienteButton) {
 function fillFormWithData(data) {
   const c = data?.cliente || {};
   const e = data?.endereco || {};
+  const contato = data?.contato || {};
 
   if (nome) nome.value = norm(c.nome);
   const tipo = (c.tipoCliente === 'juridica') ? 'juridica' : 'fisica';
@@ -210,6 +213,9 @@ function fillFormWithData(data) {
   if (cadastroGeral) cadastroGeral.value = norm(c.cadastroGeral);
   if (email)         email.value         = norm(c.email);
   if (tel)           tel.value           = norm(c.tel);
+
+  if (nomeContato) nomeContato.value = norm(contato.nome);
+  if (telContato)  telContato.value  = maskPhoneBR(contato.tel || '');
 
   if (cep)          cep.value          = norm(e.cep);
   if (cidade)       cidade.value       = norm(e.cidade);
@@ -331,6 +337,9 @@ async function handleSalvar() {
   const cadastroGeralValue = onlyDigits(cadastroGeral?.value);
   const tipoValue = getTipoSelecionado();
 
+  const nomeContatoValue = norm(nomeContato?.value);
+  const telContatoValue = onlyDigits(telContato?.value);
+
   const cepValue = onlyDigits(cep?.value);
   const cidadeValue = norm(cidade?.value);
   const bairroValue = norm(bairro?.value);
@@ -365,6 +374,10 @@ async function handleSalvar() {
           numero: numeroValue,
           complemento: complementoValue,
           rua: ruaValue,
+        },
+        contato: {
+          nome: nomeContatoValue,
+          tel: telContatoValue,
         }
       });
       // após salvar, volta a "view" bloqueada de novo
@@ -389,6 +402,10 @@ async function handleSalvar() {
           numero: numeroValue,
           complemento: complementoValue,
           rua: ruaValue,
+        },
+        contato: {
+          nome: norm(nomeContato?.value),
+          tel: onlyDigits(telContato?.value),
         }
       });
       window.location.href = 'clientes.html';

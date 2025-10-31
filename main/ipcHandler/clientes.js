@@ -73,6 +73,7 @@ module.exports = (ipcMain, db) => {
     ipcMain.handle('clientes:create', (_evt, payload) => {
         const c = payload.cliente ?? payload;
         const e = payload.endereco ?? {};
+        const contato = payload.contato ?? {};
 
         const { cliente, endereco} = payload;
         const nome = String(c?.nome || '').trim();
@@ -82,6 +83,9 @@ module.exports = (ipcMain, db) => {
         const cadastroGeral = c?.cadastroGeral || null;
         const email = c?.email || null;
         const tel = c?.tel || null;
+
+        const contatoNome = contato?.nome || null;
+        const contatoTel = contato?.tel || null;
 
         const cep = e?.cep || null;
         const cidade = e?.cidade || null;
@@ -95,6 +99,11 @@ module.exports = (ipcMain, db) => {
             VALUES (?, ?, ?, ?, ?)
         `);
 
+        const insertContato = db.prepare(`
+          INSERT INTO contato (idCliente, nome, tel)
+          VALUES (?, ?, ?)
+        `);
+
         const insertEndereco = db.prepare(`
             INSERT INTO endereco (idCliente, cep, cidade, bairro, numero, complemento, rua)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -103,10 +112,15 @@ module.exports = (ipcMain, db) => {
         const tx = db.transaction(() => {
             const info = insertCliente.run(nome, tipoCliente, cadastroGeral, email, tel);
             const idCliente = Number(info.lastInsertRowid);
+            
+            if (contatoNome || contatoTel) {
+              insertContato.run(idCliente, contatoNome, contatoTel);
+            }
 
             if(endereco) {
                 insertEndereco.run(idCliente, cep, cidade, bairro, numero, complemento, rua);
             }
+
 
             return { id: idCliente };
         });
@@ -139,6 +153,13 @@ module.exports = (ipcMain, db) => {
 
         if(!cliente) return null;
 
+        const contato = db.prepare(`
+          SELECT idContato AS id, nome, tel
+          FROM contato
+          WHERE idCliente = ?
+          LIMIT 1
+        `).get(cid) || {};
+
         const endereco = db.prepare(`
             SELECT cep, cidade, bairro, numero, complemento, rua
             FROM endereco
@@ -146,13 +167,16 @@ module.exports = (ipcMain, db) => {
             LIMIT 1
         `).get(cid) || {};
 
-        return { cliente, endereco };
+
+        return { cliente, contato, endereco };
     });
 
   // Atualizar cliente + endereço
   ipcMain.handle('clientes:update', (_evt, payload) => {
     const c = payload?.cliente;
     const e = payload?.endereco || {};
+    const contato = payload?.contato || {};
+
     if(!c?.id) throw new Error('ID do cliente é obrigatório.');
     const id = Number(c.id);
 
@@ -163,6 +187,9 @@ module.exports = (ipcMain, db) => {
     const cadastroGeral = c?.cadastroGeral || null;
     const email = c?.email || null;
     const tel = c?.tel || null;
+
+    const contatoNome = contato?.nome || null;
+    const contatoTel = contato?.tel || null;
 
     const cep = e?.cep || null;
     const cidade = e?.cidade || null;
@@ -178,15 +205,33 @@ module.exports = (ipcMain, db) => {
     `);
 
     const selectEndereco = db.prepare(`SELECT COUNT(*) AS n FROM endereco WHERE idCliente = ?`).get(id);
+
     const insertEndereco = db.prepare(`
       INSERT INTO endereco (idCliente, cep, cidade, bairro, numero, complemento, rua)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
+
     const updateEndereco = db.prepare(`
       UPDATE endereco
-      SET cep = ?, cidade = ?, bairro = ?, numero = ?, complemento = ?, rua = ?,
+      SET cep = ?, cidade = ?, bairro = ?, numero = ?, complemento = ?, rua = ?
       WHERE idCliente = ?
     `);
+
+    const selectContato = db.prepare(`
+      SELECT idContato FROM contato WHERE idCliente = ? LIMIT 1
+    `);
+
+    const insertContato = db.prepare(`
+      INSERT INTO contato (idCliente, nome, tel)
+      VALUES (?, ?, ?)
+    `);
+
+    const updateContato = db.prepare(`
+      UPDATE contato
+      SET nome = ?, tel = ?
+      WHERE idCliente = ?
+    `);
+
 
     const tx = db.transaction(() => {
       updateCliente.run(nome, tipoCliente, cadastroGeral, email, tel, id);
@@ -195,6 +240,17 @@ module.exports = (ipcMain, db) => {
         updateEndereco.run(cep, cidade, bairro, numero, complemento, rua, id);
       } else {
         insertEndereco.run(id, cep, cidade, bairro, numero, complemento, rua);
+      }
+
+      if (contatoNome || contatoTel) {
+        const found = selectContato.get(id);
+        if (found) {
+          // já tinha contato → atualiza
+          updateContato.run(contatoNome, contatoTel, id);
+        } else {
+          // não tinha → cria agora com o idCliente existente
+          insertContato.run(id, contatoNome, contatoTel);
+        }
       }
 
       return { ok: true };
