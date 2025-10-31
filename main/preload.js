@@ -19,9 +19,10 @@ contextBridge.exposeInMainWorld('files', {
 })
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  onUpdateStatus: (callback) => {
-    ipcRenderer.on('update-status', (_event, data) => callback(data));
-  }
+    onUpdateStatus: (callback) => {
+        ipcRenderer.on('update-status', (_event, data) => callback(data));
+    },
+    confirm: (message) => ipcRenderer.invoke('showConfirm', message),
 });
 
 contextBridge.exposeInMainWorld('api', {

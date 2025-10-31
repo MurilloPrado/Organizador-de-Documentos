@@ -88,6 +88,13 @@ function updateCadastroLabelAndPlaceholder() {
     cadastroGeral.placeholder = (tipo === 'juridica') ? '00.000.000/0000-00' : '000.000.000-00';
     applyCadastroMask();
   }
+
+  const nomeFieldset = document.querySelector('fieldset.annotation-box legend');
+  if (nomeFieldset) {
+    nomeFieldset.textContent = (tipo === 'juridica')
+      ? 'Empresa'
+      : 'Nome do Cliente';
+  }
 }
 
 async function fillAddressFromCEP(cepStr) {
@@ -263,12 +270,12 @@ function updateHeaderIcons() {
 
 // Clique no X
 if (headerCancelImg) {
-  headerCancelImg.addEventListener('click', (e) => {
+  headerCancelImg.addEventListener('click', async (e) => {
     e.preventDefault();
 
     // modo create → cancelar criação
     if (!isViewMode()) {
-      const ok = confirm('Deseja cancelar o cadastro deste cliente?');
+      const ok = await window.electronAPI.confirm('Deseja cancelar o cadastro deste cliente?');
       if (ok) window.location.href = 'clientes.html';
       return;
     }
