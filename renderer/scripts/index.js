@@ -19,6 +19,15 @@ if (window.electronAPI && window.electronAPI.onUpdateStatus) {
       barFill.style.width = '25%';
     }
 
+    if (data.status === 'idle') {
+      text.textContent = 'Programa já atualizado.';
+      barFill.style.width = '100%';
+
+      updateStatusTimeout = setTimeout(() => {
+        box.style.display = 'none';
+      }, 4000);
+    }
+
     if (data.status === 'downloading') {
       const pct = data.progress ?? 0;
       text.textContent = `Atualização em andamento (${pct}%)`;
