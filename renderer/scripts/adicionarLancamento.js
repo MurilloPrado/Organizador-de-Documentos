@@ -20,6 +20,7 @@ console.groupEnd();
 let tipoLancamento = (params.get('tipo') || '').toLowerCase();
 if (!tipoLancamento) {
   if (window.location.pathname.includes('taxa')) tipoLancamento = 'taxa';
+  else if (window.location.pathname.includes('despesa')) tipoLancamento = 'despesa';
   else tipoLancamento = 'servico'; // padrão
 }
 
@@ -40,6 +41,7 @@ const topLink = document.querySelector('header a');
 const MAP = {
     servico: KEY.servicos,
     taxa: KEY.taxas,
+    despesas: KEY.despesas,
 }
 
 const currentKey = () => {
@@ -239,7 +241,7 @@ async function renderList() {
 
         listaElement.innerHTML = `
         <div class="empty-state" style="grid-column:1/-1;text-align:center;color:#6b7280;padding:24px;font-weight:600;">
-        Não existem ${tipoLancamento === 'taxa' ? 'taxas adicionadas' : 'serviços adicionados'}.  
+        ${ tipoLancamento === 'taxa' ? 'Não existem taxas adicionadas.' : tipoLancamento === 'despesa' ? 'Não existem despesas adicionadas.' : 'Não existem serviços adicionados.' }
         </div>`;
         if (subtotal) subtotal.textContent = 'Subtotal: R$ 0,00';
         return;

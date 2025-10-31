@@ -1,7 +1,7 @@
 // Faz as operações básicas com arrays no localStorage
 
 // Cada array é salvo em uma chave específica
-export const KEY = { servicos:'app.servicos', taxas:'app.taxas', certidoes:'app.certidoes', arquivos: 'app.arquivos' };
+export const KEY = { servicos:'app.servicos', taxas:'app.taxas', certidoes:'app.certidoes', despesas: 'app.despesas', arquivos: 'app.arquivos' };
 
 // Retorna o array salvo na chave k ou um array vazio
 export const getArray = k =>{

@@ -117,14 +117,14 @@ function getLancamentoDate(l){
   );
 }
 
-function renderTaxasList(taxas = []){
+function renderCustosList(lista = [], label = 'custo'){
   if(!lastCostList) return;
-  if(!Array.isArray(taxas) || taxas.length === 0){
+  if(!Array.isArray(lista) || lista.length === 0){
     lastCostList.innerHTML = '<p>Nenhum custo registrado.</p>';
     return;
   }
 
-  const ordered = [...taxas].sort((a,b) => {
+  const ordered = [...lista].sort((a,b) => {
     const da = new Date(getLancamentoDate(a)).getTime() || 0;
     const db = new Date(getLancamentoDate(b)).getTime() || 0;
     return db - da;
@@ -254,10 +254,12 @@ async function loadDocumentAndRender() {
 
   const servicos = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'servico');
   const taxas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'taxa');
+  const despesas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'despesa');
 
   const totalServicos = servicos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
   const totalTaxas = taxas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
-  const resultadoFinal = totalServicos - totalTaxas;
+  const totalDespesas = despesas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
+  const resultadoFinal = totalServicos - (totalTaxas + totalDespesas);
 
   resultValueElement.textContent = `Resultado: ${formatCurrencyToBRL(resultadoFinal)}`;
   if (resultadoFinal > 0) {
@@ -268,7 +270,7 @@ async function loadDocumentAndRender() {
     resultValueElement.style.color = 'black'; 
   }
 
-  renderTaxasList(taxas);
+  renderCustosList([...taxas, ...despesas], 'custo');
 }
 
 // =============== Interações: Status (dropdown) ===============
@@ -354,6 +356,9 @@ deleteDocumentButton.addEventListener('click', async () => {
 
   const taxas = document.querySelector('a[href="taxas.html"]');
   if (taxas) taxas.href = `taxas.html?ctx=view&id=${documentId}&tipo=taxa`;
+
+  const despesas = document.querySelector('a[href="despesas.html"]');
+  if (despesas) despesas.href = `despesas.html?ctx=view&id=${documentId}&tipo=despesa`;
 
   console.log('[verDocumento] links setados:', {
     id: documentId,
