@@ -63,6 +63,8 @@ function maskCEP(v) {
 }
 function maskPhoneBR(v) {
   const d = onlyDigits(v).slice(0, 11);
+
+  if (d.length === 0) return '';
   if (d.length <= 2) return `(${d}`;
   if (d.length <= 6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
   if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6,10)}`;
@@ -126,6 +128,8 @@ function wireMasks() {
   cadastroGeral?.addEventListener('blur', applyCadastroMask);
 
   tel?.addEventListener('input', () => { tel.value = maskPhoneBR(tel.value); });
+  telContato?.addEventListener('input', () => { telContato.value = maskPhoneBR(telContato.value); });
+
   cep?.addEventListener('input', () => { cep.value = maskCEP(cep.value); });
   cep?.addEventListener('blur', () => { fillAddressFromCEP(cep.value); });
 }
@@ -180,6 +184,7 @@ if (optionsKebabButton && optionsKebabMenu) {
 if (editClienteButton) {
   editClienteButton.addEventListener('click', () => {
     optionsKebabMenu.setAttribute('aria-hidden', 'true');
+    optionsKebabMenu.classList.add('hidden');
     enterEditMode();
   });
 }
@@ -384,6 +389,7 @@ async function handleSalvar() {
       setInputsDisabled(true);
       showSaveButton(false);
       editing = false;
+      updateHeaderIcons();
       alert('Cliente atualizado com sucesso.');
     } else {
       // CREATE (fluxo original)
