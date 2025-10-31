@@ -18,6 +18,12 @@ contextBridge.exposeInMainWorld('files', {
     openPath: (absPath) => ipcRenderer.invoke('files:openPath', absPath),
 })
 
+contextBridge.exposeInMainWorld('electronAPI', {
+  onUpdateStatus: (callback) => {
+    ipcRenderer.on('update-status', (_event, data) => callback(data));
+  }
+});
+
 contextBridge.exposeInMainWorld('api', {
     //Aqui fica os arquivos IPCs que realizaram a conexão segura
     clientes: {

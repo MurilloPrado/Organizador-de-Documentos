@@ -330,4 +330,61 @@ a.fab {
 
 .kebab-menu.hidden { display: none; }
 
+.update-box {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+  min-width: 240px;
+  z-index: 9999;
+  font-family: sans-serif;
+}
+
+.update-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.update-icon img {
+  width: 16px;     
+  height: 16px;
+  object-fit: contain;
+}
+
+.update-content {
+  flex: 1;
+}
+
+.update-bar {
+  width: 100%;
+  height: 6px;
+  background: #ffde59; /* amarelinho */
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.update-bar-fill {
+  height: 100%;
+  background: #00bf63; /* verde */
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.update-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+}
+
 

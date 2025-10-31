@@ -19,20 +19,69 @@ function setupAutoUpdater() {
   }
 
   autoUpdater.autoDownload = true;
-  autoUpdater.disableWebInstaller = true;            // evita web installer
+  autoUpdater.disableWebInstaller = true; // evita web installer
   autoUpdater.allowDowngrade = false;
-  // opcional: se suas releases antigas não têm .blockmap, evita warning
-  // autoUpdater.disableDifferentialDownload = true;
 
-  autoUpdater.on('checking-for-update', () => log.info('Checking for update'));
-  autoUpdater.on('update-available', (info) => log.info('update-available', info.version));
-  autoUpdater.on('update-not-available', () => log.info('update-not-available'));
-  autoUpdater.on('download-progress', (p) => log.info(`download-progress ${Math.round(p.percent)}%`));
-  autoUpdater.on('error', (err) => log.error(err));
+  autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for update');
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'checking'
+      });
+    }
+  });
 
-  autoUpdater.on('update-downloaded', (info) => {
+  autoUpdater.on('update-available', (info) => {
+    log.info('update-available', info.version);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'available',
+        version: info.version
+      });
+    }
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    log.info('update-not-available');
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'idle'
+      });
+    }
+  });
+
+   autoUpdater.on('download-progress', (p) => {
+    const percent = Math.round(p.percent);
+    log.info(`download-progress ${percent}%`);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'downloading',
+        progress: percent
+      });
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    log.error(err);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'error',
+        message: err.message || 'Erro ao atualizar'
+      });
+    }
+  });
+
+    autoUpdater.on('update-downloaded', (info) => {
     log.info('update-downloaded', info.version);
-    // ⚠️ dialog precisa estar importado do electron
+
+    if (mainWindow) {
+      // avisa o renderer que terminou
+      mainWindow.webContents.send('update-status', {
+        status: 'downloaded',
+        version: info.version
+      });
+    }
+
     const res = dialog.showMessageBoxSync({
       type: 'question',
       buttons: ['Reiniciar agora', 'Depois'],
@@ -42,12 +91,10 @@ function setupAutoUpdater() {
       detail: 'Deseja reiniciar para aplicar a atualização agora?',
     });
     if (res === 0) {
-      // 1º arg: isSilent, 2º: isForceRunAfter
       setImmediate(() => autoUpdater.quitAndInstall(false, true));
     }
   });
 
-  // dispara a verificação (ou use checkForUpdatesAndNotify)
   autoUpdater.checkForUpdates().catch(log.error);
 }
 
@@ -99,7 +146,6 @@ app.whenReady().then(() => {
     setupAutoUpdater();
     // apresenta o app
     createMainWindow();
-
 });
 
 app.on('window-all-closed', () => {
