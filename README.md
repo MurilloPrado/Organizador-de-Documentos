@@ -1,7 +1,7 @@
 # Organizador-de-Documentos
 
 ## 📄 Sobre  
-O **Organizador-de-Documentos** é uma ferramenta desktop desenvolvida em Electorn para — organizar, categorizar, gerenciar documentos e controle financeiro simples. Ajuda a estruturar e padronizar procedimento para o tratamento dos documentos, além de facilitar a busca/armazenamento e manutenção de um acervo organizado.  
+O **Organizador-de-Documentos** é uma ferramenta desktop desenvolvida em Electron para — organizar, categorizar, gerenciar documentos e controle financeiro simples. Ajuda a estruturar e padronizar procedimento para o tratamento dos documentos, além de facilitar a busca/armazenamento e manutenção de um acervo organizado.  
 
 ## Funcionalidades principais  
 - Organiza documentos.  
@@ -14,7 +14,8 @@ O **Organizador-de-Documentos** é uma ferramenta desktop desenvolvida em Electo
 ## 🛠️ Tecnologias / Stack  
 - JavaScript
 - HTML
-- CSS :contentReference[oaicite:0]{index=0}  
+- CSS 
+
 **Runtime:**
 - **better-sqlite3** – Banco de dados local SQLite.
 - **electron-log** – Sistema de logs internos.
