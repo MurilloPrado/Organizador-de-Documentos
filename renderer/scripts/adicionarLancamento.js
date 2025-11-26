@@ -268,7 +268,7 @@ async function renderList() {
             remover.style.cursor = 'pointer';
             remover.onclick = async () => {
                 if(isViewMode){
-                    const ok = confirm(' Tem certeza que deseja excluir? ');
+                    const ok = await window.electronAPI.confirm('Tem certeza que deseja excluir?');
                     isDeleting = false;
 
                     if(!ok) return refresh();

@@ -328,7 +328,7 @@ editDocumentButton.addEventListener('click', () => {
 
 deleteDocumentButton.addEventListener('click', async () => {
   const documentId = getDocumentIdFromUrl();
-  const userConfirmed = confirm('Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.');
+  const userConfirmed = await window.electronAPI.confirm('Tem certeza que deseja excluir este documento? A ação não poderá ser desfeita');
   if (!userConfirmed) return;
 
   try {

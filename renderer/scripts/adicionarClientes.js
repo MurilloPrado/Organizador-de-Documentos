@@ -191,7 +191,7 @@ if (editClienteButton) {
 
 if (deleteClienteButton) {
   deleteClienteButton.addEventListener('click', async () => {
-    const ok = confirm('Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.');
+    const ok = await window.electronAPI.confirm('Deseja excluir o cadastro deste cliente? Esta ação não pode ser desfeita');
     if (!ok) return;
     try {
       await window.api.clientes.delete(viewId);
