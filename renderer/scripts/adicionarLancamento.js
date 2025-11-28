@@ -397,7 +397,14 @@ if(addButton){
                     alert('Edição não disponivel');
                     return;
                 }
+                
+                // limpa campos
                 editIdLancamento = null;
+                if (inputNome) inputNome.value = '';
+                if (inputDetalhes) inputDetalhes.value = '';
+                if (inputValor) inputValor.value = '';
+                if (addButton) addButton.textContent = (tipoLancamento === 'despesa' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
+
                 await refresh();
                 return; 
                 } else {
@@ -445,6 +452,14 @@ if(addButton){
 
 if(newItemButton){
     newItemButton.onclick = () => {
+        // limpa campos
+        editIndex = null;
+        editIdLancamento = null;
+        if (inputNome) inputNome.value = '';
+        if (inputDetalhes) inputDetalhes.value = '';
+        if (inputValor) inputValor.value = '';
+        if (addButton) addButton.textContent = (tipoLancamento === 'despesa' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
+
         setMode('form');
         updateTopLink();
     };
