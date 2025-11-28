@@ -254,7 +254,7 @@ async function loadDocumentAndRender() {
 
   const servicos = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'servico');
   const taxas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'taxa');
-  const despesas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'despesa');
+  const despesas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'despesas');
 
   const totalServicos = servicos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
   const totalTaxas = taxas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
@@ -320,10 +320,14 @@ document.addEventListener('click', (event) => {
   }
 });
 
-editDocumentButton.addEventListener('click', () => {
+editDocumentButton.addEventListener('click', (e) => {
+  e.preventDefault();
   const documentId = getDocumentIdFromUrl();
-  // Mantém a tela de adicionar como "modo edição"
-  //window.location.href = `adicionarDocumentos.html?mode=edit&id=${encodeURIComponent(documentId)}`;
+  if(!documentId) {
+    alert('Documento Inválido');
+    return;
+  }
+  window.location.href = `adicionarDocumentos.html?mode=edit&id=${encodeURIComponent(documentId)}`;
 });
 
 deleteDocumentButton.addEventListener('click', async () => {
@@ -358,7 +362,7 @@ deleteDocumentButton.addEventListener('click', async () => {
   if (taxas) taxas.href = `taxas.html?ctx=view&id=${documentId}&tipo=taxa`;
 
   const despesas = document.querySelector('a[href="despesas.html"]');
-  if (despesas) despesas.href = `despesas.html?ctx=view&id=${documentId}&tipo=despesa`;
+  if (despesas) despesas.href = `despesas.html?ctx=view&id=${documentId}&tipo=despesas`;
 
   console.log('[verDocumento] links setados:', {
     id: documentId,

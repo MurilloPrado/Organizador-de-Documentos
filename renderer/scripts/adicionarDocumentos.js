@@ -21,6 +21,7 @@ const dataCriacaoEl = document.getElementById("data-criado");
 // LocalStorage keys
 const LS_SERVICOS = 'lancamentos_servicos';
 const LS_TAXAS = 'lancamentos_taxas';
+const LS_DESPESAS = 'lancamentos_despesas'
 const LS_CERTIDOES = 'arquivos_certidoes';
 const LS_ARQUIVOS = 'arquivos';
 
@@ -138,7 +139,7 @@ detalhesInput?.addEventListener('input', ()=> saveDraft(DRAFT.detalhes, detalhes
 // limpar tudo (usar após salvar documento)
 function clearAllStates(){
   [DRAFT.titulo, DRAFT.cliente, DRAFT.detalhes].forEach(k=> localStorage.removeItem(k));
-  [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.taxas].forEach(k=> localStorage.removeItem(k));
+  [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.taxas, KEY.despesas].forEach(k=> localStorage.removeItem(k));
 }
 
 // Render inline (apenas para adicionarDocumentos)
@@ -285,7 +286,7 @@ async function salvarDocumento() {
     const detalhesDocumento = String(detalhesEl.value || '').trim() || null;
 
     if(!nomeCliente) {
-      alert('Por favor, informe o nome do cliente antes de salvar o documento.');
+      const ok = await window.electronAPI.confirm('Por favor, informe o nome do cliente antes de salvar o documento.');
       clienteInput?.focus();
       return;
     }
@@ -293,19 +294,60 @@ async function salvarDocumento() {
     // Junta serviços e taxas
     const servicos = getArray(KEY.servicos) || [];
     const taxas = getArray(KEY.taxas) || [];
-    const lancamentos = [...servicos, ...taxas].map(item => ({
+    const despesas = getArray(KEY.despesas) || [];
+    const lancamentos = [...servicos, ...taxas, ...despesas].map(item => ({
       tipoLancamento: String(item.tipo || '').toLowerCase(),
       detalhes: item?.detalhes || null,
       valor: Number(item?.valor) || 0,
       tituloLancamento: item?.nome || null,
     }));
 
-    // Junta todos os arquivos
-    const arquivosInline = getArray(KEY.arquivos) || [];
-    const certidoes = getArray(KEY.certidoes) || [];
+    // arquivos inline
+    const arquivosInline = getJSON(KEY.arquivos) || getArray(KEY.arquivos) || [];
+    const certidoes = getJSON(KEY.certidoes) || getArray(KEY.certidoes) || [];
     const arquivos = [...arquivosInline, ...certidoes];
 
-    // Cria o payload
+    // payload comum
+    const payloadCommon = {
+      nomeDocumento,
+      nomeCliente,
+      detalhes: detalhesDocumento,
+    };
+
+    // SE estivermos em edição: chama update IPC
+    if (window.__editingDocumentId) {
+      const idDocumento = Number(window.__editingDocumentId);
+
+      // chama update para metadados base
+      await window.api.documentos.update({
+        idDocumento,
+        nomeDocumento: payloadCommon.nomeDocumento,
+        nomeCliente: payloadCommon.nomeCliente,
+        detalhes: payloadCommon.detalhes,
+        statusDocumento: document.getElementById('statusDocumento')?.value || undefined
+      });
+
+      // arquivos: se existirem arquivos novos (sem idArquivo) você pode chamar addArquivo.
+      for (const a of arquivos) {
+        if (!a.idArquivo && a.urlArquivo) {
+          await window.api.documentos.addArquivo({
+            idDocumento,
+            urlArquivo: a.urlArquivo,
+            tipoArquivo: a.tipoArquivo || 'arquivo',
+            tituloArquivo: a.nomeArquivo || a.tituloArquivo || ''
+          });
+        }
+      }
+
+      // limpar rascunhos e estados locais
+      clearAllStates();
+
+      // redireciona para visualização
+      window.location.href = `verDocumento.html?id=${idDocumento}`;
+      return;
+    }
+
+    // se não estiver em edição -> cria novo documento (fluxo atual)
     const payload = {
       nomeDocumento,
       nomeCliente,
@@ -316,7 +358,6 @@ async function salvarDocumento() {
     };
     const res = await window.api.documentos.create(payload);
 
-    // Ao finalizar, redireciona para documentos.html
     clearAllStates();
     window.location.href = 'documentos.html';
   } catch (err) {
@@ -330,8 +371,11 @@ saveDocumentBtn?.addEventListener('click', (e)=>{
   salvarDocumento();
 });
 
-function handleSair(ev) {
+async function handleSair(ev) {
   ev?.preventDefault?.();
+
+  const ok = await window.electronAPI.confirm('Tem certeza que deseja cancelar o cadastro do processo? Todas as alterações serão desfeitas');
+  if(!ok) return;
 
   try {
     // 1) limpa estados conhecidos do app (rascunhos e listas)

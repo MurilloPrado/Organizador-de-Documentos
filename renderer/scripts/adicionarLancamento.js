@@ -20,7 +20,7 @@ console.groupEnd();
 let tipoLancamento = (params.get('tipo') || '').toLowerCase();
 if (!tipoLancamento) {
   if (window.location.pathname.includes('taxa')) tipoLancamento = 'taxa';
-  else if (window.location.pathname.includes('despesa')) tipoLancamento = 'despesa';
+  else if (window.location.pathname.includes('despesas')) tipoLancamento = 'despesas';
   else tipoLancamento = 'servico'; // padrão
 }
 
@@ -46,7 +46,7 @@ const MAP = {
 
 const currentKey = () => {
     const fromSelect = String(tipoElement?.value||'').toLowerCase();
-    const t = fromSelect || (typeof tipoLancamento === 'string' ? tipoLancamento : 'servico');
+    const t = fromSelect || tipoLancamento;
     return MAP[t] || KEY.servicos;
 }
 
@@ -279,7 +279,7 @@ async function renderList() {
 
         listaElement.innerHTML = `
         <div class="empty-state" style="grid-column:1/-1;text-align:center;color:#6b7280;padding:24px;font-weight:600;">
-        ${ tipoLancamento === 'taxa' ? 'Não existem taxas adicionadas.' : tipoLancamento === 'despesa' ? 'Não existem despesas adicionadas.' : 'Não existem serviços adicionados.' }
+        ${ tipoLancamento === 'taxa' ? 'Não existem taxas adicionadas.' : tipoLancamento === 'despesas' ? 'Não existem despesas adicionadas.' : 'Não existem serviços adicionados.' }
         </div>`;
         if (subtotal) subtotal.textContent = 'Subtotal: R$ 0,00';
         return;
@@ -358,7 +358,7 @@ async function renderList() {
 async function refresh() {
     editIndex = null;
     editIdLancamento = null;
-    if(addButton) addButton.textContent = (tipoLancamento === 'despesa' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
+    if(addButton) addButton.textContent = (tipoLancamento === 'despesas' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
 
     if(isViewMode){
         setMode('list');
@@ -403,7 +403,7 @@ if(addButton){
                 if (inputNome) inputNome.value = '';
                 if (inputDetalhes) inputDetalhes.value = '';
                 if (inputValor) inputValor.value = '';
-                if (addButton) addButton.textContent = (tipoLancamento === 'despesa' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
+                if (addButton) addButton.textContent = (tipoLancamento === 'despesas' ? 'Cadastrar despesas' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
 
                 await refresh();
                 return; 
@@ -458,7 +458,7 @@ if(newItemButton){
         if (inputNome) inputNome.value = '';
         if (inputDetalhes) inputDetalhes.value = '';
         if (inputValor) inputValor.value = '';
-        if (addButton) addButton.textContent = (tipoLancamento === 'despesa' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
+        if (addButton) addButton.textContent = (tipoLancamento === 'despesas' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
 
         setMode('form');
         updateTopLink();
