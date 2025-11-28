@@ -138,3 +138,7 @@ footer{
     gap: 20px;
     z-index: 1000;
 }
+
+.itemIcons:hover{
+    transform: scale(1.30);
+}

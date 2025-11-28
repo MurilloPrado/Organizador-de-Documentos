@@ -50,6 +50,10 @@ const currentKey = () => {
     return MAP[t] || KEY.servicos;
 }
 
+// edição de item
+let editIndex = null // modo create
+let editIdLancamento = null // modo view
+
 // Formata o campo de valor enquanto o usuário digita
 if(inputValor) inputValor.addEventListener('input', () => {
     const digitos = inputValor.value.replace(/\D/g, '');
@@ -112,42 +116,40 @@ function updateTopLink() {
 }         
 
 // menu
+let headerDeleteButton = null
 if(headerEl && isViewMode){
-    const kebabButton = document.createElement('button');
-    kebabButton.type = 'button';
-    kebabButton.id = 'kebabButton';
-    kebabButton.className = 'kebab-button';
-    kebabButton.textContent = '⋮';
-    headerEl.appendChild(kebabButton);
-
-    const kebabMenu = document.createElement('div');
-    kebabMenu.id = 'kebabMenu';
-    kebabMenu.className = 'kebab-menu hidden';
-    kebabMenu.innerHTML = `
-        <button id="enterDeleteButton" class="kebab-menu-item danger" type="button">
-            Excluir Itens
-        </button>
-    `;
-    headerEl.appendChild(kebabMenu);
+    headerDeleteButton = document.createElement('button');
+    headerDeleteButton.type = 'button';
+    headerDeleteButton.id = 'kebabButton';
+    headerDeleteButton.className = 'kebab-button';
+    headerDeleteButton.innerHTML = `<img src="assets/excluir.png" alt="Excluir">`;
+    headerEl.appendChild(headerDeleteButton);
 
     // abre menu
-    kebabButton.addEventListener('click', () => {
-        kebabMenu.classList.toggle('hidden');
-    });
-
-    // fecha ao clicar fora
-    document.addEventListener('click', (event) => {
-        if (!kebabMenu.contains(event.target) && event.target !== kebabButton) {
-            kebabMenu.classList.add('hidden');
-        }
-    });
-
-    const enterDeleteButton = kebabMenu.querySelector('#enterDeleteButton');
-    enterDeleteButton.addEventListener('click', () => {
-        kebabMenu.classList.add('hidden');
-        isDeleting = true;
+    headerDeleteButton.addEventListener('click', () => {
+        isDeleting = !isDeleting
         refresh();
+        updateKebabIcon();
     });
+
+    updateKebabIcon();
+}
+
+function updateKebabIcon() {
+    if (!kebabButton) return;
+
+   if (isDeleting) {
+        // X grande e legível
+        headerDeleteButton.innerHTML = '✕';
+        headerDeleteButton.title = 'Cancelar excluir';
+        headerDeleteButton.style.fontSize = '30px';
+    } else {
+        // volta ao ícone de lixeira
+        headerDeleteButton.innerHTML = `<img src="assets/excluir.png" alt="Excluir" style="width:20px;height:20px;vertical-align:middle">`;
+        headerDeleteButton.title = 'Excluir itens';
+        headerDeleteButton.style.fontSize = '';
+        headerDeleteButton.style.padding = '';
+    }
 }
 
 function getAll() {
@@ -183,6 +185,22 @@ async function addLancamentosToDB({ nome, detalhes, valor }) {
     };
 
     await window.api.documentos.addLancamento(payload);
+}
+
+// atualiza db
+async function updateLancamentoDB({ idLancamento, nome, detalhes, valor }) {
+    if(!isViewMode || !docId) return;
+    if (window.api?.documentos?.updateLancamento){
+        const payload = {
+            idLancamento: Number(idLancamento),
+            tituloLancamento: String(nome||'').trim() || 'Sem nome',
+            detalhes: detalhes || null,
+            valor: toNumber(valor) || 0,
+        };
+        await window.api.documentos.updateLancamento(payload);
+        return true;
+    }
+    return false;
 }
 
 // lista todos os itens
@@ -230,6 +248,26 @@ function hasItens(){
     return getAll().length > 0;
 }
 
+// entra no modo edição
+function enterEdit(item, index){
+    if(inputNome) inputNome.value = item.nome || '';
+    if(inputDetalhes) inputDetalhes.value = item.detalhes || '';
+    if(inputValor) inputValor.value = toBRL(item.valor || 0);
+
+    if(isViewMode) {
+        editIdLancamento = item.idLancamento || null;
+        editIndex = null;
+    } else {
+        editIndex = index;
+        editIdLancamento = null;
+    }
+
+    if(addButton) addButton.textContent = 'Salvar alterações';
+
+    setMode('form');
+    updateTopLink();
+}
+
 async function renderList() {
     if(!listContainer) return;
     const itens = isViewMode ? await fetchLancamentosFromDB() : getAll();
@@ -266,6 +304,7 @@ async function renderList() {
             remover.src = 'assets/excluir.png';
             remover.alt = 'Excluir';
             remover.style.cursor = 'pointer';
+            remover.className = 'itemIcons';
             remover.onclick = async () => {
                 if(isViewMode){
                     const ok = await window.electronAPI.confirm('Tem certeza que deseja excluir?');
@@ -282,6 +321,19 @@ async function renderList() {
                 }
             };
             rodape.append(remover);
+        }
+
+        if(!isDeleting){
+            const edit = document.createElement('img');
+            edit.src = 'assets/edit.png';
+            edit.alt = 'Editar';
+            edit.title = 'Editar';
+            edit.style.cursor = 'pointer';
+            edit.className = 'itemIcons';
+            edit.onclick = () => {
+                enterEdit(item, i);
+            };
+            rodape.append(edit);
         }
 
         const valorBox = document.createElement('div');
@@ -304,6 +356,10 @@ async function renderList() {
 }
 
 async function refresh() {
+    editIndex = null;
+    editIdLancamento = null;
+    if(addButton) addButton.textContent = (tipoLancamento === 'despesa' ? 'Cadastrar despesa' : tipoLancamento === 'taxa' ? 'Cadastrar taxa' : 'Cadastrar serviço');
+
     if(isViewMode){
         setMode('list');
         await renderList();
@@ -317,6 +373,8 @@ async function refresh() {
     } else {
         setMode('form');
     }
+
+    updateKebabIcon();
 }
 
 if(addButton){
@@ -325,6 +383,52 @@ if(addButton){
         const detalhes = String(inputDetalhes?.value||'').trim() || null;
         const valor = inputValor?.value;
 
+        if(editIndex !== null || editIdLancamento !== null) {
+            // tenta atualizar no db
+            if(isViewMode) {
+                if(editIdLancamento) {
+                    const ok = await updateLancamentoDB({
+                        idLancamento: editIdLancamento,
+                        nome,
+                        detalhes,
+                        valor
+                    });
+                if(!ok) {
+                    alert('Edição não disponivel');
+                    return;
+                }
+                editIdLancamento = null;
+                await refresh();
+                return; 
+                } else {
+                    alert('Erro interno: id do lançamento para edição não definido.');
+                    return;
+                }
+            } else {
+                // modo create
+                const all = getAll();
+                if(editIndex >= 0 && editIndex < all.length) {
+                    all[editIndex] = {
+                        tipo: String(tipoElement.value),
+                        nome: String(nome || '').trim() || 'Sem nome',
+                        detalhes: String(detalhes || '').trim() || null,
+                        valor: toNumber(valor),
+                    };
+                    setAll(all);
+                    editIndex = null;
+                    if(inputNome) inputNome.value = '';
+                    if(inputDetalhes) inputDetalhes.value = '';
+                    if(inputValor) inputValor.value = '';
+                    await refresh();
+                    return;
+                } else {
+                    alert('Índice inválido')
+                    return;
+                }
+            }
+        } 
+
+        // adiciona novos itens
         if(isViewMode && docId){
             await addLancamentosToDB({ nome, detalhes, valor });
         } else {

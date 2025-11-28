@@ -399,6 +399,44 @@ module.exports = (ipcMain, db) => {
     return { idLancamento: resultado.lastInsertRowid } 
   });
 
+  ipcMain.handle('documentos:updateLancamento', async (_evt, payload) => {
+    const {
+      idLancamento,
+      tituloLancamento,
+      detalhes,
+      valor
+    } = payload;
+
+    if (!idLancamento) {
+      throw new Error('idLancamento é obrigatório.');
+    }
+
+    const lancamentoAtual = db.prepare(`
+      SELECT idLancamento
+      FROM lancamentos
+      WHERE idLancamento = ?
+    `).get(idLancamento);
+
+    if (!lancamentoAtual) {
+      throw new Error('Lançamento não encontrado.');
+    }
+
+    db.prepare(`
+      UPDATE lancamentos
+      SET tituloLancamento = ?,
+          detalhes = ?,
+          valor = ?
+      WHERE idLancamento = ?
+    `).run(
+      tituloLancamento || null,
+      detalhes || null,
+      Number(valor) || 0,
+      idLancamento
+    );
+
+    return { ok: true };
+  });
+
   ipcMain.handle('documentos:deleteLancamento', async (_evt, idLancamento) => {
     db.prepare(`DELETE FROM lancamentos WHERE idLancamento = ?`).run(Number(idLancamento));
     return { ok: true };

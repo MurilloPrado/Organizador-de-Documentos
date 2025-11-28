@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld('api', {
         update: (payload) => ipcRenderer.invoke('documentos:update', payload),
         delete: (id) => ipcRenderer.invoke('documentos:delete', id),
         addLancamento: (payload) => ipcRenderer.invoke('documentos:addLancamento', payload),
+        updateLancamento: (payload) => ipcRenderer.invoke('documentos:updateLancamento', payload),
         deleteLancamento: (id) => ipcRenderer.invoke('documentos:deleteLancamento', id),
         addArquivo: (payload) => ipcRenderer.invoke('documentos:addArquivo', payload),
         removeArquivo: (args) => ipcRenderer.invoke('documentos:removeArquivo', args),
