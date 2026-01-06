@@ -24,15 +24,18 @@
                 <span class="document-created-date" id="headerDocumentDate">--/--/----</span>
             </div>
 
-            <button id="optionsKebabButton" class="kebab-button" aria-haspopup="menu" aria-expanded="false" aria-controls="optionsKebabMenu" title="Mais opções">⋮</button>
-
-            <div id="optionsKebabMenu" class="kebab-menu" role="menu" aria-hidden="true">
-                <button id="editDocumentButton" class="kebab-menu-item" role="menuitem">Editar</button>
-                <button id="deleteDocumentButton" class="kebab-menu-item danger" role="menuitem">Excluir</button>
+            <div class="document-actions">
+                <img src="assets/edit.png" id="editDocumentButton" class="action-icon" title="Editar" alt="Editar documento"/>
+                <img src="assets/excluir.png" id="deleteDocumentButton" class="action-icon danger" title="Excluir" alt="Excluir documento"/>
             </div>
         </header>
 
-        <main class="document-view-main" style="padding: 40px">
+        <main class="document-view-main" style="margin-bottom: 40px">
+            <!-- TÍTULO EDITÁVEL -->
+            <div id="editTitleSlot" class="document-title-wrapper" style="display:none; margin-bottom: 16px;">
+                <div class="document-title-row"></div>
+             </div>
+
             <!-- STATUS -->
             <section class="status-section">
                 <button id="statusSelectorButton" class="status-selector" aria-haspopup="listbox" aria-expanded="false" aria-controls="statusOptionsList">
@@ -158,6 +161,8 @@
                 <div id="lastCostsList"></div>
             </div>
             </section>
+
+            <button id="salvarDocumento" class="save-button" style="margin: 0 auto; display: none;">Salvar processo</button>
         </main>
 
         <footer class="result-footer">

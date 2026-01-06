@@ -31,46 +31,28 @@
   opacity:.8;
 }
 
-/* Botão de opções (três pontos) */
-.kebab-button{
-  width:32px;
-  height:32px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border:none;
-  background:transparent;
-  cursor:pointer;
-  font-size:40px;
-  line-height:1;
+.document-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
-/* Menu de opções */
-.kebab-menu{
-  position:absolute;
-  right:16px;
-  top:64px;
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:10px;
-  box-shadow:0 8px 24px rgba(0,0,0,.12);
-  padding:8px 0;
-  display:none;
-  z-index:1000;
+.action-icon {
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
-.kebab-menu[aria-hidden="false"]{ display:block; }
-.kebab-menu-item{
-  display:block;
-  width:100%;
-  text-align:left;
-  background:transparent;
-  border:none;
-  padding:10px 14px;
-  cursor:pointer;
-  font-size:15px;
+
+.action-icon:hover {
+  transform: scale(1.15);
+  opacity: 0.85;
 }
-.kebab-menu-item:hover{ background:#f5f5f5; }
-.kebab-menu-item.danger{ color:#b91c1c; }
+
+.action-icon.danger:hover {
+  opacity: 0.8;
+  filter: drop-shadow(0 0 2px rgba(220,38,38,0.6));
+}
 
 /* Seções */
 .document-view-main{ padding:40px; }
@@ -166,8 +148,13 @@
 
 #documentDetails[readonly] {
   cursor: default;     /* seta normal, não de texto */
-  pointer-events: none;/* evita clique e foco */
   background: #f5f5f5; /* opcional: deixa mais parecido com div */
+  width: 100%;
+  min-height: 120px;
+  max-height: 240px; /* ajuste se quiser */
+  overflow-y: auto;
+  resize: vertical;
+  box-sizing: border-box;
 }
 
 .result-footer{
@@ -225,5 +212,22 @@
     background: rgba(255,255,255,0.15); /* quase transparente, não muda a cor */
     backdrop-filter: blur(3px); /* aplica no fundo sem mexer nas cores */
     z-index: 5;
+}
+
+@keyframes editShake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-1.5px); }
+  50%  { transform: translateX(1.5px); }
+  75%  { transform: translateX(-1.5px); }
+  100% { transform: translateX(0); }
+}
+
+.editing-title {
+  animation: editShake 0.55s ease-in-out infinite;
+}
+
+.editing-box {
+  animation: editShake 0.55s ease-in-out infinite;
+  border: 2px dashed #004aad !important;
 }
 

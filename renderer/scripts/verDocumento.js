@@ -12,6 +12,7 @@ function selectMany(selector) {
 
 const headerDocumentTitleElement = selectOne('#headerDocumentTitle');
 const headerDocumentDateElement = selectOne('#headerDocumentDate');
+const editTitleSlot = document.getElementById('editTitleSlot');
 
 const statusSelectorButton = selectOne('#statusSelectorButton');
 const statusOptionsList = selectOne('#statusOptionsList');
@@ -20,6 +21,7 @@ const statusDotElement = selectOne('#statusDot');
 
 const customerNameElement = selectOne('#customerName');
 const documentDetailsTextarea = selectOne('#documentDetails');
+const detalhesBox = document.querySelector('.annotation-box');
 
 const documentFilesContainer = selectOne('#documentFilesContainer');
 
@@ -33,8 +35,15 @@ const deleteDocumentButton = selectOne('#deleteDocumentButton');
 
 const addFileFab = document.getElementById('addFileFab');
 
+const salvarDocumentoButton = document.getElementById('salvarDocumento');
+
 // Estado carregado
 let loadedDocumentBundle = null;
+
+// Modo edição
+let isEditing = false;
+let hasUnsavedChanges = false;
+
 
 // =============== Leitura do ID via URL ===============
 function getDocumentIdFromUrl() {
@@ -141,6 +150,7 @@ function renderCustosList(lista = [], label = 'custo'){
 //
 function renderFilesReadOnly(fileItems) {
   documentFilesContainer.innerHTML = '';
+
   if (!fileItems || fileItems.length === 0) {
     documentFilesContainer.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1;text-align:center;color:#6b7280;padding:24px;font-weight:600;">
@@ -152,14 +162,42 @@ function renderFilesReadOnly(fileItems) {
   fileItems.forEach((fileItem) => {
     const fileRowElement = document.createElement('div');
     fileRowElement.className = 'files';
+
     const iconPath = iconFor(fileItem);
+
     fileRowElement.innerHTML = `
-      <img src="${iconPath}" alt="" title="${fileItem.nomeArquivo}">
-      <span class="tituloArquivo" title="${fileItem.nomeArquivo}">${fileItem?.nomeArquivo || 'arquivo'}</span>
+      <div class="delete-file-icon" title="Remover">
+        <img src="assets/delete.png" alt="Remover">
+      </div>
+      <img src="${iconPath}" alt="" class="file-icon">
+      <span class="tituloArquivo">${fileItem.nomeArquivo}</span>
     `;
-    fileRowElement.addEventListener('click', () => {
+
+    // abrir arquivo
+    fileRowElement.querySelector('.file-icon').addEventListener('click', () => {
       if (fileItem?.urlArquivo) openFileExtern(fileItem.urlArquivo);
     });
+
+    // excluir arquivo
+    fileRowElement.querySelector('.delete-file-icon').addEventListener('click', async (e) => {
+      e.stopPropagation();
+
+      const confirm = await window.electronAPI.confirm(
+        'Deseja excluir este arquivo?'
+      );
+      if (!confirm) return;
+
+      try {
+        await window.api.documentos.removeArquivo({
+          idArquivo: fileItem.idArquivo,
+        });
+        await loadDocumentAndRender();
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao excluir arquivo');
+      }
+    });
+
     documentFilesContainer.appendChild(fileRowElement);
   });
 }
@@ -307,27 +345,180 @@ selectMany('.status-option').forEach((optionElement) => {
   });
 });
 
-// =============== Interações: Menu de opções (kebab) ===============
-optionsKebabButton.addEventListener('click', (event) => {
-  event.stopPropagation();
-  const isHidden = optionsKebabMenu.getAttribute('aria-hidden') !== 'false';
-  optionsKebabMenu.setAttribute('aria-hidden', String(!isHidden));
-});
+// edição de documento
+document.addEventListener('click', async (e) => {
+  if (!isEditing || !hasUnsavedChanges) return;
 
-document.addEventListener('click', (event) => {
-  if (!optionsKebabMenu.contains(event.target) && !optionsKebabButton.contains(event.target)) {
-    optionsKebabMenu.setAttribute('aria-hidden', 'true');
-  }
-});
+  // elementos que NÃO devem disparar o alerta
+  const allowedSelectors = [
+    '#editDocumentButton',
+    '#salvarDocumento',
+    '#headerDocumentTitle',
+    '#documentDetails',
+    '#file-preview-modal',
+    '.file-preview-modal',
+  ];
 
-editDocumentButton.addEventListener('click', (e) => {
+  const clickedAllowed = allowedSelectors.some(sel =>
+    e.target.closest(sel)
+  );
+
+  if (clickedAllowed) return;
+
+  // qualquer outro clique
   e.preventDefault();
-  const documentId = getDocumentIdFromUrl();
-  if(!documentId) {
-    alert('Documento Inválido');
+  e.stopPropagation();
+
+  const canContinue = await confirmExitIfEditing();
+
+  // se escolheu "Não", simplesmente bloqueia
+  if (!canContinue) return;
+});
+
+headerDocumentTitleElement.addEventListener('input', () => {
+  if (isEditing) hasUnsavedChanges = true;
+});
+
+documentDetailsTextarea.addEventListener('input', () => {
+  if (isEditing) hasUnsavedChanges = true;
+});
+
+function restoreDocumentView() {
+  if (!loadedDocumentBundle?.documento) return;
+
+  const { documento } = loadedDocumentBundle;
+
+  headerDocumentTitleElement.textContent =
+    documento.nomeDocumento || '';
+
+  documentDetailsTextarea.value =
+    documento.detalhes || '';
+
+  setStatusVisual(documento.statusDocumento || 'Pendente');
+}
+
+function enterEditMode() {
+  isEditing = true;
+  hasUnsavedChanges = false;
+
+  // mostrar slot do body
+  editTitleSlot.style.display = 'block';
+
+  // mover título + data para o body
+  const row = editTitleSlot.querySelector('.document-title-row');
+  row.append(
+    headerDocumentTitleElement,
+    headerDocumentDateElement
+  );
+
+  // garantir que fiquem visíveis
+  headerDocumentTitleElement.style.display = '';
+  headerDocumentDateElement.style.display = '';
+
+  // ativar edição
+  headerDocumentTitleElement.contentEditable = 'true';
+  headerDocumentTitleElement.classList.add('editing-title');
+
+  documentDetailsTextarea.removeAttribute('readonly');
+  detalhesBox.classList.add('editing-box');
+
+  salvarDocumentoButton.style.display = 'block';
+}
+
+function exitEditMode() {
+  isEditing = false;
+  hasUnsavedChanges = false;
+
+  // esconder slot do body
+  editTitleSlot.style.display = 'none';
+
+  // devolver título + data ao header
+  const headerCenter = document.querySelector('.document-view-header-center');
+  headerCenter.append(
+    headerDocumentTitleElement,
+    headerDocumentDateElement
+  );
+
+  headerDocumentTitleElement.style.display = '';
+  headerDocumentDateElement.style.display = '';
+
+  // desativar edição
+  headerDocumentTitleElement.contentEditable = 'false';
+  headerDocumentTitleElement.classList.remove('editing-title');
+
+  documentDetailsTextarea.setAttribute('readonly', true);
+  detalhesBox.classList.remove('editing-box');
+
+  salvarDocumentoButton.style.display = 'none';
+}
+
+async function confirmExitIfEditing() {
+  if (!isEditing || !hasUnsavedChanges) return true;
+
+  const shouldSave = await window.electronAPI.confirm(
+    'Existem alterações ainda não salvas, deseja sair sem salva-las?'
+  );
+
+  if (!shouldSave) {
+    if (salvarDocumentoButton) {
+       salvarDocumentoButton.focus();
+    }
+    return false;
+  }
+
+  // Clicou em SIM → sai do modo edição (sem salvar, conforme sua regra atual)
+  restoreDocumentView();
+  exitEditMode();
+  setEditIconToEdit();
+  return false;
+}
+
+
+function setEditIconToClose() {
+  editDocumentButton.src = 'assets/x.png';
+  editDocumentButton.title = 'Cancelar edição';
+  editDocumentButton.alt = 'Cancelar edição';
+}
+
+function setEditIconToEdit() {
+  editDocumentButton.src = 'assets/edit.png';
+  editDocumentButton.title = 'Editar';
+  editDocumentButton.alt = 'Editar documento';
+}
+
+editDocumentButton.addEventListener('click', async (e) => {
+  e.preventDefault();
+
+  // Se NÃO está editando → entra em modo edição
+  if (!isEditing) {
+    enterEditMode();
+    setEditIconToClose();
     return;
   }
-  window.location.href = `adicionarDocumentos.html?mode=edit&id=${encodeURIComponent(documentId)}`;
+
+  // Se JÁ está editando → cancela edição
+  const canExit = await confirmExitIfEditing();
+  if (!canExit) return;
+
+  restoreDocumentView();
+  exitEditMode();
+  setEditIconToEdit();
+});
+
+salvarDocumentoButton.addEventListener('click', async () => {
+  if (!isEditing) return;
+  
+  const statusDocumento = statusLabelElement.textContent.trim();
+
+  await window.api.documentos.update({
+    idDocumento: getDocumentIdFromUrl(),
+    nomeDocumento: headerDocumentTitleElement.textContent.trim(),
+    detalhes: documentDetailsTextarea.value.trim(),
+    statusDocumento,
+  });
+
+  exitEditMode();
+  setEditIconToEdit();
 });
 
 deleteDocumentButton.addEventListener('click', async () => {
