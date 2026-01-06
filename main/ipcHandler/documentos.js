@@ -203,7 +203,7 @@ module.exports = (ipcMain, db) => {
 
   // Atualizar apenas o status do documento
   ipcMain.handle('documentos:updateStatus', async (_event, { id, status }) => {
-    const allowedStatuses = ['Pendente', 'Em Andamento', 'Concluído'];
+    const allowedStatuses = ['Pendente', 'Orçamento', 'Em Andamento', 'Concluído'];
     if (!allowedStatuses.includes(status)) {
       throw new Error('Status inválido.');
     }

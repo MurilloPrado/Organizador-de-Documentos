@@ -87,6 +87,7 @@
 .status-dot-pendente{ background:#ffde59; }
 .status-dot-andamento{ background:#0cc0df; }
 .status-dot-concluido{ background:#00bf63; }
+.status-dot-orçamento{ background:#0205b4; }
 .status-dropdown{
   position:absolute;
   background:#fff;

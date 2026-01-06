@@ -61,6 +61,7 @@ function toggleElementVisibility(element, shouldShow) {
 function setStatusVisual(statusText) {
   const statusMap = {
     'Pendente': { text: 'Pendente', dotClass: 'status-dot-pendente' },
+    'Orçamento': { text: 'Orçamento', dotClass: 'status-dot-orçamento' },
     'Em Andamento': { text: 'Em andamento', dotClass: 'status-dot-andamento' },
     'Concluído': { text: 'Concluído', dotClass: 'status-dot-concluido' },
   };

@@ -9,8 +9,9 @@ let selectedStatus = new Set();
 
 function statusClass(s){
     if (s === "Pendente") return 'pending';
-    if (s === "Concluído") return 'completed';;
-    return 'progress';
+    if (s === "Concluído") return 'completed';
+    if (s === "Em Andamento") return 'progress';
+    if (s === "Orçamento") return 'budget';
 }
 
 function fmtDate(iso) {

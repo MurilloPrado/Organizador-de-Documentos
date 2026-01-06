@@ -142,6 +142,10 @@
   .status-bar.progress {
     background-color: #0cc0df; /* azul claro */
   }
+
+  .status-bar.budget {
+    background-color: #0205b4; /* azul escuro */
+  }
   
   .doc-content div {
     font-size: 14px;
