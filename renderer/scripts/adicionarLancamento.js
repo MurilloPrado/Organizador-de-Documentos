@@ -37,6 +37,7 @@ const saveButton = document.getElementById('save-button');
 const listaElement = document.getElementById('lista');
 const subtotal = document.getElementById('subtotal');
 const topLink = document.querySelector('header a');
+const deleteToggleButton = document.getElementById('deleteToggleButton');
 
 const MAP = {
     servico: KEY.servicos,
@@ -116,40 +117,35 @@ function updateTopLink() {
 }         
 
 // menu
-let headerDeleteButton = null
-if(headerEl && isViewMode){
-    headerDeleteButton = document.createElement('button');
-    headerDeleteButton.type = 'button';
-    headerDeleteButton.id = 'kebabButton';
-    headerDeleteButton.className = 'kebab-button';
-    headerDeleteButton.innerHTML = `<img src="assets/excluir.png" alt="Excluir">`;
-    headerEl.appendChild(headerDeleteButton);
-
-    // abre menu
-    headerDeleteButton.addEventListener('click', () => {
-        isDeleting = !isDeleting
-        refresh();
-        updateKebabIcon();
-    });
-
-    updateKebabIcon();
+function setDeleteIconToClose() {
+  deleteToggleButton.src = 'assets/x.png';
+  deleteToggleButton.title = 'Cancelar exclusão';
+  deleteToggleButton.style.width = '24px';
+  deleteToggleButton.style.height = '24px';
+  deleteToggleButton.style.filter = 'none';  // Remove o drop-shadow
 }
 
-function updateKebabIcon() {
-    if (!kebabButton) return;
+function setDeleteIconToDelete() {
+  deleteToggleButton.src = 'assets/excluir.png';
+  deleteToggleButton.title = 'Excluir certidões';
+  deleteToggleButton.alt = 'Excluir certidões';
+  deleteToggleButton.style.width = '36px';
+  deleteToggleButton.style.height = '36px';
+  deleteToggleButton.style.filter = '';  // Volta ao padrão
+}
 
-   if (isDeleting) {
-        // X grande e legível
-        headerDeleteButton.innerHTML = '✕';
-        headerDeleteButton.title = 'Cancelar excluir';
-        headerDeleteButton.style.fontSize = '30px';
+if (deleteToggleButton && isViewMode) {
+  deleteToggleButton.addEventListener('click', () => {
+    isDeleting = !isDeleting;
+
+    if (isDeleting) {
+      setDeleteIconToClose();
     } else {
-        // volta ao ícone de lixeira
-        headerDeleteButton.innerHTML = `<img src="assets/excluir.png" alt="Excluir" style="width:20px;height:20px;vertical-align:middle">`;
-        headerDeleteButton.title = 'Excluir itens';
-        headerDeleteButton.style.fontSize = '';
-        headerDeleteButton.style.padding = '';
+      setDeleteIconToDelete();
     }
+
+    refresh();
+  });
 }
 
 function getAll() {
@@ -239,6 +235,12 @@ async function removeLancamentoFromDB(idLancamento) {
 
 function setMode(mode){
     const showForm = mode === 'form';
+
+    if (showForm && isDeleting) {
+        isDeleting = false;
+        setDeleteIconToDelete();
+    }
+
     if(formContainer) formContainer.style.display = showForm ? 'block' : 'none';
     if(listContainer) listContainer.style.display = showForm ? 'none' : 'block';
     updateTopLink();
