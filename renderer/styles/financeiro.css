@@ -1,0 +1,96 @@
+/* ===== Card base ===== */
+.financeiro-card {
+  width: 65%;
+  min-width: 520px;
+  margin: 16px;
+  padding: 16px 20px 20px 20px;
+  border-radius: 10px;
+  background: #ffffff;
+  position: relative;
+  font-family: 'League Spartan', sans-serif;
+  border-bottom: 5px solid transparent;
+}
+
+/* ===== Tipos ===== */
+.financeiro-card.pagamento {
+  border-bottom-color: #16a34a; /* verde */
+}
+
+.financeiro-card.custo {
+  border-bottom-color: #dc2626; /* vermelho */
+}
+
+/* ===== Conteúdo ===== */
+.financeiro-card .title {
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 7px;
+  text-align: left;
+}
+
+.financeiro-card .subtitle {
+  font-size: 16px;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.financeiro-card .date {
+  font-size: 12px;
+  color: #777;
+  text-align: left;
+}
+
+.financeiro-section {
+    font-size: 16px;
+    margin-top: 30px;
+}
+
+.financeiro-section-content{
+    height:1px;
+    background:#000;
+    opacity:.2;
+    margin:8px 0 12px;
+}
+
+/* ===== Valor ===== */
+.financeiro-card .value-wrapper {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  text-align: right;
+}
+
+.financeiro-card .value-label {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.financeiro-card .value {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.financeiro-card.pagamento .value {
+  color: #16a34a;
+}
+
+.financeiro-card.custo .value {
+  color: #dc2626;
+}
+
+/* ===== Badge de custo ===== */
+.financeiro-card .badge {
+  position: absolute;
+  right: 20px;
+  top: 14px;
+  width: 140px;
+  text-align: center;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 15px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}

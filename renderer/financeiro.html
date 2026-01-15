@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Financeiro</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/documentos.css">
+  <link rel="stylesheet" href="styles/style.css">
+  <link rel="stylesheet" href="styles/financeiro.css">
+</head>
+
+<body>
+  <header class="document-view-header">
+    <a href="index.html" class="back-button">&#x25C0;</a>
+    <div class="document-view-header-center">
+      <div class="title">Financeiro</div>
+    </div>
+    <div></div>
+  </header>
+
+  <main>
+    <!-- Busca + Filtro -->
+    <div class="search-bar">
+      <div class="search-box">
+        <img src="assets/search.png">
+        <input type="text" placeholder="Buscar">
+      </div>
+
+      <div class="filter">
+        <button class="filter-btn" aria-expanded="false">
+          <img src="assets/filtro.png">
+        </button>
+
+        <div id="filterPanel" class="filter-panel" hidden>
+          <h4>Filtrar por:</h4>
+
+          <label>
+              <input type="checkbox" value="serviços">
+              Serviços
+          </label>
+          
+          <label>
+              <input type="checkbox" value="taxas">
+              Taxas
+            </label>
+            
+            <label>
+             <input type="checkbox" value="despesas">
+             Despesas Processuais
+           </label>
+
+          <label>
+            <input type="checkbox" value="pagamento">
+            Pagamentos
+          </label>
+
+          <label>
+            <input type="checkbox" value="custo">
+            Custos
+          </label>
+
+          <hr>
+
+          <label>
+            <input type="radio" name="periodo" value="7">
+            Últimos 7 dias
+          </label>
+
+          <label>
+            <input type="radio" name="periodo" value="30">
+            Últimos 30 dias
+          </label>
+
+          <label>
+            <input type="radio" name="periodo" value="90">
+            Últimos 90 dias
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div id="financeiroList" class="financeiro-list"></div>
+
+  </main>
+
+  <!-- FAB -->
+  <a href="#" class="fab"><span>+</span></a>
+
+  <script src="scripts/financeiro.js"></script>
+</body>
+</html>
