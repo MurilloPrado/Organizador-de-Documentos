@@ -37,23 +37,6 @@
   align-items: center;
 }
 
-.action-icon {
-  width: 26px;
-  height: 26px;
-  cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
-
-.action-icon:hover {
-  transform: scale(1.15);
-  opacity: 0.85;
-}
-
-.action-icon.danger:hover {
-  opacity: 0.8;
-  filter: drop-shadow(0 0 2px rgba(220,38,38,0.6));
-}
-
 /* Seções */
 .document-view-main{ padding:40px; }
 

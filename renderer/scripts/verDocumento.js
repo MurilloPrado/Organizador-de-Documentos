@@ -28,8 +28,6 @@ const documentFilesContainer = selectOne('#documentFilesContainer');
 const resultValueElement = selectOne('#resultValue');
 const lastCostList = selectOne('#lastCostsList');
 
-const optionsKebabButton = selectOne('#optionsKebabButton');
-const optionsKebabMenu = selectOne('#optionsKebabMenu');
 const editDocumentButton = selectOne('#editDocumentButton');
 const deleteDocumentButton = selectOne('#deleteDocumentButton');
 
@@ -473,7 +471,6 @@ async function confirmExitIfEditing() {
   setEditIconToEdit();
   return false;
 }
-
 
 function setEditIconToClose() {
   editDocumentButton.src = 'assets/x.png';

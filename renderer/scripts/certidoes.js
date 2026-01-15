@@ -16,6 +16,7 @@ const headerEl = document.querySelector('header');
 const listaArquivos = document.getElementById('lista-arquivos');
 const uploadButton  = document.getElementById('uploadButton');
 const topLink = document.querySelector('header a');
+const deleteToggleButton = document.getElementById('deleteToggleButton');
 
 function updateTopLink() {
   if (!topLink) return;
@@ -35,42 +36,35 @@ function updateTopLink() {
 }
 updateTopLink();
 
+function setDeleteIconToClose() {
+  deleteToggleButton.src = 'assets/x.png';
+  deleteToggleButton.title = 'Cancelar exclusão';
+  deleteToggleButton.style.width = '24px';
+  deleteToggleButton.style.height = '24px';
+  deleteToggleButton.style.filter = 'none';  // Remove o drop-shadow
+}
+
+function setDeleteIconToDelete() {
+  deleteToggleButton.src = 'assets/excluir.png';
+  deleteToggleButton.title = 'Excluir certidões';
+  deleteToggleButton.alt = 'Excluir certidões';
+  deleteToggleButton.style.width = '36px';
+  deleteToggleButton.style.height = '36px';
+  deleteToggleButton.style.filter = '';  // Volta ao padrão
+}
+
 // menu
-if(headerEl && isViewMode){
-  const kebabButton = document.createElement('button');
-  kebabButton.type = 'button';
-  kebabButton.id = 'kebabButton';
-  kebabButton.className = 'kebab-button';
-  kebabButton.textContent = '⋮';
-  headerEl.appendChild(kebabButton);
+if (headerEl && isViewMode) {
+  deleteToggleButton.addEventListener('click', () => {
+    isDeleting = !isDeleting;
 
-  const kebabMenu = document.createElement('div');
-  kebabMenu.id = 'kebabMenu';
-  kebabMenu.className = 'kebab-menu hidden';
-  kebabMenu.innerHTML = `
-      <button id="enterDeleteButton" class="kebab-menu-item danger" type="button">
-          Excluir Itens
-      </button>
-  `;
-  headerEl.appendChild(kebabMenu);
+    if (isDeleting) {
+      setDeleteIconToClose();
+    } else {
+      setDeleteIconToDelete();
+    }
 
-  // abre menu
-  kebabButton.addEventListener('click', () => {
-      kebabMenu.classList.toggle('hidden');
-  });
-
-  // fecha ao clicar fora
-  document.addEventListener('click', (event) => {
-      if (!kebabMenu.contains(event.target) && event.target !== kebabButton) {
-          kebabMenu.classList.add('hidden');
-      }
-  });
-
-  const enterDeleteButton = kebabMenu.querySelector('#enterDeleteButton');
-  enterDeleteButton.addEventListener('click', () => {
-      kebabMenu.classList.add('hidden');
-      isDeleting = true;
-      renderList();
+    renderList();
   });
 }
 
@@ -132,6 +126,12 @@ function makeCard(item, {allowDelete}) {
       e.stopPropagation();
       console.log('Removendo certidão:', item);
 
+      const confirmed = await window.electronAPI.confirm(
+        'Deseja excluir este arquivo?'
+      );
+
+      if (!confirmed) return;
+
       if(isViewMode){
         await deleteFromDb(item);
       } else {
@@ -187,7 +187,10 @@ const modalCtl = setupSharedModal({
 
   onAfterSave: ()=> {
     // ao salvar sai do modo exclusao
-    if(isDeleting) isDeleting = false;
+    if(isDeleting) {
+      isDeleting = false;
+      setDeleteIconToDelete();
+    }
     renderList();
   },
 
