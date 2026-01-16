@@ -57,5 +57,8 @@ contextBridge.exposeInMainWorld('api', {
     listDocumentos: {
         list: (opts) => ipcRenderer.invoke('listDocumentos:list', opts),
     },
+    financeiro: {
+        list: () => ipcRenderer.invoke('financeiro:list'),
+    },
     //os outros ipcs irão aqui...
 })

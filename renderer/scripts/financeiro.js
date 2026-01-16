@@ -5,6 +5,7 @@ const filterPanel = document.getElementById('filterPanel');
 
 let searchQuery = '';
 let selectedTipos = new Set();
+let selectedCategorias = new Set();
 let periodoDias = null;
 let financeiroData = [];
 
@@ -24,11 +25,26 @@ function formatCurrency(value) {
 
 function groupByDate(items) {
   return items.reduce((acc, item) => {
-    const dateKey = item.createdAt.split('T')[0];
+    if (!item.createdAt) return acc;
+
+    const dateKey = String(item.createdAt).split('T')[0];
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(item);
     return acc;
   }, {});
+}
+
+function normalizeCategoria(value) {
+  if (!value) return '';
+
+  const map = {
+    'despesas': 'Despesa Processual',
+    'taxa': 'Taxa',
+    'servico': 'Serviço',
+    'pagamento': 'Pagamento'
+  };
+
+  return map[value.toLowerCase()] || value;
 }
 
 // ================= Render =================
@@ -61,7 +77,7 @@ function render(items) {
 
       card.innerHTML = `
         ${item.tipo === 'custo'
-          ? `<div class="badge">${item.categoria || 'Custo'}</div>`
+          ? `<div class="badge">${normalizeCategoria(item.categoria || 'Custo')}</div>`
           : ''
         }
 
@@ -99,6 +115,12 @@ function applyFilters() {
     data = data.filter(i => selectedTipos.has(i.tipo));
   }
 
+  if (selectedCategorias.size) {
+    data = data.filter(i =>
+      i.categoria && selectedCategorias.has(i.categoria.toLowerCase())
+    );
+  }
+
   if (periodoDias) {
     const limit = new Date();
     limit.setDate(limit.getDate() - periodoDias);
@@ -130,14 +152,20 @@ document.addEventListener('click', e => {
 });
 
 filterPanel.addEventListener('change', e => {
-  if (e.target.type === 'checkbox') {
+  if (e.target.type === 'checkbox' && e.target.name === 'tipo') {
     e.target.checked
       ? selectedTipos.add(e.target.value)
       : selectedTipos.delete(e.target.value);
   }
 
+  if (e.target.type === 'checkbox' && e.target.name === 'categoria') {
+    e.target.checked
+      ? selectedCategorias.add(e.target.value)
+      : selectedCategorias.delete(e.target.value);
+  }
+
   if (e.target.type === 'radio') {
-    periodoDias = Number(e.target.value);
+    periodoDias = e.target.value ? Number(e.target.value) : null;
   }
 
   applyFilters();
@@ -146,29 +174,10 @@ filterPanel.addEventListener('change', e => {
 // ================= Load =================
 async function loadFinanceiro() {
   // IPC / API esperada
-  financeiroData = [
-  {
-    id: 1,
-    tipo: 'pagamento',
-    titulo: 'Pagamento referente a processo',
-    valor: 120,
-    documento: 'Processo 1',
-    cliente: 'João Paulo',
-    createdAt: '2025-12-12T10:00:00'
-  },
-  {
-    id: 2,
-    tipo: 'custo',
-    titulo: 'Despesa processual',
-    valor: 45,
-    documento: 'Processo 1',
-    cliente: 'João Paulo',
-    createdAt: '2025-1-13T08:00:00',
-    categoria: 'Taxa'
-  }
-];
-render(financeiroData);
-
+  financeiroData = await window.api.financeiro.list();
+  // Ordenação principal
+  financeiroData.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  render(financeiroData);
 }
 
 loadFinanceiro();

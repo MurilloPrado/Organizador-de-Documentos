@@ -35,33 +35,33 @@
 
         <div id="filterPanel" class="filter-panel" hidden>
           <h4>Filtrar por:</h4>
-
-          <label>
-              <input type="checkbox" value="serviços">
-              Serviços
-          </label>
           
           <label>
-              <input type="checkbox" value="taxas">
+              <input type="checkbox" name="categoria" value="taxa">
               Taxas
             </label>
             
             <label>
-             <input type="checkbox" value="despesas">
+             <input type="checkbox" name="categoria" value="despesas">
              Despesas Processuais
            </label>
 
           <label>
-            <input type="checkbox" value="pagamento">
+            <input type="checkbox" name="tipo" value="pagamento">
             Pagamentos
           </label>
 
           <label>
-            <input type="checkbox" value="custo">
+            <input type="checkbox" name="tipo" value="custo">
             Custos
           </label>
 
           <hr>
+
+          <label>
+          <input type="radio" name="periodo" value="" checked>
+            Todos
+          </label>
 
           <label>
             <input type="radio" name="periodo" value="7">
