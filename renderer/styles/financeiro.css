@@ -11,6 +11,10 @@
   border-bottom: 5px solid transparent;
 }
 
+.search-bar {
+  position: relative;
+}
+
 /* ===== Tipos ===== */
 .financeiro-card.pagamento {
   border-bottom-color: #16a34a; /* verde */
@@ -93,4 +97,72 @@
   border-radius: 8px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.date-popup {
+  position: absolute;
+  top: 80%;
+  right: 0;
+  width: 280px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  z-index: 100;
+}
+
+.date-popup h4 {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.date-inputs {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.date-field {
+  flex: 1;
+  text-align: center;
+}
+
+.date-field label {
+  font-size: 12px;
+  color: #666;
+}
+
+.date-box {
+  position: relative;
+  margin-top: 4px;
+  padding: 6px 0;
+  border-radius: 20px;
+  background: #f3f4f6;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.date-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.date-text {
+  pointer-events: none;
+}
+
+.date-box.active {
+  outline: 2px solid #2563eb;
+}
+
+.clear-btn {
+  margin: 20px auto 0;
+  display: block;
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
 }

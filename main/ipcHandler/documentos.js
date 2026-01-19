@@ -111,7 +111,7 @@ module.exports = (ipcMain, db) => {
       if (Array.isArray(payload.lancamentos)) {
         const inserirLancamento = db.prepare(`
           INSERT INTO lancamentos (idDocumento, tipoLancamento, detalhes, valor, tituloLancamento, createdAt)
-          VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
+          VALUES (?, ?, ?, ?, ?, COALESCE(?, strftime('%Y-%m-%dT%H:%M:%fZ','now')))
         `);
 
         for (const item of payload.lancamentos) {
@@ -386,7 +386,7 @@ module.exports = (ipcMain, db) => {
   ipcMain.handle('documentos:addLancamento', async (_evt, payload) => {
     const stmt = db.prepare(`
       INSERT INTO lancamentos (idDocumento, tipoLancamento, tituloLancamento, detalhes, valor, createdAt)
-      VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
+      VALUES (?, ?, ?, ?, ?, COALESCE(?, strftime('%Y-%m-%dT%H:%M:%fZ','now')))
     `);
     const resultado = stmt.run(
       Number(payload.idDocumento),

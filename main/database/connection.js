@@ -91,6 +91,29 @@ function runMigrations(_db) {
     });
     tx();
   }
+
+  // atualização de datas
+  if (current < 4) {
+    const tx = _db.transaction(() => {
+      try{
+       _db.prepare(`
+        UPDATE lancamentos
+        SET createdAt = strftime(
+          '%Y-%m-%dT%H:%M:%fZ',
+          replace(createdAt, ' ', 'T')
+        )
+        WHERE createdAt IS NOT NULL
+          AND createdAt NOT LIKE '%T%Z';
+        `).run();
+
+        console.log(`Migração datas: ${res.changes} registros atualizados`);
+      } catch (err) {
+        console.error('Erro ao atualizar datas em lancamentos:', err);
+      }
+      _db.prepare('PRAGMA user_version = 4').run();
+    });
+    tx();
+  }
 }
 
 function initDatabase(app) {

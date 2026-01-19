@@ -1,19 +1,57 @@
+// ================= Elementos =================
 const listEl = document.getElementById('financeiroList');
 const searchInput = document.querySelector('.search-box input');
 const filterBtn = document.querySelector('.filter-btn');
 const filterPanel = document.getElementById('filterPanel');
 
+const calendarBtn = document.getElementById('calendarBtn');
+const datePopup = document.getElementById('datePopup');
+const clearBtn = document.getElementById('clearDateFilter');
+
+const dateDeInput = document.getElementById('dateDe');
+const dateAteInput = document.getElementById('dateAte');
+
+const dateDeText = dateDeInput.nextElementSibling;
+const dateAteText = dateAteInput.nextElementSibling;
+
+const dateDeBox = dateDeInput.parentElement;
+const dateAteBox = dateAteInput.parentElement;
+
+// ================= Estado =================
 let searchQuery = '';
 let selectedTipos = new Set();
 let selectedCategorias = new Set();
 let periodoDias = null;
 let financeiroData = [];
 
+let dateDe = null;
+let dateAte = null;
+
 // ================= Utils =================
 function formatDateBR(value) {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  if (!value) return '';
+
+  let d;
+
+  if (value instanceof Date) {
+    d = value;
+  } else if (typeof value === 'string' && value.includes('T')) {
+    d = new Date(value); // ISO do banco
+  } else if (typeof value === 'string') {
+    d = parsePickerDate(value); // picker
+  } else {
+    return '';
+  }
+
+  if (!(d instanceof Date) || isNaN(d)) return '';
+
+  return d.toLocaleDateString('pt-BR');
+}
+
+function parsePickerDate(value) {
+  if (!value) return null;
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0, 0); // meio-dia local
 }
 
 function formatCurrency(value) {
@@ -26,24 +64,20 @@ function formatCurrency(value) {
 function groupByDate(items) {
   return items.reduce((acc, item) => {
     if (!item.createdAt) return acc;
-
-    const dateKey = String(item.createdAt).split('T')[0];
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(item);
+    const key = item.createdAt.split('T')[0]; // YYYY-MM-DD
+    (acc[key] ||= []).push(item);
     return acc;
   }, {});
 }
 
 function normalizeCategoria(value) {
   if (!value) return '';
-
   const map = {
-    'despesas': 'Despesa Processual',
-    'taxa': 'Taxa',
-    'servico': 'Serviço',
-    'pagamento': 'Pagamento'
+    despesas: 'Despesa Processual',
+    taxa: 'Taxa',
+    servico: 'Serviço',
+    pagamento: 'Pagamento'
   };
-
   return map[value.toLowerCase()] || value;
 }
 
@@ -60,7 +94,7 @@ function render(items) {
   }
 
   const grouped = groupByDate(items);
-  const orderedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
+  const orderedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   orderedDates.forEach(date => {
     const section = document.createElement('div');
@@ -80,14 +114,13 @@ function render(items) {
           ? `<div class="badge">${normalizeCategoria(item.categoria || 'Custo')}</div>`
           : ''
         }
-
         <div class="title">${item.titulo}</div>
         <div class="subtitle">${item.documento} - ${item.cliente}</div>
         <div class="date">${formatDateBR(item.createdAt)}</div>
 
         <div class="value-wrapper">
-            <div class="value-label">Valor</div>
-             <div class="value">${formatCurrency(item.valor)}</div>
+          <div class="value-label">Valor</div>
+          <div class="value">${formatCurrency(item.valor)}</div>
         </div>
       `;
 
@@ -98,7 +131,7 @@ function render(items) {
   });
 }
 
-// ================= Filtro =================
+// ================= Filtros =================
 function applyFilters() {
   let data = [...financeiroData];
 
@@ -124,7 +157,20 @@ function applyFilters() {
   if (periodoDias) {
     const limit = new Date();
     limit.setDate(limit.getDate() - periodoDias);
+    limit.setHours(0,0,0,0);
     data = data.filter(i => new Date(i.createdAt) >= limit);
+  }
+
+  if (dateDe || dateAte) {
+    data = data.filter(i => {
+      const itemDate = new Date(i.createdAt);
+      const de = parsePickerDate(dateDe);
+      const ate = parsePickerDate(dateAte || dateDe);
+      if (!de || !ate) return false;
+
+      ate.setHours(23,59,59,999);
+      return itemDate >= de && itemDate <= ate;
+    });
   }
 
   render(data);
@@ -140,14 +186,22 @@ searchInput.addEventListener('input', () => {
 
 filterBtn.addEventListener('click', e => {
   e.stopPropagation();
+  datePopup.hidden = true;
   filterPanel.hidden = !filterPanel.hidden;
-  filterBtn.setAttribute('aria-expanded', String(!filterPanel.hidden));
+});
+
+calendarBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  filterPanel.hidden = true;
+  datePopup.hidden = !datePopup.hidden;
 });
 
 document.addEventListener('click', e => {
   if (!filterPanel.contains(e.target) && !filterBtn.contains(e.target)) {
     filterPanel.hidden = true;
-    filterBtn.setAttribute('aria-expanded', 'false');
+  }
+  if (!datePopup.contains(e.target) && !calendarBtn.contains(e.target)) {
+    datePopup.hidden = true;
   }
 });
 
@@ -171,12 +225,54 @@ filterPanel.addEventListener('change', e => {
   applyFilters();
 });
 
+// ================= Datas =================
+dateDeBox.addEventListener('click', () => {
+  dateDeInput.focus();
+  dateDeInput.showPicker?.();
+});
+
+dateAteBox.addEventListener('click', () => {
+  dateAteInput.focus();
+  dateAteInput.showPicker?.();
+});
+
+dateDeInput.addEventListener('change', () => {
+  dateDe = dateDeInput.value || null;
+  dateAte = null;
+  dateAteInput.value = '';
+  periodoDias = null;
+
+  const d = formatDateBR(dateDe);
+  dateDeText.textContent =  dateDe ? formatDateBR(dateDe) : '__/__/__';
+
+  applyFilters();
+});
+
+dateAteInput.addEventListener('change', () => {
+  dateAte = dateAteInput.value || null;
+  periodoDias = null;
+
+  dateAteText.textContent = dateAte ? formatDateBR(dateAte) : '__/__/__';
+  applyFilters();
+});
+
+clearBtn.addEventListener('click', () => {
+  dateDe = null;
+  dateAte = null;
+
+  dateDeInput.value = '';
+  dateAteInput.value = '';
+
+  dateDeText.textContent = '__/__/__';
+  dateAteText.textContent = '__/__/__';
+
+  applyFilters();
+});
+
 // ================= Load =================
 async function loadFinanceiro() {
-  // IPC / API esperada
   financeiroData = await window.api.financeiro.list();
-  // Ordenação principal
-  financeiroData.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  financeiroData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   render(financeiroData);
 }
 

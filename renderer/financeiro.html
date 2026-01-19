@@ -79,6 +79,37 @@
           </label>
         </div>
       </div>
+
+      <div>
+        <button id="calendarBtn" class="filter-btn" aria-expanded="false">
+          <img src="assets/calendario.png">
+        </button>
+      </div>
+
+      <div id="datePopup" class="date-popup" hidden>
+        <h4>Filtrar por data</h4>
+
+        <div class="date-field">
+          <label>De</label>
+          <div class="date-box">
+            <input type="date" id="dateDe" class="date-input">
+            <span class="date-text">__/__/__</span>
+          </div>
+        </div>
+
+        <div class="date-field">
+          <label>Até</label>
+          <div class="date-box">
+            <input type="date" id="dateAte" class="date-input">
+            <span class="date-text">__/__/__</span>
+          </div>
+        </div>
+        
+        <button id="clearDateFilter" class="clear-btn">
+          Limpar filtro
+        </button>
+      </div>
+
     </div>
 
     <!-- Lista -->

@@ -14,7 +14,10 @@ module.exports = (ipcMain, db) => {
         l.valor               AS valor,
         d.nomeDocumento       AS documento,
         c.nome                AS cliente,
-        COALESCE(l.createdAt, d.dataCriado) AS createdAt,
+         strftime(
+          '%Y-%m-%dT%H:%M:%fZ',
+          COALESCE(l.createdAt, d.dataCriado)
+        )                     AS createdAt,
         l.tipoLancamento      AS categoria
       FROM lancamentos l
       JOIN documentos d ON d.idDocumento = l.idDocumento
@@ -35,7 +38,10 @@ module.exports = (ipcMain, db) => {
             p.valor             AS valor,
             d.nomeDocumento     AS documento,
             c.nome              AS cliente,
-            COALESCE(p.dataPagamento, d.dataCriado) AS createdAt,,
+            strftime(
+              '%Y-%m-%dT%H:%M:%fZ',
+              COALESCE(p.dataPagamento, d.dataCriado)
+            )                     AS createdAt,
             p.metodoPagamento   AS categoria
         FROM pagamentos p
         JOIN documentos d ON d.idDocumento = p.idDocumento
