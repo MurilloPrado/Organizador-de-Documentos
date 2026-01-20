@@ -53,6 +53,10 @@
   cursor:pointer;
   border:none;
 }
+.status-selector > div {
+  display: flex;
+  align-items: center;
+}
 .status-caret{ 
   font-size:40px; 
   margin-top: 5px;

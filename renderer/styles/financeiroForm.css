@@ -1,0 +1,71 @@
+.status-dot-pagamento{ background:#16a34a; }
+.status-dot-custo{ background:#dc2626; }
+
+.without-box {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.inputBox {
+    width: 100%;
+    padding: 15px 15px;
+    border: 1px solid #616161;
+    border-radius: 10px; /* Deixa as bordas arredondadas */
+    font-size: 16px;
+    box-sizing: border-box; /* Garante que o padding não ultrapasse o width */
+    outline: none;
+    padding-left: 50px;
+}
+
+.input-icon-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+/* Ícone */
+.input-icon {
+    position: absolute;
+    left: 14px;
+    width: 25px;
+    height: 25px;
+    pointer-events: none; /* não interfere no clique */
+}
+
+.tipo-custo {
+    font-size: 18px;
+}
+
+.radio-group {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  margin-bottom: 30px;
+  margin-top: 12px;
+}
+
+.radio-group label {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+  gap: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.metodo-pagamento-label {
+    font-size: 20px;
+    align-items: center;
+}
+
+.save-button {
+  position: static !important;
+  left: auto !important;
+  bottom: auto !important;
+  margin-top: 50px !important;
+}
+
+.client-suggest {
+  margin-top: -25px;
+}

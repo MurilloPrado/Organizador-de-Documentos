@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Financeiro</title>
+        <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles/financeiroForm.css">
+        <link rel="stylesheet" href="styles/style.css">
+        <link rel="stylesheet" href="styles/adicionarDocumentos.css">
+        <link rel="stylesheet" href="styles/lancamentos.css">
+        <link rel="stylesheet" href="styles/verDocumento.css">
+    </head>
+
+    <body>
+        <header>
+            <a href="financeiro.html"><img src="assets/x.png" alt="cancelar" class="cancel-button" data-action="sair"></a>
+            <div class="title">Financeiro</div>
+        </header>
+
+        <main style="padding: 40px">
+            <section class="status-section">
+                <button id="tipoSelectorButton" class="status-selector" aria-haspopup="listbox" aria-expanded="false" aria-controls="statusOptionsList">
+                    <div>
+                        <span id="statusDot" class="status-dot status-dot-pagamento"></span>
+                        <strong class="status-label" id="statusLabel">Pagamento</strong>
+                    </div>
+                    <span class="status-caret">▾</span>
+                </button>
+
+                <div id="tipoOptionsList" class="status-dropdown" role="listbox" aria-hidden="true">
+                    <div class="status-option" data-status="Pagamento">
+                        <span class="status-dot status-dot-pagamento"></span> Pagamento
+                    </div>
+                    <div class="status-option" data-status="Custo">
+                        <span class="status-dot status-dot-custo"></span> Custo
+                    </div>
+                </div>
+            </section>
+
+            <legend class="without-box">Título</legend>
+            <div class="input-icon-wrapper">
+                <img src="assets/title.png" alt="titulo" class="input-icon">
+                <input type="text" placeholder="Adicione o título" class="inputBox" id="tituloInput">
+            </div>
+
+            <legend class="without-box">Cliente</legend>
+            <div class="input-icon-wrapper">
+                <img src="assets/pessoa.png" alt="cliente" class="input-icon">
+                <input type="text" placeholder="Adicione o nome do cliente" class="inputBox" id="clienteInput">
+            </div>
+            <div id="clienteSuggest" class="cliente-suggest"></div>
+            
+            <legend class="without-box">Processo</legend>
+            <div class="input-icon-wrapper">
+                <img src="assets/documento.png" alt="processo" class="input-icon">
+                <input type="text" placeholder="Adicione o processo" class="inputBox" id="processoInput">
+            </div>
+
+            <!-- TIPO DE CUSTO -->
+            <div class="tipo-custo">
+                <legend>Tipo de custo</legend>
+                <div class="radio-group">
+                    <label><input type="radio" name="tipoCusto" value="taxa"> Taxa</label>
+                    <label><input type="radio" name="tipoCusto" value="despesa"> Despesa Processual</label>
+                    <label><input type="radio" name="tipoCusto" value="outros"> Outros</label>
+                </div>
+            </div>
+
+            <!-- MÉTODO DE PAGAMENTO -->
+            <section class="status-section" style="margin-bottom: 40px;">
+                <legend class="without-box">Método de pagamento</legend>
+                <button id="metodoPagamentoButton" class="status-selector" aria-haspopup="listbox" aria-expanded="false" aria-controls="statusOptionsList">
+                    <div>
+                        <img src="assets/financeiro.png" alt="método de pagamento">
+                        <strong class="metodo-pagamento-label" id="metodoPagamentoLabel">Pix</strong>
+                    </div>
+                    <span class="status-caret">▾</span>
+                </button>
+
+                <div id="metodoPagamentoList" class="status-dropdown" role="listbox" aria-hidden="true">
+                    <div class="status-option" data-status="Pix">
+                        Pix
+                    </div>
+                    <div class="status-option" data-status="Dinheiro">
+                        Dinheiro
+                    </div>
+                    <div class="status-option" data-status="Boleto">
+                        Boleto
+                    </div>
+                    <div class="status-option" data-status="Cartao">
+                        Cartão de Crédito/Débito
+                </div>
+            </section>
+
+            <fieldset class="annotation-box">
+                <legend>Valor</legend>
+                    <div class="money">
+                        <span class="prefixo">R$</span>
+                        <input type="text" id="valor" inputmode="numeric" placeholder="0,00">
+                    </div>
+            </fieldset>
+
+            <fieldset class="annotation-box">
+                <legend>Detalhes</legend>
+                <textarea id="detalhes" placeholder="Escreva os detalhes adicionais... "></textarea>
+            </fieldset>
+
+            <button id="salvarDocumento" class="save-button" style="margin: 0 auto;">Salvar processo</button>
+
+        </main>
+
+        <script type="module" src="scripts/financeiroForm.js"></script>
+    </body>
+</html>
