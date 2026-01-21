@@ -20,8 +20,8 @@ module.exports = (ipcMain, db) => {
         )                     AS createdAt,
         l.tipoLancamento      AS categoria
       FROM lancamentos l
-      JOIN documentos d ON d.idDocumento = l.idDocumento
-      JOIN clientes   c ON c.idCliente   = d.idCliente
+      LEFT JOIN documentos d ON d.idDocumento = l.idDocumento
+      LEFT JOIN clientes   c ON c.idCliente   = d.idCliente
       WHERE l.tipoLancamento != 'servico'
     `).all();
 
@@ -44,8 +44,8 @@ module.exports = (ipcMain, db) => {
             )                     AS createdAt,
             p.metodoPagamento   AS categoria
         FROM pagamentos p
-        JOIN documentos d ON d.idDocumento = p.idDocumento
-        JOIN clientes   c ON c.idCliente   = d.idCliente
+        LEFT JOIN documentos d ON d.idDocumento = p.idDocumento
+        LEFT JOIN clientes   c ON c.idCliente   = d.idCliente
       `).all();
     } catch (err) {
       // Caso ainda não exista tabela de pagamentos

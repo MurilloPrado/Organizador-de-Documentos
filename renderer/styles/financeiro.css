@@ -2,6 +2,7 @@
 .financeiro-card {
   width: 65%;
   min-width: 520px;
+  min-height: 100px;
   margin: 16px;
   padding: 16px 20px 20px 20px;
   border-radius: 10px;
