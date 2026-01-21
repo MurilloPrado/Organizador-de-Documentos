@@ -85,6 +85,7 @@ tipoDropdown.querySelectorAll('.status-option').forEach(opt => {
         : 'status-dot status-dot-custo';
 
     toggleTipoFields();
+    updateSalvarButtonLabel();
     tipoDropdown.style.display = 'none';
     markDirty();
   });
@@ -104,6 +105,16 @@ function toggleTipoFields() {
 }
 
 toggleTipoFields();
+
+function updateSalvarButtonLabel() {
+  if (!salvarBtn) return;
+
+  if (currentTipo === 'Pagamento') {
+    salvarBtn.textContent = 'Salvar pagamento';
+  } else {
+    salvarBtn.textContent = 'Salvar custo';
+  }
+}
 
 // =======================
 // Método de pagamento
