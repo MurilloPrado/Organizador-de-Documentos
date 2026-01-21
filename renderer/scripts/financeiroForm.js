@@ -7,6 +7,7 @@ let currentTipo = 'Pagamento'; // Pagamento | Custo
 let currentMetodoPagamento = 'pix';
 let selectedCliente = null;
 let selectedProcesso = null;
+let processosDoCliente = [];
 let hasDirtyState = false;
 
 // =======================
@@ -28,6 +29,7 @@ const metodoDropdown = document.getElementById('metodoPagamentoList');
 const tituloInput = document.getElementById('tituloInput');
 const clienteInput = document.getElementById('clienteInput');
 const processoInput = document.getElementById('processoInput');
+const processoSuggest = document.getElementById('processoSuggest');
 const valorInput = document.getElementById('valor');
 const detalhesInput = document.getElementById('detalhes');
 
@@ -143,14 +145,27 @@ clienteInput.addEventListener('input', () => {
   const q = clienteInput.value.trim();
   clearTimeout(suggestTimer);
 
+  if (clienteInput.value.trim() === '') {
+    // limpa estado do cliente
+    selectedCliente = null;
+
+    // limpa estado do processo
+    selectedProcesso = null;
+    processosDoCliente = [];
+
+    // limpa UI
+    processoInput.value = '';
+    processoSuggest.style.display = 'none';
+  }
+
   suggestTimer = setTimeout(async () => {
     if (q.length < 2) {
       clienteSuggest.style.display = 'none';
       return;
     }
 
-    const names = await window.api.clientes.searchPrefix(q) || [];
-    renderClienteSuggest(names.slice(0, 6));
+    const clientes = await window.api.clientes.list({ query: q, limit: 6 }) || [];
+    renderClienteSuggest(clientes);
   }, 250);
 });
 
@@ -162,7 +177,7 @@ function renderClienteSuggest(list) {
     return;
   }
 
-  list.forEach(nome => {
+  list.forEach(cli => {
     const el = document.createElement('div');
     el.className = 'client-suggest';
 
@@ -172,15 +187,25 @@ function renderClienteSuggest(list) {
 
     const label = document.createElement('span');
     label.className = 'client-suggest-label';
-    label.textContent = nome;
+    label.textContent = cli.nome;
 
     el.append(icon, label);
 
     el.addEventListener('mousedown', ev => {
       ev.preventDefault();
       ev.stopPropagation();
-      clienteInput.value = nome;
-      selectedCliente = nome;
+
+      clienteInput.value = cli.nome;
+      selectedCliente = {
+        idCliente: cli.id,
+        nome: cli.nome
+      };
+
+      selectedProcesso = null;
+      processoInput.value = '';
+      processoSuggest.style.display = 'none';
+
+      processosDoCliente = [];
       clienteSuggest.style.display = 'none';
       markDirty();
     });
@@ -189,6 +214,124 @@ function renderClienteSuggest(list) {
   });
 
   clienteSuggest.style.display = 'block';
+}
+
+
+// =======================
+// Sugestão de Processo
+// =======================
+processoInput.addEventListener('focus', async () => {
+  if (!selectedCliente?.idCliente) return;
+
+  const docs = await window.api.financeiro.listDocumentosByCliente(
+    selectedCliente.idCliente
+  );
+
+  processosDoCliente = docs;
+  renderDocumentoSuggest(docs);
+});
+
+processoInput.addEventListener('click', async () => {
+  if (!selectedCliente?.idCliente) return;
+
+  const docs = await window.api.financeiro.listDocumentosByCliente(
+    selectedCliente.idCliente
+  );
+
+  processosDoCliente = docs;
+  renderDocumentoSuggest(docs);
+});
+
+processoInput.addEventListener('input', async () => {
+  const q = processoInput.value.trim().toLowerCase();
+
+  if (q.length < 2) {
+    processoSuggest.style.display = 'none';
+    return;
+  }
+
+  // 🟢 CASO 1: cliente já selecionado
+  if (selectedCliente?.idCliente) {
+    if (!processosDoCliente.length) {
+      processosDoCliente = await window.api.financeiro.listDocumentosByCliente(
+        selectedCliente.idCliente
+      );
+    }
+
+    const filtrados = processosDoCliente.filter(d =>
+      d.nomeDocumento.toLowerCase().includes(q)
+    );
+
+    renderDocumentoSuggest(filtrados);
+    return;
+  }
+
+  // 🔵 CASO 2: cliente NÃO selecionado
+  const docs = await window.api.financeiro.searchDocumentos(q);
+  renderDocumentoSuggest(docs);
+});
+
+processoSuggest.addEventListener('click', e => {
+  e.stopPropagation();
+});
+
+function renderDocumentoSuggest(list) {
+  processoSuggest.innerHTML = '';
+
+  if (!list || !list.length) {
+    processoSuggest.style.display = 'none';
+    return;
+  }
+
+  list.forEach(doc => {
+    const el = document.createElement('div');
+    el.className = 'client-suggest';
+
+    const icon = document.createElement('span');
+    icon.className = 'client-suggest-icon';
+    icon.innerHTML = '<img src="assets/documento.png">';
+
+    const label = document.createElement('span');
+    label.className = 'client-suggest-label';
+    label.textContent = doc.nomeDocumento;
+
+    el.append(icon, label);
+
+    el.addEventListener('mousedown', async ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      processoInput.value = doc.nomeDocumento;
+      selectedProcesso = doc;
+
+      // Preencher cliente se não estiver selecionado
+      if (!selectedCliente) {
+        const cli = await window.api.financeiro.getClienteByDocumento(
+          doc.idDocumento
+        );
+
+        if (cli) {
+          clienteInput.value = cli.nome;
+          selectedCliente = {
+            idCliente: cli.idCliente,
+            nome: cli.nome
+          };
+
+          processosDoCliente = await window.api.financeiro.listDocumentosByCliente(
+            selectedCliente.idCliente
+          );
+        }
+      }
+
+
+      processoSuggest.style.display = 'none';
+      markDirty();
+    });
+
+    processoSuggest.appendChild(el);
+  });
+
+  processoSuggest.style.display = 'block';
 }
 
 // =======================
@@ -211,8 +354,12 @@ document.querySelector('[data-action="sair"]')?.addEventListener('click', async 
 document.addEventListener('click', () => {
   tipoDropdown.style.display = 'none';
   metodoDropdown.style.display = 'none';
+  processoSuggest.style.display = 'none';
 });
 
+// ======================
+// Salvar
+// ======================
 salvarBtn?.addEventListener('click', async () => {
   const titulo = tituloInput.value.trim();
   const valor = toNumber(valorInput.value);
@@ -222,18 +369,26 @@ salvarBtn?.addEventListener('click', async () => {
     return;
   }
 
-  // aqui depois entra:
-  // - pagamento → tabela pagamentos
-  // - custo → tabela lancamentos
+  if (currentTipo === 'Pagamento' && !selectedProcesso?.idDocumento) {
+    await window.electronAPI.confirm(
+      'Para pagamentos, é obrigatório selecionar um processo/documento.'
+    );
+    return;
+  }
 
-  console.log({
+  const payload = {
     tipo: currentTipo,
     titulo,
     valor,
-    cliente: selectedCliente,
-    processo: selectedProcesso,
-    metodoPagamento: currentMetodoPagamento
-  });
+    detalhes: detalhesInput.value.trim() || null,
+    idCliente: selectedCliente?.idCliente || null,
+    idDocumento: selectedProcesso?.idDocumento || null,
+    metodoPagamento: currentMetodoPagamento,
+    tipoCusto: document.querySelector('input[name="tipoCusto"]:checked')?.value || null
+  };
+
+  await window.api.financeiro.create(payload);
 
   hasDirtyState = false;
+  window.location.href = 'financeiro.html';
 });

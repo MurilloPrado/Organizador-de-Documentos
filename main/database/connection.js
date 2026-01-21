@@ -95,8 +95,12 @@ function runMigrations(_db) {
   // atualização de datas
   if (current < 4) {
     const tx = _db.transaction(() => {
-      try{
-       _db.prepare(`
+
+      // 1. Garante FK
+      _db.prepare('PRAGMA foreign_keys = OFF').run();
+
+      // 2. Corrige datas em lancamentos
+      const res = _db.prepare(`
         UPDATE lancamentos
         SET createdAt = strftime(
           '%Y-%m-%dT%H:%M:%fZ',
@@ -104,15 +108,44 @@ function runMigrations(_db) {
         )
         WHERE createdAt IS NOT NULL
           AND createdAt NOT LIKE '%T%Z';
-        `).run();
+      `).run();
 
-        console.log(`Migração datas: ${res.changes} registros atualizados`);
-      } catch (err) {
-        console.error('Erro ao atualizar datas em lancamentos:', err);
-      }
+      console.log(`Migração datas: ${res.changes} registros atualizados`);
+
+      // 3. Remove tabela pagamentos antiga (se existir)
+      _db.prepare(`DROP TABLE IF EXISTS pagamentos;`).run();
+
+      // 4. Cria pagamentos APENAS se não existir
+      _db.prepare(`
+        CREATE TABLE IF NOT EXISTS pagamentos (
+          idPagamento     INTEGER PRIMARY KEY AUTOINCREMENT,
+          idDocumento     INTEGER NOT NULL,
+          idCliente       INTEGER NOT NULL,
+
+          tituloPagamento TEXT    NOT NULL,
+          valor           REAL    NOT NULL,
+          detalhes        TEXT,
+          metodoPagamento TEXT,
+          dataPagamento   TEXT    NOT NULL,
+
+          FOREIGN KEY (idDocumento) REFERENCES documentos(idDocumento),
+          FOREIGN KEY (idCliente)   REFERENCES clientes(idCliente)
+        );
+      `).run();
+
+      // 5. Reativa FK
+      _db.prepare('PRAGMA foreign_keys = ON').run();
+
+      // 6. Só agora marca a versão
       _db.prepare('PRAGMA user_version = 4').run();
     });
-    tx();
+
+    try {
+      tx();
+    } catch (err) {
+      console.error('Erro na migração para versão 4:', err);
+      throw err; // IMPORTANTE: não engolir erro
+    }
   }
 }
 

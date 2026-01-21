@@ -75,10 +75,23 @@ function normalizeCategoria(value) {
   const map = {
     despesas: 'Despesa Processual',
     taxa: 'Taxa',
+    outros: 'Outros',
     servico: 'Serviço',
     pagamento: 'Pagamento'
   };
   return map[value.toLowerCase()] || value;
+}
+
+function normalizeItem(item) {
+  return {
+    ...item,
+    titulo: item.titulo || '',
+    documento: item.documento || '',
+    cliente: item.cliente || '',
+    categoria: item.categoria || '',
+    tipo: item.tipo || 'custo',
+    createdAt: item.createdAt || new Date().toISOString() // CHANGED
+  };
 }
 
 // ================= Render =================
@@ -108,6 +121,9 @@ function render(items) {
     grouped[date].forEach(item => {
       const card = document.createElement('div');
       card.className = `financeiro-card ${item.tipo}`;
+      const documento = item.documento || '';
+      const cliente = item.cliente || '';
+      const subtitle = [documento, cliente].filter(Boolean).join(' - ');
 
       card.innerHTML = `
         ${item.tipo === 'custo'
@@ -115,7 +131,7 @@ function render(items) {
           : ''
         }
         <div class="title">${item.titulo}</div>
-        <div class="subtitle">${item.documento} - ${item.cliente}</div>
+        <div class="subtitle">${subtitle}</div>
         <div class="date">${formatDateBR(item.createdAt)}</div>
 
         <div class="value-wrapper">
@@ -138,9 +154,9 @@ function applyFilters() {
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     data = data.filter(i =>
-      i.titulo.toLowerCase().includes(q) ||
-      i.documento.toLowerCase().includes(q) ||
-      i.cliente.toLowerCase().includes(q)
+      (i.titulo || '').toLowerCase().includes(q) ||
+      (i.documento || '').toLowerCase().includes(q) ||
+      (i.cliente || '').toLowerCase().includes(q)
     );
   }
 
@@ -271,7 +287,7 @@ clearBtn.addEventListener('click', () => {
 
 // ================= Load =================
 async function loadFinanceiro() {
-  financeiroData = await window.api.financeiro.list();
+  financeiroData = (await window.api.financeiro.list()).map(normalizeItem);
   financeiroData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   render(financeiroData);
 }

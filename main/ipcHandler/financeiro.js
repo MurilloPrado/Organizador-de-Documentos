@@ -63,4 +63,150 @@ module.exports = (ipcMain, db) => {
     return result;
   });
 
+  function createPagamento({
+    titulo,
+    valor,
+    detalhes,
+    idCliente,
+    idDocumento,
+    metodoPagamento
+  }) {
+    const stmt = db.prepare(`
+      INSERT INTO pagamentos
+      (
+        idDocumento,
+        idCliente,
+        tituloPagamento,
+        valor,
+        detalhes,
+        metodoPagamento,
+        dataPagamento
+      )
+      VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    `);
+
+    const res = stmt.run(
+      idDocumento,
+      idCliente,
+      titulo,
+      valor,
+      detalhes || null,
+      metodoPagamento
+    );
+
+    return { idPagamento: res.lastInsertRowid };
+  }
+
+  function createLancamento({
+    titulo,
+    valor,
+    detalhes,
+    idDocumento,
+    tipoCusto
+  }) {
+    const stmt = db.prepare(`
+      INSERT INTO lancamentos
+      (
+        idDocumento,
+        tipoLancamento,
+        tituloLancamento,
+        detalhes,
+        valor,
+        createdAt
+      )
+      VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    `);
+
+    const res = stmt.run(
+      idDocumento,
+      tipoCusto,
+      titulo,
+      detalhes || null,
+      valor
+    );
+
+    return { idLancamento: res.lastInsertRowid };
+  }
+
+  ipcMain.handle('financeiro:create', async (_, payload) => {
+    const {
+      tipo,
+      titulo,
+      valor,
+      detalhes,
+      idCliente,
+      idDocumento,
+      metodoPagamento,
+      tipoCusto
+    } = payload;
+
+    if (!titulo || !valor) {
+      throw new Error('Título e valor são obrigatórios');
+    }
+
+    if (tipo === 'Pagamento') {
+      if (!idCliente || !idDocumento) {
+        throw new Error('Cliente e documento são obrigatórios para pagamento');
+      }
+
+      return createPagamento({
+        titulo,
+        valor,
+        detalhes,
+        idCliente,
+        idDocumento,
+        metodoPagamento
+      });
+    }
+
+    if (tipo === 'Custo') {
+      return createLancamento({
+        titulo,
+        valor,
+        detalhes,
+        idDocumento,
+        tipoCusto
+      });
+    }
+
+    throw new Error('Tipo financeiro inválido');
+  });
+
+  ipcMain.handle('financeiro:listDocumentosByCliente', async (_, idCliente) => {
+    if (!idCliente) return [];
+
+    return db.prepare(`
+      SELECT idDocumento, nomeDocumento
+      FROM documentos
+      WHERE idCliente = ?
+      ORDER BY dataCriado DESC
+    `).all(idCliente);
+  });
+
+  ipcMain.handle('financeiro:searchDocumentos', async (_, query) => {
+    if (!query || query.length < 2) return [];
+
+    return db.prepare(`
+      SELECT
+        d.idDocumento,
+        d.nomeDocumento
+      FROM documentos d
+      WHERE d.nomeDocumento LIKE ?
+      ORDER BY d.dataCriado DESC
+      LIMIT 10
+    `).all(`%${query}%`);
+  });
+
+  ipcMain.handle('financeiro:getClienteByDocumento', async (_, idDocumento) => {
+    if (!idDocumento) return null;
+
+    return db.prepare(`
+      SELECT
+        c.idCliente,
+        c.nome
+      FROM documentos d
+      JOIN clientes c ON c.idCliente = d.idCliente
+      WHERE d.idDocumento = ?
+    `).get(idDocumento);
+  });
 };
