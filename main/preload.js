@@ -58,8 +58,11 @@ contextBridge.exposeInMainWorld('api', {
         list: (opts) => ipcRenderer.invoke('listDocumentos:list', opts),
     },
     financeiro: {
+        getById: ({ id, tipo }) => ipcRenderer.invoke('financeiro:getById', { id, tipo }),
         list: () => ipcRenderer.invoke('financeiro:list'),
         create: (payload) => ipcRenderer.invoke('financeiro:create', payload),
+        update: (payload) => ipcRenderer.invoke('financeiro:update', payload),
+        delete: ({ id, tipo }) => ipcRenderer.invoke('financeiro:delete', { id, tipo }),
         listDocumentosByCliente: (nomeCliente) => ipcRenderer.invoke('financeiro:listDocumentosByCliente', nomeCliente),
         getClienteByDocumento: (idDocumento) => ipcRenderer.invoke('financeiro:getClienteByDocumento', idDocumento),
         searchDocumentos: (query) => ipcRenderer.invoke('financeiro:searchDocumentos', query),

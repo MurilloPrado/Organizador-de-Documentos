@@ -1,5 +1,17 @@
 import { toBRL, toNumber } from './common/money.js';
 
+// ==================================
+// Identificar modo de leitura/edição
+// ===================================
+function getParams() {
+  const url = new URL(window.location.href);
+  return {
+    id: Number(url.searchParams.get('id')),
+    tipo: url.searchParams.get('tipo'), // pagamento | custo
+    mode: url.searchParams.get('mode')
+  };
+}
+
 // =======================
 // Estado
 // =======================
@@ -9,10 +21,17 @@ let selectedCliente = null;
 let selectedProcesso = null;
 let processosDoCliente = [];
 let hasDirtyState = false;
+let isEditing = false;
+let originalData = null;
 
 // =======================
 // Elementos
 // =======================
+
+// Ações de documento (editar / excluir / voltar)
+const editarBtn = document.getElementById('editFinanceiroButton');
+const excluirBtn = document.getElementById('deleteFinanceiroButton');
+const backBtn = document.querySelector('.back-button');
 
 // Tipo (Pagamento / Custo)
 const tipoBtn = document.getElementById('tipoSelectorButton');
@@ -33,6 +52,9 @@ const processoSuggest = document.getElementById('processoSuggest');
 const valorInput = document.getElementById('valor');
 const detalhesInput = document.getElementById('detalhes');
 
+// Boxes
+const annotationBoxes = document.querySelectorAll('.annotation-box');
+
 // Custo
 const tipoCustoRadios = document.querySelectorAll('input[name="tipoCusto"]');
 
@@ -46,6 +68,7 @@ const salvarBtn = document.getElementById('salvarDocumento');
 // Utils
 // =======================
 function markDirty() {
+  if (!isEditing) return;
   hasDirtyState = true;
 }
 
@@ -66,6 +89,236 @@ if (valorInput) {
   });
 }
 
+function setEditIconToEdit() {
+  editarBtn.src = 'assets/edit.png';
+  editarBtn.title = 'Editar';
+}
+
+function setEditIconToClose() {
+  editarBtn.src = 'assets/x.png';
+  editarBtn.title = 'Cancelar edição';
+}
+
+function updateHeaderByState() {
+  const { id } = getParams();
+
+  // CREATE
+  if (!id) {
+    editarBtn.style.display = 'none';
+    excluirBtn.style.display = 'none';
+    backBtn.title = 'Cancelar';
+    return;
+  }
+
+  // VIEW
+  if (!isEditing) {
+    editarBtn.style.display = 'block';
+    excluirBtn.style.display = 'block';
+    backBtn.title = 'Voltar';
+    setEditIconToEdit();
+    return;
+  }
+
+  // EDIT
+  editarBtn.style.display = 'block';
+  excluirBtn.style.display = 'block';
+  backBtn.title = 'Cancelar edição';
+}
+
+function restoreOriginalData() {
+  if (!originalData) return;
+
+  tituloInput.value = originalData.titulo;
+  valorInput.value = originalData.valor;
+  detalhesInput.value = originalData.detalhes;
+
+  selectedCliente = originalData.selectedCliente;
+  selectedProcesso = originalData.selectedProcesso;
+
+  clienteInput.value = selectedCliente?.nome || '';
+  processoInput.value = selectedProcesso?.nomeDocumento || '';
+
+
+  if (originalData.metodoPagamento) {
+    currentMetodoPagamento = originalData.metodoPagamento;
+    metodoLabel.textContent = originalData.metodoPagamento;
+  }
+
+  if (originalData.tipoCusto) {
+    document
+      .querySelector(`input[name="tipoCusto"][value="${originalData.tipoCusto}"]`)
+      ?.click();
+  }
+}
+
+// =======================
+// Botão voltar
+// ======================
+backBtn.addEventListener('click', async e => {
+  const { id } = getParams();
+
+  // CREATE
+  if (!id) {
+    if (!hasDirtyState) return;
+
+    e.preventDefault();
+    const ok = await window.electronAPI.confirm(
+      'Deseja cancelar sem salvar?'
+    );
+    if (ok) window.location.href = 'financeiro.html';
+    return;
+  }
+
+  // EDIT
+  if (isEditing) {
+    e.preventDefault();
+
+    if (hasDirtyState) {
+      const ok = await window.electronAPI.confirm(
+        'Deseja cancelar a edição? As alterações não serão salvas.'
+      );
+      if (!ok) {
+        salvarBtn.focus();
+        return;
+      }
+    }
+
+    isEditing = false;
+    exitEditMode();
+    restoreOriginalData();
+    originalData = null;
+    setEditIconToEdit();
+    removeEditVisuals();
+    updateHeaderByState();
+    return;
+  }
+});
+
+// =======================
+// Modo view
+// =======================
+function enterViewMode() {
+  // inputs
+  tituloInput.setAttribute('readonly', true);
+  valorInput.setAttribute('readonly', true);
+  detalhesInput.setAttribute('readonly', true);
+
+  // dropdowns
+  tipoBtn.style.pointerEvents = 'none';
+  metodoBtn.style.pointerEvents = 'none';
+
+  // radios custo
+  tipoCustoRadios.forEach(r => {
+    document.querySelector('.tipo-custo')?.classList.add('view-mode');
+  });
+
+  // salvar escondido
+  salvarBtn.style.display = 'none';
+
+  // limpar dirty
+  hasDirtyState = false;
+}
+
+// =======================
+// Modo edição
+// =======================
+if (editarBtn) {
+  editarBtn.addEventListener('click', async () => {
+    if (!isEditing) {
+      originalData = {
+        titulo: tituloInput.value,
+        valor: valorInput.value,
+        detalhes: detalhesInput.value,
+        metodoPagamento: currentMetodoPagamento,
+        tipoCusto: document.querySelector('input[name="tipoCusto"]:checked')?.value || null,
+        selectedCliente: selectedCliente
+          ? { ...selectedCliente }
+          : null,
+        selectedProcesso: selectedProcesso
+          ? { ...selectedProcesso }
+          : null
+      };
+
+      isEditing = true;
+      enterEditMode();
+      setEditIconToClose();
+      updateHeaderByState();
+      return;
+    }
+
+    // CANCELAR EDIÇÃO (X)
+    if (hasDirtyState) {
+      const ok = await window.electronAPI.confirm(
+        'Existem alterações não salvas. Deseja cancelar a edição?'
+      );
+      if (!ok) {
+        salvarBtn.focus();
+        return;
+      }
+    }
+
+    isEditing = false;
+    restoreOriginalData();
+    originalData = null;
+
+    exitEditMode();
+    setEditIconToEdit();
+    removeEditVisuals();
+    updateHeaderByState();
+  });
+}
+
+function enterEditMode() {
+  document.body.classList.add('editing-mode');
+
+  tituloInput.removeAttribute('readonly');
+  tituloInput.classList.add('editing-box');
+  valorInput.removeAttribute('readonly');
+  detalhesInput.removeAttribute('readonly');
+
+  metodoBtn.style.pointerEvents = 'auto';
+  document.querySelector('.tipo-custo')?.classList.remove('view-mode');
+
+  salvarBtn.style.display = 'block';
+
+  annotationBoxes.forEach(box => {
+    box.classList.add('editing-box');
+  });
+}
+
+function removeEditVisuals() {
+  document.body.classList.remove('editing-mode');
+
+  tituloInput.classList.remove('editing-box');
+
+  annotationBoxes.forEach(box => {
+    box.classList.remove('editing-box');
+  });
+}
+
+function exitEditMode() {
+  enterViewMode();
+  hasDirtyState = false;
+}
+
+// =======================
+// Excluir e Editar
+// =======================
+if (excluirBtn) {
+  excluirBtn.addEventListener('click', async () => {
+    const { id } = getParams();
+
+    const ok = await window.electronAPI.confirm(
+      'Tem certeza que deseja excluir?'
+    );
+
+    if (!ok) return;
+
+    await window.api.financeiro.delete({ id, tipo: currentTipo });
+
+    window.location.href = 'financeiro.html';
+  });
+}
 
 // =======================
 // Tipo Pagamento / Custo
@@ -335,20 +588,6 @@ function renderDocumentoSuggest(list) {
 }
 
 // =======================
-// Cancelar (X)
-// =======================
-document.querySelector('[data-action="sair"]')?.addEventListener('click', async e => {
-  if (!hasDirtyState) return;
-
-  e.preventDefault();
-  const ok = await window.electronAPI.confirm(
-    'Existem dados preenchidos. Deseja cancelar sem salvar?'
-  );
-
-  if (ok) window.location.href = 'financeiro.html';
-});
-
-// =======================
 // Fechar dropdowns ao clicar fora
 // =======================
 document.addEventListener('click', () => {
@@ -358,6 +597,84 @@ document.addEventListener('click', () => {
   clienteSuggest.style.display = 'none';
 });
 
+// =======================
+// Modo view
+// =======================
+function lockFields() {
+  clienteInput.setAttribute('readonly', true);
+  processoInput.setAttribute('readonly', true);
+
+  clienteInput.classList.add('readonly');
+  processoInput.classList.add('readonly');
+}
+
+function normalizeTipo(tipo) {
+  if (!tipo) return 'Pagamento';
+  return tipo.toLowerCase() === 'custo'
+    ? 'Custo'
+    : 'Pagamento';
+}
+
+function updateDot() {
+  tipoDot.className =
+  currentTipo === 'Pagamento'
+    ? 'status-dot status-dot-pagamento'
+    : 'status-dot status-dot-custo';
+}
+
+async function loadLancamento() {
+  const { id, tipo, mode } = getParams()
+  
+  const lanc = await window.api.financeiro.getById({ id, tipo });
+
+  if (!lanc) {
+    await window.electronAPI.confirm('Lançamento não encontrado.');
+    window.location.href = 'financeiro.html';
+    return;
+  }
+
+  // tipo
+  currentTipo = normalizeTipo(lanc.tipo);
+  tipoLabel.textContent = currentTipo;
+
+  toggleTipoFields();
+  updateSalvarButtonLabel();
+  updateDot();
+
+  // campos
+  tituloInput.value = lanc.titulo;
+  valorInput.value = toBRL(lanc.valor);
+  detalhesInput.value = lanc.detalhes || '';
+
+  clienteInput.value = lanc.clienteNome;
+  processoInput.value = lanc.documentoNome;
+
+  selectedCliente = {
+    idCliente: lanc.idCliente,
+    nome: lanc.clienteNome
+  };
+
+  selectedProcesso = {
+    idDocumento: lanc.idDocumento,
+    nomeDocumento: lanc.documentoNome
+  };
+
+  currentMetodoPagamento = lanc.metodoPagamento;
+  metodoLabel.textContent = lanc.metodoPagamento;
+
+  if (lanc.tipoCusto) {
+    document
+      .querySelector(`input[name="tipoCusto"][value="${lanc.tipoCusto}"]`)
+      ?.click();
+  }
+
+  lockFields();
+
+  if (mode === 'view') {
+    enterViewMode();
+  }
+}
+
 // ======================
 // Salvar
 // ======================
@@ -365,14 +682,22 @@ salvarBtn?.addEventListener('click', async () => {
   const titulo = tituloInput.value.trim();
   const valor = toNumber(valorInput.value);
 
+  console.log('DEBUG SAVE', {
+    currentTipo,
+    selectedCliente,
+    selectedProcesso
+  });
+
   if (!titulo || !valor) {
     await window.electronAPI.confirm('Título e valor são obrigatórios.');
     return;
   }
 
-  if (currentTipo === 'Pagamento' && !selectedProcesso?.idDocumento) {
+  if ( currentTipo === 'Pagamento' && 
+    (!selectedCliente?.idCliente || !selectedProcesso?.idDocumento)
+  ) {
     await window.electronAPI.confirm(
-      'Para pagamentos, é obrigatório selecionar um processo/documento.'
+      'Para pagamentos, é obrigatório selecionar cliente e processo/documento.'
     );
     return;
   }
@@ -388,8 +713,33 @@ salvarBtn?.addEventListener('click', async () => {
     tipoCusto: document.querySelector('input[name="tipoCusto"]:checked')?.value || null
   };
 
-  await window.api.financeiro.create(payload);
+  if (id) {
+    await window.api.financeiro.update({
+      id,
+      tipo: currentTipo, 
+      ...payload
+    });
+  } else {
+    await window.api.financeiro.create({
+      tipo: currentTipo,
+      ...payload
+    });
+  }
 
   hasDirtyState = false;
   window.location.href = 'financeiro.html';
 });
+
+const { id, mode } = getParams();
+
+if (id) {
+  loadLancamento();
+} else {
+  // modo criação
+  isEditing = false;
+  removeEditVisuals();
+  salvarBtn.style.display = 'block';
+}
+
+
+updateHeaderByState();

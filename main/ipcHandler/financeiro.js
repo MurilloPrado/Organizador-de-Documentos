@@ -1,5 +1,51 @@
 module.exports = (ipcMain, db) => {
 
+  ipcMain.handle('financeiro:getById', async (_, { id, tipo }) => {
+    if (!id || !tipo) return null;
+
+    if (tipo === 'pagamento') {
+      return db.prepare(`
+        SELECT
+          p.idPagamento     AS id,
+          'pagamento'       AS tipo,
+          p.tituloPagamento AS titulo,
+          p.valor,
+          p.detalhes        AS detalhes,
+          p.metodoPagamento AS metodoPagamento,
+          d.idDocumento,
+          d.nomeDocumento   AS documentoNome,
+          c.idCliente          AS idCliente,
+          c.nome            AS clienteNome
+        FROM pagamentos p
+        LEFT JOIN documentos d ON d.idDocumento = p.idDocumento
+        LEFT JOIN clientes c   ON c.idCliente   = d.idCliente
+        WHERE p.idPagamento = ?
+      `).get(id);
+    }
+
+    if (tipo === 'custo') {
+      return db.prepare(`
+        SELECT
+          l.idLancamento    AS id,
+          'custo'           AS tipo,
+          l.tituloLancamento AS titulo,
+          l.valor,
+          l.detalhes,
+          l.tipoLancamento  AS tipoCusto,
+          d.idDocumento,
+          d.nomeDocumento   AS documentoNome,
+          c.idCliente          AS idCliente,
+          c.nome            AS clienteNome
+        FROM lancamentos l
+        LEFT JOIN documentos d ON d.idDocumento = l.idDocumento
+        LEFT JOIN clientes c   ON c.idCliente   = d.idCliente
+        WHERE l.idLancamento = ?
+      `).get(id);
+    }
+
+    return null;
+  });
+
   ipcMain.handle('financeiro:list', async () => {
 
     /*
@@ -34,7 +80,7 @@ module.exports = (ipcMain, db) => {
          SELECT
             p.idPagamento       AS id,
             'pagamento'         AS tipo,
-            COALESCE(p.detalhes, 'Pagamento') AS titulo,
+            p.tituloPagamento AS titulo,
             p.valor             AS valor,
             d.nomeDocumento     AS documento,
             c.nome              AS cliente,
@@ -170,6 +216,91 @@ module.exports = (ipcMain, db) => {
     }
 
     throw new Error('Tipo financeiro inválido');
+  });
+
+  ipcMain.handle('financeiro:update', async (_, payload) => {
+    const {
+      id,
+      tipo,
+      titulo,
+      valor,
+      detalhes,
+      idCliente,
+      idDocumento,
+      metodoPagamento,
+      tipoCusto
+    } = payload;
+
+    if (tipo === 'Pagamento') {
+      if (!idCliente || !idDocumento) {
+        throw new Error('Cliente e documento são obrigatórios para pagamento');
+      }
+
+      db.prepare(`
+        UPDATE pagamentos
+        SET
+          tituloPagamento = ?,
+          valor = ?,
+          detalhes = ?,
+          metodoPagamento = ?,
+          idDocumento = ?
+        WHERE idPagamento = ?
+      `).run(
+        titulo,
+        valor,
+        detalhes,
+        metodoPagamento,
+        idDocumento,
+        id
+      );
+
+      return true;
+    }
+
+    // CUSTO
+    db.prepare(`
+      UPDATE lancamentos
+      SET
+        tituloLancamento = ?,
+        valor = ?,
+        detalhes = ?,
+        tipoLancamento = ?
+      WHERE idLancamento = ?
+    `).run(
+      titulo,
+      valor,
+      detalhes,
+      tipoCusto,
+      id
+    );
+
+    return true;
+  });
+
+  ipcMain.handle('financeiro:delete', async (_, { id, tipo }) => {
+    if (!id || !tipo) {
+      throw new Error('ID e tipo são obrigatórios');
+    }
+
+    if (tipo === 'Pagamento') {
+      db.prepare(`
+        DELETE FROM pagamentos
+        WHERE idPagamento = ?
+      `).run(id);
+
+      return true;
+    }
+
+    if (tipo === 'Custo') {
+      db.prepare(`
+        DELETE FROM lancamentos
+        WHERE idLancamento = ?
+      `).run(id);
+
+      return true;
+    }
+
+    throw new Error('Tipo inválido');
   });
 
   ipcMain.handle('financeiro:listDocumentosByCliente', async (_, idCliente) => {

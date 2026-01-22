@@ -140,6 +140,11 @@ function render(items) {
         </div>
       `;
 
+      card.addEventListener('click', () => {
+        window.location.href =
+          `financeiroForm.html?id=${item.id}&tipo=${item.tipo}&mode=view`;
+      });
+
       section.appendChild(card);
     });
 

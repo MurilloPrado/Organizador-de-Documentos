@@ -212,11 +212,11 @@
 }
 
 .editing-title {
-  animation: editShake 0.55s ease-in-out infinite;
+  animation: editShake 0.95s ease-in-out infinite;
 }
 
 .editing-box {
-  animation: editShake 0.55s ease-in-out infinite;
+  animation: editShake 0.95s ease-in-out infinite;
   border: 2px dashed #004aad !important;
 }
 

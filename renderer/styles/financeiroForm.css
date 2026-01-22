@@ -54,6 +54,10 @@
   cursor: pointer;
 }
 
+.tipo-custo.view-mode {
+  pointer-events: none;
+}
+
 .metodo-pagamento-label {
     font-size: 20px;
     align-items: center;
@@ -97,4 +101,22 @@
   overflow-y: auto;         /* scroll */
   display: none;
 }
-  
+
+@keyframes radioPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 74, 173, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 74, 173, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 74, 173, 0);
+  }
+}
+
+.editing-mode
+.tipo-custo
+input[type="radio"]:checked {
+  animation: radioPulse 1.5s infinite;
+  border-radius: 50%;
+}

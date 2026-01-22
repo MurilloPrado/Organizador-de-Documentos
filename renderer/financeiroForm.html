@@ -13,9 +13,17 @@
     </head>
 
     <body>
-        <header>
-            <a href="financeiro.html"><img src="assets/x.png" alt="cancelar" class="cancel-button" data-action="sair"></a>
-            <div class="title">Financeiro</div>
+        <header class="document-view-header">
+            <a href="financeiro.html" class="back-button" aria-label="Voltar">&#x25C0;</a>
+
+            <div class="document-view-header-center">
+                <div class="title">Financeiro</div>
+            </div>
+
+            <div class="document-actions">
+                <img src="assets/edit.png" id="editFinanceiroButton" class="action-icon" title="Editar" alt="Editar documento"/>
+                <img src="assets/excluir.png" id="deleteFinanceiroButton" class="action-icon danger" title="Excluir" alt="Excluir documento"/>
+            </div>
         </header>
 
         <main style="padding: 40px">
