@@ -355,6 +355,7 @@ document.addEventListener('click', () => {
   tipoDropdown.style.display = 'none';
   metodoDropdown.style.display = 'none';
   processoSuggest.style.display = 'none';
+  clienteSuggest.style.display = 'none';
 });
 
 // ======================

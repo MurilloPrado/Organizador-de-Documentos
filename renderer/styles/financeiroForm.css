@@ -66,6 +66,35 @@
   margin-top: 50px !important;
 }
 
-.client-suggest {
-  margin-top: -25px;
+#clienteSuggest {
+  position: absolute;
+  top: calc(100% + 6px); /* logo abaixo do input */
+  left: 0;
+  width: 100%;
+
+  background: #fff;
+  border: 1px solid #d1d1d1;
+  border-radius: 10px;
+
+  z-index: 9999;            /* sobrepõe tudo */
+  max-height: 240px;        /* altura máxima */
+  overflow-y: auto;         /* scroll */
+  display: none;
 }
+
+#processoSuggest {
+  position: absolute;
+  top: calc(100% + 6px); /* logo abaixo do input */
+  left: 0;
+  width: 100%;
+
+  background: #fff;
+  border: 1px solid #d1d1d1;
+  border-radius: 10px;
+
+  z-index: 9999;            /* sobrepõe tudo */
+  max-height: 240px;        /* altura máxima */
+  overflow-y: auto;         /* scroll */
+  display: none;
+}
+  
