@@ -123,6 +123,7 @@
 
 .fixed-card-section{ margin:22px 0; }
 .fixed-card{
+  position: relative;
   background:#e6e6e6;
   border-radius:12px;
   padding:16px 20px;
@@ -134,6 +135,12 @@
   margin:8px 0 12px;
 }
 .fixed-card p{ margin:6px 0; }
+
+.fixed-card .add {
+  position: absolute;
+  top: 50%; /* Alinha com o padding superior do cartão */
+  right: 35px; /* Alinha com o padding direito do cartão */
+}
 
 #documentDetails[readonly] {
   cursor: default;     /* seta normal, não de texto */

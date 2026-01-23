@@ -191,6 +191,20 @@ module.exports = (ipcMain, db) => {
       ORDER BY idArquivo ASC
     `).all(idDocumento);
 
+    const pagamentos = db.prepare(`
+      SELECT
+        p.idPagamento       AS id,
+        'pagamento'         AS tipo,
+        p.tituloPagamento   AS titulo,
+        p.valor             AS valor,
+        p.detalhes          AS detalhes,
+        p.metodoPagamento   AS metodoPagamento,
+        p.dataPagamento     AS createdAt
+      FROM pagamentos p
+      WHERE p.idDocumento = ?
+      ORDER BY p.dataPagamento DESC
+    `).all(idDocumento);
+
     const lancamentos = db.prepare(`
       SELECT idLancamento, idDocumento, tipoLancamento, tituloLancamento, detalhes, valor, createdAt
       FROM lancamentos
@@ -198,7 +212,7 @@ module.exports = (ipcMain, db) => {
       ORDER BY idLancamento ASC
     `).all(idDocumento);
 
-    return { documento, cliente, arquivos, lancamentos };
+    return { documento, cliente, arquivos, pagamentos, lancamentos };
   });
 
   // Atualizar apenas o status do documento

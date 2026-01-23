@@ -125,6 +125,30 @@ function getLancamentoDate(l){
   );
 }
 
+function renderPagamentosList(lista = []) {
+  const el = document.getElementById('lastPaymentsList');
+  if (!el) return;
+
+  if (!Array.isArray(lista) || lista.length === 0) {
+    el.innerHTML = '<p>Nenhum pagamento registrado.</p>';
+    return;
+  }
+
+  const ordered = [...lista].sort((a, b) => {
+    const da = new Date(getLancamentoDate(a)).getTime() || 0;
+    const db = new Date(getLancamentoDate(b)).getTime() || 0;
+    return db - da;
+  });
+
+  const latest = ordered.slice(0, 10);
+
+  el.innerHTML = latest.map(p => {
+    const valor = formatCurrencyToBRL(p?.valor || 0);
+    const quando = formatDateBR(getLancamentoDate(p));
+    return `<p style="margin-left:10px">${valor} pago em ${quando}</p>`;
+  }).join('');
+}
+
 function renderCustosList(lista = [], label = 'custo'){
   if(!lastCostList) return;
   if(!Array.isArray(lista) || lista.length === 0){
@@ -289,9 +313,17 @@ async function loadDocumentAndRender() {
     ? loadedDocumentBundle.lancamentos
     : [];
 
+
+  // custos
   const servicos = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'servico');
   const taxas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'taxa');
   const despesas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'despesas');
+
+  // pagamentos
+  const pagamentos = Array.isArray(loadedDocumentBundle?.pagamentos)
+    ? loadedDocumentBundle.pagamentos
+    : [];
+  console.log({ pagamentos });
 
   const totalServicos = servicos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
   const totalTaxas = taxas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
@@ -307,6 +339,7 @@ async function loadDocumentAndRender() {
     resultValueElement.style.color = 'black'; 
   }
 
+  renderPagamentosList(pagamentos);
   renderCustosList([...taxas, ...despesas], 'custo');
 }
 
