@@ -32,6 +32,7 @@ let originalData = null;
 const editarBtn = document.getElementById('editFinanceiroButton');
 const excluirBtn = document.getElementById('deleteFinanceiroButton');
 const backBtn = document.querySelector('.back-button');
+const backIcon = backBtn.querySelector('img');
 
 // Tipo (Pagamento / Custo)
 const tipoBtn = document.getElementById('tipoSelectorButton');
@@ -99,6 +100,16 @@ function setEditIconToClose() {
   editarBtn.title = 'Cancelar edição';
 }
 
+function setBackAsText() {
+  backBtn.innerHTML = '&#x25C0;';
+  backBtn.title = 'Voltar';
+}
+
+function setBackAsCloseIcon() {
+  backBtn.innerHTML = '<img src="assets/x.png" alt="Cancelar">';
+  backBtn.title = 'Cancelar';
+}
+
 function updateHeaderByState() {
   const { id } = getParams();
 
@@ -107,6 +118,8 @@ function updateHeaderByState() {
     editarBtn.style.display = 'none';
     excluirBtn.style.display = 'none';
     backBtn.title = 'Cancelar';
+
+    setBackAsCloseIcon();
     return;
   }
 
@@ -115,6 +128,8 @@ function updateHeaderByState() {
     editarBtn.style.display = 'block';
     excluirBtn.style.display = 'block';
     backBtn.title = 'Voltar';
+
+    setBackAsText();
     setEditIconToEdit();
     return;
   }
