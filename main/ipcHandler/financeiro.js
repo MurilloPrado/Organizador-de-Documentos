@@ -307,7 +307,10 @@ module.exports = (ipcMain, db) => {
     if (!idCliente) return [];
 
     return db.prepare(`
-      SELECT idDocumento, nomeDocumento
+      SELECT
+        idDocumento,
+        nomeDocumento,
+        idCliente
       FROM documentos
       WHERE idCliente = ?
       ORDER BY dataCriado DESC
@@ -320,8 +323,11 @@ module.exports = (ipcMain, db) => {
     return db.prepare(`
       SELECT
         d.idDocumento,
-        d.nomeDocumento
+        d.nomeDocumento,
+        d.idCliente,
+        c.nome AS clienteNome
       FROM documentos d
+      JOIN clientes c ON c.idCliente = d.idCliente
       WHERE d.nomeDocumento LIKE ?
       ORDER BY d.dataCriado DESC
       LIMIT 10

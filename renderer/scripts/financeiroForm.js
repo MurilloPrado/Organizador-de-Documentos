@@ -338,8 +338,16 @@ if (excluirBtn) {
 // =======================
 // Tipo Pagamento / Custo
 // =======================
+function closeAllDropdowns() {
+  tipoDropdown.style.display = 'none';
+  metodoDropdown.style.display = 'none';
+  processoSuggest.style.display = 'none';
+  clienteSuggest.style.display = 'none';
+}
+
 tipoBtn.addEventListener('click', e => {
   e.stopPropagation();
+  closeAllDropdowns();
   tipoDropdown.style.display =
     tipoDropdown.style.display === 'block' ? 'none' : 'block';
 });
@@ -391,6 +399,7 @@ function updateSalvarButtonLabel() {
 // =======================
 metodoBtn.addEventListener('click', e => {
   e.stopPropagation();
+  closeAllDropdowns();
   metodoDropdown.style.display =
     metodoDropdown.style.display === 'block' ? 'none' : 'block';
 });
@@ -444,6 +453,8 @@ function renderClienteSuggest(list) {
     clienteSuggest.style.display = 'none';
     return;
   }
+
+  closeAllDropdowns(); // Fechar outros dropdowns antes de abrir este
 
   list.forEach(cli => {
     const el = document.createElement('div');
@@ -551,6 +562,8 @@ function renderDocumentoSuggest(list) {
     return;
   }
 
+  closeAllDropdowns();
+
   list.forEach(doc => {
     const el = document.createElement('div');
     el.className = 'client-suggest';
@@ -565,32 +578,22 @@ function renderDocumentoSuggest(list) {
 
     el.append(icon, label);
 
-    el.addEventListener('mousedown', async ev => {
+    el.addEventListener('mousedown', ev => {
       ev.preventDefault();
       ev.stopPropagation();
 
       processoInput.value = doc.nomeDocumento;
       selectedProcesso = doc;
 
-      // Preencher cliente se não estiver selecionado
-      if (!selectedCliente) {
-        const cli = await window.api.financeiro.getClienteByDocumento(
-          doc.idDocumento
-        );
+      // SETA O CLIENTE IMEDIATAMENTE
+      if (!selectedCliente && doc.idCliente) {
+        selectedCliente = {
+          idCliente: doc.idCliente,
+          nome: doc.clienteNome || ''
+        };
 
-        if (cli) {
-          clienteInput.value = cli.nome;
-          selectedCliente = {
-            idCliente: cli.idCliente,
-            nome: cli.nome
-          };
-
-          processosDoCliente = await window.api.financeiro.listDocumentosByCliente(
-            selectedCliente.idCliente
-          );
-        }
+        clienteInput.value = selectedCliente.nome;
       }
-
 
       processoSuggest.style.display = 'none';
       markDirty();
@@ -606,10 +609,7 @@ function renderDocumentoSuggest(list) {
 // Fechar dropdowns ao clicar fora
 // =======================
 document.addEventListener('click', () => {
-  tipoDropdown.style.display = 'none';
-  metodoDropdown.style.display = 'none';
-  processoSuggest.style.display = 'none';
-  clienteSuggest.style.display = 'none';
+  closeAllDropdowns();
 });
 
 // =======================
