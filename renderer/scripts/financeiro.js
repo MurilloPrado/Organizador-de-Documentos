@@ -142,7 +142,7 @@ function render(items) {
 
       card.addEventListener('click', () => {
         window.location.href =
-          `financeiroForm.html?id=${item.id}&tipo=${item.tipo}&mode=view`;
+          `financeiroForm.html?id=${item.id}&tipo=${item.tipo}&mode=view&from=financeiro`;
       });
 
       section.appendChild(card);

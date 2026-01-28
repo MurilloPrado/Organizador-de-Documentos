@@ -248,6 +248,9 @@ backBtn.addEventListener('click', async e => {
     updateHeaderByState();
     return;
   }
+
+  // VIEW
+  redirectBack();
 });
 
 // =======================
