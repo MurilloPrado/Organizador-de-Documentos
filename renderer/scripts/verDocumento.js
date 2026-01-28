@@ -25,6 +25,7 @@ const detalhesBox = document.querySelector('.annotation-box');
 
 const documentFilesContainer = selectOne('#documentFilesContainer');
 
+const addPagamentoFab = document.getElementById('addPagamentoFab');
 const resultValueElement = selectOne('#resultValue');
 const lastCostList = selectOne('#lastCostsList');
 
@@ -569,6 +570,12 @@ deleteDocumentButton.addEventListener('click', async () => {
     console.error('Falha ao excluir o documento:', error);
     alert('Não foi possível excluir o documento.');
   }
+});
+
+addPagamentoFab.addEventListener('click', () => {
+  const documentId = getDocumentIdFromUrl();
+  window.location.href =
+    `financeiroForm.html?from=processo&processoId=${documentId}`;
 });
 
 // 

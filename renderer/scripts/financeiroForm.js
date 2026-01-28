@@ -8,7 +8,9 @@ function getParams() {
   return {
     id: Number(url.searchParams.get('id')),
     tipo: url.searchParams.get('tipo'), // pagamento | custo
-    mode: url.searchParams.get('mode')
+    mode: url.searchParams.get('mode'),
+    from: url.searchParams.get('from'),           // processo | financeiro
+    processoId: Number(url.searchParams.get('processoId'))
   };
 }
 
@@ -166,21 +168,60 @@ function restoreOriginalData() {
   }
 }
 
+async function preloadFromProcess() {
+  const { from, processoId } = getParams();
+  if (from !== 'processo' || !processoId) return;
+
+  const doc = await window.api.documentos.getById(processoId);
+  if (!doc?.documento || !doc?.cliente) return;
+
+  selectedCliente = {
+    idCliente: doc.documento.idCliente,
+    nome: doc.cliente.nome
+  };
+
+  selectedProcesso = {
+    idDocumento: doc.documento.idDocumento,
+    nomeDocumento: doc.documento.nomeDocumento
+  };
+
+  clienteInput.value = selectedCliente.nome;
+  processoInput.value = selectedProcesso.nomeDocumento;
+
+  lockFields();
+}
+
 // =======================
 // Botão voltar
 // ======================
+function redirectBack() {
+  const { from, processoId } = getParams();
+
+  if (from === 'processo' && processoId) {
+    window.location.href = `verDocumento.html?id=${processoId}`;
+    return;
+  }
+
+  window.location.href = 'financeiro.html';
+}
+
 backBtn.addEventListener('click', async e => {
+  e.preventDefault();
+
   const { id } = getParams();
 
   // CREATE
   if (!id) {
-    if (!hasDirtyState) return;
+    if (!hasDirtyState) {
+      redirectBack();
+      return;
+    }
 
     e.preventDefault();
     const ok = await window.electronAPI.confirm(
       'Deseja cancelar sem salvar?'
     );
-    if (ok) window.location.href = 'financeiro.html';
+    if (ok) redirectBack();
     return;
   }
 
@@ -742,7 +783,7 @@ salvarBtn?.addEventListener('click', async () => {
   }
 
   hasDirtyState = false;
-  window.location.href = 'financeiro.html';
+  redirectBack();
 });
 
 const { id, mode } = getParams();
@@ -752,6 +793,7 @@ if (id) {
 } else {
   // modo criação
   isEditing = false;
+  preloadFromProcess();
   removeEditVisuals();
   salvarBtn.style.display = 'block';
 }
