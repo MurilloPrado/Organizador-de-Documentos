@@ -313,7 +313,6 @@ async function loadDocumentAndRender() {
     ? loadedDocumentBundle.lancamentos
     : [];
 
-
   // custos
   const servicos = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'servico');
   const taxas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'taxa');
@@ -325,10 +324,16 @@ async function loadDocumentAndRender() {
     : [];
   console.log({ pagamentos });
 
+  // valor total cobrado do cliente
   const totalServicos = servicos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
+  // custos do processo
   const totalTaxas = taxas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
   const totalDespesas = despesas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
-  const resultadoFinal = totalServicos - (totalTaxas + totalDespesas);
+  // pagamentos
+  const totalPagamentos = pagamentos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
+
+  // resultado final
+  const resultadoFinal = totalServicos - (totalTaxas + totalDespesas) + totalPagamentos;
 
   resultValueElement.textContent = `Resultado: ${formatCurrencyToBRL(resultadoFinal)}`;
   if (resultadoFinal > 0) {
