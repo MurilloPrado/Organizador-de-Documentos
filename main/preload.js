@@ -22,7 +22,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdateStatus: (callback) => {
         ipcRenderer.on('update-status', (_event, data) => callback(data));
     },
-    confirm: (message) => ipcRenderer.invoke('showConfirm', message),
+    confirm: (arg) => { if (typeof arg === 'string') {
+        return ipcRenderer.invoke('showConfirm', {
+            message: arg,
+            single: false
+        });
+    }
+
+  // novo formato
+  return ipcRenderer.invoke('showConfirm', arg);
+}
 });
 
 contextBridge.exposeInMainWorld('api', {

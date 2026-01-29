@@ -21,8 +21,8 @@ const titleEl  = headerEl?.querySelector('.title') || document.querySelector('he
 const headerBackLink = document.getElementById('headerBackLink'); // seta ←
 const headerCancelImg = document.getElementById('headerCancelImg'); // X (imagem)
 
-const optionsKebabButton = document.getElementById('optionsKebabButton');
-const optionsKebabMenu   = document.getElementById('optionsKebabMenu');
+const editClienteButton   = document.getElementById('editClienteButton');
+const deleteClienteButton = document.getElementById('deleteClienteButton');
 
 function norm(value) { return String(value ?? '').trim(); }
 const onlyDigits = (v) => norm(v).replace(/\D+/g, '');
@@ -32,7 +32,13 @@ function setSaving(isSaving) {
   saveButton.disabled = isSaving;
   saveButton.textContent = isSaving ? 'Salvando…' : (isViewMode() ? 'Salvar alterações' : 'Salvar cliente');
 }
-function showError(msg) { alert(msg); }
+
+async function showError(msg) {
+  await window.electronAPI.confirm({
+    message: msg,
+    single: true,
+  });
+}
 
 function getTipoSelecionado() {
   if (tipoFisica?.checked) return 'fisica';
@@ -158,34 +164,45 @@ function showSaveButton(show) {
   saveButton.textContent = isViewMode() ? 'Salvar alterações' : 'Salvar cliente';
 }
 
-if (optionsKebabButton && optionsKebabMenu) {
-  // garante escondido no load
-  optionsKebabMenu.classList.add('hidden');
-  optionsKebabMenu.setAttribute('aria-hidden', 'true');
-  optionsKebabButton.setAttribute('aria-expanded', 'false');
+function setEditIconToEdit() {
+  editClienteButton.src = 'assets/edit.png';
+  editClienteButton.alt = 'Editar cliente';
+  editClienteButton.title = 'Editar cliente';
+}
 
-  optionsKebabButton.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isHidden = optionsKebabMenu.classList.contains('hidden');
-    optionsKebabMenu.classList.toggle('hidden', !isHidden ? true : false);
-    optionsKebabMenu.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
-    optionsKebabButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!optionsKebabMenu.contains(e.target) && !optionsKebabButton.contains(e.target)) {
-      optionsKebabMenu.classList.add('hidden');
-      optionsKebabMenu.setAttribute('aria-hidden', 'true');
-      optionsKebabButton.setAttribute('aria-expanded', 'false');
-    }
-  });
+function setEditIconToClose() {
+  editClienteButton.src = 'assets/x.png';
+  editClienteButton.alt = 'Cancelar edição';
+  editClienteButton.title = 'Cancelar edição';
 }
 
 if (editClienteButton) {
-  editClienteButton.addEventListener('click', () => {
-    optionsKebabMenu.setAttribute('aria-hidden', 'true');
-    optionsKebabMenu.classList.add('hidden');
-    enterEditMode();
+    editClienteButton.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    // NÃO está editando → entra em edição
+    if (!editing) {
+      editing = true;
+      setInputsDisabled(false);
+      showSaveButton(true);
+      setEditIconToClose(); // 🔥 troca para X
+      return;
+    }
+
+    // JÁ está editando → cancelar edição
+    const ok = await window.electronAPI.confirm(
+      'Deseja cancelar a edição?'
+    );
+    if (!ok) return;
+
+    if (currentData) {
+      fillFormWithData(currentData); // restaura dados
+    }
+
+    editing = false;
+    setInputsDisabled(true);
+    showSaveButton(false);
+    setEditIconToEdit(); // 🔥 volta para editar
   });
 }
 
@@ -198,7 +215,10 @@ if (deleteClienteButton) {
       window.location.href = 'clientes.html';
     } catch (err) {
       console.error('Erro ao excluir cliente:', err);
-      alert('Não foi possível excluir o cliente.');
+      await window.electronAPI.confirm({
+        message: 'Erro ao excluir cliente',
+        single: true
+      });
     }
   });
 }
@@ -247,6 +267,7 @@ function enterViewModeLoaded() {
 
   setInputsDisabled(true);
   showSaveButton(false);
+  setEditIconToEdit();
 }
 function enterEditMode() {
   if (!isViewMode()) return;
@@ -256,27 +277,20 @@ function enterEditMode() {
 }
 
 function updateHeaderIcons() {
-  if (!headerBackLink || !headerCancelImg) return;
+  // excluir só aparece quando NÃO está editando
+  if (deleteClienteButton)
+    deleteClienteButton.style.display =
+      isViewMode() && !isEditing() ? '' : 'none';
 
-  // --- modo create ---
-  if (!isViewMode()) {
-    headerBackLink.style.display = 'none';
-    headerCancelImg.style.display = '';
-    return;
-  }
+  // seta ← só aparece quando NÃO está editando
+  if (headerBackLink)
+    headerBackLink.style.display =
+      isViewMode() && !isEditing() ? '' : 'none';
 
-  // --- modo view normal (somente leitura) ---
-  if (isViewMode() && !isEditing()) {
-    headerBackLink.style.display = '';
-    headerCancelImg.style.display = 'none';
-    return;
-  }
-
-  // --- modo edição dentro do view ---
-  if (isViewMode() && isEditing()) {
-    headerBackLink.style.display = 'none';
-    headerCancelImg.style.display = '';
-  }
+  // X separado (headerCancelImg) só no create
+  if (headerCancelImg)
+    headerCancelImg.style.display =
+      !isViewMode() ? '' : 'none';
 }
 
 // Clique no X
@@ -390,7 +404,11 @@ async function handleSalvar() {
       showSaveButton(false);
       editing = false;
       updateHeaderIcons();
-      alert('Cliente atualizado com sucesso.');
+      setEditIconToEdit();
+      await window.electronAPI.confirm({
+        message: 'Cliente atualizado com sucesso',
+        single: true
+      });
     } else {
       // CREATE (fluxo original)
       await api.clientes.create({
