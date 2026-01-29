@@ -348,9 +348,9 @@ a.fab {
 
 @keyframes editShake {
   0%   { transform: translateX(0); }
-  25%  { transform: translateX(-1.5px); }
-  50%  { transform: translateX(1.5px); }
-  75%  { transform: translateX(-1.5px); }
+  25%  { transform: translateX(-1px); }
+  50%  { transform: translateX(1px); }
+  75%  { transform: translateX(-1px); }
   100% { transform: translateX(0); }
 }
 
@@ -372,7 +372,7 @@ a.fab {
 }
 
 .editing-box {
-  animation: editShake 0.95s ease-in-out infinite;
+  animation: editShake 1.5s ease-in-out infinite;
   border: 2px dashed #004aad !important;
 }
 

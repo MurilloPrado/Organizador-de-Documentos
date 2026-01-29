@@ -30,9 +30,12 @@ function safe(v) {
 function renderCard(cliente) {
   return `
     <div class="preview-cliente" data-id="${safe(cliente.id)}">
-      <div>
-        <h3>${safe(cliente.nome)}</h3>
-        <p>${safe(formatPhone(cliente.tel))}</p>
+      <div class="cliente-left">
+        <div class="cliente-bar"></div>
+        <div>
+          <h3>${safe(cliente.nome)}</h3>
+          <p>${safe(formatPhone(cliente.tel))}</p>
+        </div>
       </div>
       <img src="assets/seta.png">
     </div>

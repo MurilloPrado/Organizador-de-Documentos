@@ -7,6 +7,12 @@
     border-radius: 10px;
     margin-top: 20px;
     margin-left: 20px;
+    cursor: pointer;
+}
+
+.cliente-left {
+  display: flex;
+  align-items: stretch;
 }
 
 .preview-cliente img{
@@ -14,9 +20,20 @@
     height: 28px;
 }
 
-.preview-cliente div {
+.preview-cliente .cliente-content {
     display: flex;
     flex-direction: column; /* um texto abaixo do outro */
+}
+
+.cliente-left p {
+    margin-top: 3px;
+}
+
+.cliente-bar {
+    width: 5px;
+    border-radius: 5px;
+    margin-right: 10px;
+    background-color: #004aad;
 }
 
 .annotation-box {
