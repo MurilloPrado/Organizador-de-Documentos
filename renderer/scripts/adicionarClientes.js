@@ -24,6 +24,8 @@ const headerCancelImg = document.getElementById('headerCancelImg'); // X (imagem
 const editClienteButton   = document.getElementById('editClienteButton');
 const deleteClienteButton = document.getElementById('deleteClienteButton');
 
+const annotationBoxes = document.querySelectorAll('.annotation-box');
+
 function norm(value) { return String(value ?? '').trim(); }
 const onlyDigits = (v) => norm(v).replace(/\D+/g, '');
 
@@ -185,7 +187,8 @@ if (editClienteButton) {
       editing = true;
       setInputsDisabled(false);
       showSaveButton(true);
-      setEditIconToClose(); // 🔥 troca para X
+      setEditIconToClose();
+      applyEditVisuals(); // 🔥 animação
       return;
     }
 
@@ -202,9 +205,27 @@ if (editClienteButton) {
     editing = false;
     setInputsDisabled(true);
     showSaveButton(false);
-    setEditIconToEdit(); // 🔥 volta para editar
+    setEditIconToEdit();
+    removeEditVisuals()
   });
 }
+
+function applyEditVisuals() {
+  document.body.classList.add('editing-mode');
+
+  annotationBoxes.forEach(box => {
+    box.classList.add('editing-box');
+  });
+}
+
+function removeEditVisuals() {
+  document.body.classList.remove('editing-mode');
+
+  annotationBoxes.forEach(box => {
+    box.classList.remove('editing-box');
+  });
+}
+
 
 if (deleteClienteButton) {
   deleteClienteButton.addEventListener('click', async () => {
@@ -268,6 +289,7 @@ function enterViewModeLoaded() {
   setInputsDisabled(true);
   showSaveButton(false);
   setEditIconToEdit();
+  removeEditVisuals();
 }
 function enterEditMode() {
   if (!isViewMode()) return;
@@ -318,8 +340,27 @@ if (headerCancelImg) {
 
 // Clique na seta ←
 if (headerBackLink) {
-  headerBackLink.addEventListener('click', (e) => {
+  headerBackLink.addEventListener('click', async (e) => {
     e.preventDefault();
+
+    // ESTÁ EDITANDO → cancela edição
+    if (editing) {
+      const ok = await window.electronAPI.confirm(
+        'Deseja cancelar a edição? As alterações não serão salvas.'
+      );
+      if (!ok) return;
+
+      if (currentData) fillFormWithData(currentData);
+
+      editing = false;
+      setInputsDisabled(true);
+      showSaveButton(false);
+      setEditIconToEdit();
+      removeEditVisuals();
+      return;
+    }
+
+    // NÃO está editando → volta normalmente
     window.location.href = 'clientes.html';
   });
 }

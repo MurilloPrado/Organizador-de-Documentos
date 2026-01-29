@@ -72,3 +72,8 @@ input:disabled, select:disabled, textarea:disabled {
   background-color: #f5f5f5;       /* opcional: mantém fundo suave */
   cursor: default;
 }
+
+.editing-mode input[type="radio"]:checked {
+  animation: radioPulse 1.5s infinite;
+  border-radius: 50%;
+}
