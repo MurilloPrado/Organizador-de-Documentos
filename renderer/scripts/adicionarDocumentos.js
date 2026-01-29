@@ -286,7 +286,10 @@ async function salvarDocumento() {
     const detalhesDocumento = String(detalhesEl.value || '').trim() || null;
 
     if(!nomeCliente) {
-      const ok = await window.electronAPI.confirm('Por favor, informe o nome do cliente antes de salvar o documento.');
+      const ok = await window.electronAPI.confirm({
+        message: 'Por favor, informe o nome do cliente antes de salvar o documento.',
+        single: true,
+      });
       clienteInput?.focus();
       return;
     }

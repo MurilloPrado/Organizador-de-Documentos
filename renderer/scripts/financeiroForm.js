@@ -687,7 +687,10 @@ async function loadLancamento() {
   const lanc = await window.api.financeiro.getById({ id, tipo });
 
   if (!lanc) {
-    await window.electronAPI.confirm('Lançamento não encontrado.');
+    await window.electronAPI.confirm({
+      message: 'Lançamento não encontrado.',
+      single: true
+    });
     window.location.href = 'financeiro.html';
     return;
   }
@@ -748,16 +751,20 @@ salvarBtn?.addEventListener('click', async () => {
   });
 
   if (!titulo || !valor) {
-    await window.electronAPI.confirm('Título e valor são obrigatórios.');
+    await window.electronAPI.confirm({
+      message: 'Título e valor são obrigatórios.',
+      single: true
+    });
     return;
   }
 
   if ( currentTipo === 'Pagamento' && 
     (!selectedCliente?.idCliente || !selectedProcesso?.idDocumento)
   ) {
-    await window.electronAPI.confirm(
-      'Para pagamentos, é obrigatório selecionar cliente e processo/documento.'
-    );
+    await window.electronAPI.confirm({
+      message: 'Para pagamentos, é obrigatório selecionar cliente e processo/documento.',
+      single: true
+    });
     return;
   }
 
