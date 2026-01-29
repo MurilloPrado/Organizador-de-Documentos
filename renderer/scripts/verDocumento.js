@@ -126,6 +126,12 @@ function getLancamentoDate(l){
   );
 }
 
+function goToFinanceiroView({ id, tipo }) {
+  const processoId = getDocumentIdFromUrl();
+
+  window.location.href = `financeiroForm.html` + `?id=${id}` + `&tipo=${tipo}` + `&mode=view` + `&from=processo` + `&processoId=${processoId}`;
+}
+
 function renderPagamentosList(lista = []) {
   const el = document.getElementById('lastPaymentsList');
   if (!el) return;
@@ -146,7 +152,12 @@ function renderPagamentosList(lista = []) {
   el.innerHTML = latest.map(p => {
     const valor = formatCurrencyToBRL(p?.valor || 0);
     const quando = formatDateBR(getLancamentoDate(p));
-    return `<p style="margin-left:10px">${valor} pago em ${quando}</p>`;
+    
+    return `
+      <div class="financeiro-item" data-id="${p.id}" data-tipo="pagamento">
+        ${valor} pago em ${quando}
+      </div>
+    `;
   }).join('');
 }
 
@@ -167,9 +178,24 @@ function renderCustosList(lista = [], label = 'custo'){
   lastCostList.innerHTML = lastest.map(t => {
     const valor = formatCurrencyToBRL(t?.valor || 0);
     const quando = formatDateBR(getLancamentoDate(t));
-    return `<p style="margin-left: 10px">${valor} gasto no dia ${quando}</p>`;
+
+    return `
+      <div class="financeiro-item" data-id="${t.idLancamento}" data-tipo="custo">
+        ${valor} pago em ${quando}
+      </div>
+    `;
   }).join('');
 }
+
+document.addEventListener('click', e => {
+  const item = e.target.closest('.financeiro-item');
+  if (!item) return;
+
+  goToFinanceiroView({
+    id: item.dataset.id,
+    tipo: item.dataset.tipo
+  });
+});
 
 //
 function renderFilesReadOnly(fileItems) {
