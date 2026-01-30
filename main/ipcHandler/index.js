@@ -7,6 +7,7 @@ const files = require('./files');
 const listDocumentos = require('./listDocumentos');
 const confirm = require('./confirm');
 const financeiro = require('./financeiro');
+const dashboard = require('./dashboard');
 
 module.exports = (ipcMain, db) => {
     clientes(ipcMain, db);
@@ -16,5 +17,6 @@ module.exports = (ipcMain, db) => {
     listDocumentos(ipcMain, db);
     confirm(ipcMain);
     financeiro(ipcMain, db);
+    dashboard(ipcMain, db);
     //outros ipcs...
 }

@@ -76,5 +76,8 @@ contextBridge.exposeInMainWorld('api', {
         getClienteByDocumento: (idDocumento) => ipcRenderer.invoke('financeiro:getClienteByDocumento', idDocumento),
         searchDocumentos: (query) => ipcRenderer.invoke('financeiro:searchDocumentos', query),
     },
+    dashboard: {
+        getData: () => ipcRenderer.invoke('dashboard:getData'),
+    },
     //os outros ipcs irão aqui...
 })
