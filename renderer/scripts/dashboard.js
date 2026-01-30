@@ -250,17 +250,130 @@ async function loadDashboard() {
     renderLegend(charts.bar, 'ganhosCustosLegend');
 
   // ===== Distribuição de Custos =====
+  function normalizeCategoria(label) {
+    const map = {
+        taxa: 'Taxas',
+        despesas: 'Despesas Processuais',
+        outros: 'Outros',
+    };
+
+    return map[label] || label;
+  }
+
+  function renderPieLegend(chart, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    const meta = chart.getDatasetMeta(0);
+
+    chart.data.labels.forEach((label, index) => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+
+        const dot = document.createElement('span');
+        dot.className = 'legend-dot';
+        dot.style.background = chart.data.datasets[0].backgroundColor[index];
+
+        const text = document.createElement('span');
+        text.textContent = label;
+
+        item.appendChild(dot);
+        item.appendChild(text);
+
+        // estado inicial
+        if (meta.data[index].hidden) {
+        item.style.opacity = '0.4';
+        }
+
+        item.onclick = () => {
+        const element = meta.data[index];
+
+        element.hidden = !element.hidden;
+        item.style.opacity = element.hidden ? '0.4' : '1';
+        item.style.textDecoration = element.hidden ? 'line-through' : 'none';
+
+        chart.update('active');
+        };
+
+        container.appendChild(item);
+    });
+    }
+
   destroy('pie');
   charts.pie = new Chart(
     document.getElementById('chartDistribuicaoCustos'),
     {
-      type: 'pie',
-      data: {
-        labels: data.distribuicaoCustos.labels,
-        datasets: [{ data: data.distribuicaoCustos.valores }]
-      }
+        type: 'pie',
+        data: {
+        labels: data.distribuicaoCustos.labels.map(normalizeCategoria),
+        datasets: [{
+            data: data.distribuicaoCustos.valores,
+            backgroundColor: [
+            '#40d9ff', // Taxas
+            '#6ce5e8', // Despesas
+            '#2f7497', // Outros
+            ]
+        }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1,
+
+        animation: {
+            duration: 400,
+            easing: 'easeOutQuart'
+        },
+
+        plugins: {
+            legend: {
+            display: false
+            },
+
+            tooltip: {
+            backgroundColor: '#111827',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            padding: 14,
+            cornerRadius: 10,
+
+            titleFont: {
+                size: 14,
+                weight: '700'
+            },
+
+            bodyFont: {
+                size: 13,
+                weight: '600'
+            },
+
+            callbacks: {
+                title: (items) => items[0].label,
+                label: (ctx) => {
+                    const dataset = ctx.chart.data.datasets[0];
+                    const meta = ctx.chart.getDatasetMeta(0);
+
+                    const total = dataset.data.reduce((sum, value, index) => {
+                        return meta.data[index].hidden ? sum : sum + value;
+                    }, 0);
+
+                    const valor = ctx.raw || 0;
+                    const percent = total > 0 ? (valor / total) * 100 : 0;
+
+                    const valorFormatado = Number(valor).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    return ` R$ ${valorFormatado} (${percent.toFixed(1)}%)`;
+                }
+            }
+            }
+        }
+        }
     }
   );
+  renderPieLegend(charts.pie, 'custosLegend');
 
   // ===== Evolução Financeira =====
   destroy('line1');
