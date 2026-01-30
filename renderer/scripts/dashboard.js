@@ -312,7 +312,9 @@ async function loadDashboard() {
             '#40d9ff', // Taxas
             '#6ce5e8', // Despesas
             '#2f7497', // Outros
-            ]
+            ],
+            borderWidth: 0,
+            hoverBorderWidth: 0 
         }]
         },
         options: {
