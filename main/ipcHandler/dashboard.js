@@ -45,17 +45,23 @@ module.exports = (ipcMain, db) => {
 
     // ================= Agrupamento mensal =================
     const monthly = {};
+    const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
     rows.forEach(r => {
-      const d = new Date(r.createdAt);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const d = new Date(r.createdAt);
 
-      if (!monthly[key]) {
-        monthly[key] = { ganhos: 0, custos: 0 };
-      }
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
-      if (r.tipo === 'pagamento') monthly[key].ganhos += r.valor;
-      if (r.tipo === 'custo') monthly[key].custos += r.valor;
+    if (!monthly[key]) {
+        monthly[key] = {
+        ganhos: 0,
+        custos: 0,
+        label: [monthNames[d.getMonth()], String(d.getFullYear())]
+        };
+    }
+
+    if (r.tipo === 'pagamento') monthly[key].ganhos += r.valor;
+    if (r.tipo === 'custo') monthly[key].custos += r.valor;
     });
 
     const labels = Object.keys(monthly).sort();
@@ -98,7 +104,7 @@ module.exports = (ipcMain, db) => {
       },
 
       ganhosVsCustos: {
-        labels,
+        labels: labels.map(k => monthly[k].label),
         ganhos: labels.map(l => monthly[l].ganhos),
         custos: labels.map(l => monthly[l].custos)
       },
