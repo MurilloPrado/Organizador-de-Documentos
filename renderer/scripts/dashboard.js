@@ -514,18 +514,107 @@ async function loadDashboard() {
   charts.line2 = new Chart(
     document.getElementById('chartSaldoAcumulado'),
     {
-      type: 'line',
-      data: {
-        labels: data.saldoAcumulado.labels,
+        type: 'line',
+        data: {
+        labels: data.saldoAcumulado.labels, // '2025-01'
         datasets: [{
-          label: 'Saldo Acumulado',
-          data: data.saldoAcumulado.valores,
-          fill: true,
-          tension: 0.3
+            label: 'Saldo Acumulado',
+            data: data.saldoAcumulado.valores,
+            tension: 0.3,
+            borderWidth: 3,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointHitRadius: 20,
+            fill: false,
+
+            // cor dinâmica por ponto
+            borderColor: (ctx) => {
+            const value = ctx.raw;
+            return value >= 0 ? '#16a34a' : '#dc2626';
+            },
+            pointBackgroundColor: (ctx) => {
+            const value = ctx.raw;
+            return value >= 0 ? '#16a34a' : '#dc2626';
+            },
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
         }]
-      }
+        },
+        options: {
+        responsive: true,
+        interaction: {
+            mode: 'nearest',
+            intersect: true
+        },
+        plugins: {
+            legend: {
+            display: false
+            },
+            title: {
+            display: false,
+            },
+            tooltip: {
+            backgroundColor: '#111827',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            padding: 14,
+            cornerRadius: 10,
+            callbacks: {
+                title: (items) => {
+                const raw = items[0].label;
+                const [year, month] = raw.split('-');
+                const date = new Date(year, month - 1);
+                const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
+                return `${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${year}`;
+                },
+                label: (ctx) =>
+                `R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`
+            }
+            }
+        },
+        scales: {
+            x: {
+            grid: {
+                display: false
+            },
+            ticks: {
+                color: '#111827',
+                font: { size: 15, weight: '600' },
+                callback: (value, index) => {
+                const raw = data.saldoAcumulado.labels[index];
+                const [year, month] = raw.split('-');
+                const date = new Date(year, month - 1);
+                const mes = date
+                    .toLocaleDateString('pt-BR', { month: 'short' })
+                    .replace('.', '');
+                return [
+                    mes.charAt(0).toUpperCase() + mes.slice(1),
+                    year
+                ];
+                }
+            }
+            },
+            y: {
+            grid: {
+                color: (ctx) =>
+                ctx.tick.value === 0
+                    ? 'rgba(0,0,0,0.35)' // linha zero destacada
+                    : 'rgba(0,0,0,0.08)',
+                lineWidth: (ctx) => (ctx.tick.value === 0 ? 2 : 1)
+            },
+            ticks: {
+                color: '#111827',
+                font: { size: 15, weight: '600' },
+                callback: v => v.toLocaleString('pt-BR')
+            }
+            }
+        }
+        }
     }
-  );
+    );
 
   // ===== Top Custos =====
   const tbody = document.getElementById('topCustosTable');

@@ -9,6 +9,7 @@
 h2 {
   font-size: 30px;
   margin-top: 30px;
+  cursor: default;
 }
 
 .overview-grid {
@@ -148,4 +149,49 @@ h2 {
 
 .top-costs td {
   font-size: 14px;
+}
+
+/* ===== Tooltip ===== */
+.chart-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  position: relative;
+  display: inline-block;
+}
+
+/* tooltip */
+.tooltip-content {
+  position: absolute;
+  top: 125%;              /* abaixo do título */
+  left: 10%;
+  transform: translateX(-50%);
+  background: #111827;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.4;
+  width: 300px;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 20;
+}
+
+/* setinha */
+.tooltip-content::before {
+  content: '';
+  position: absolute;
+  top: -6px;              /* cola na tooltip */
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #111827; /* seta apontando pra cima */
+}
+
+.chart-title:hover .tooltip-content {
+  opacity: 1;
 }
