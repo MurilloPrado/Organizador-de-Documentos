@@ -377,22 +377,137 @@ async function loadDashboard() {
   );
   renderPieLegend(charts.pie, 'custosLegend');
 
-  // ===== Evolução Financeira =====
+    // ===== Evolução Financeira =====
+  function renderLineLegend(chart, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    chart.data.datasets.forEach((ds, index) => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+
+        const dot = document.createElement('span');
+        dot.className = 'legend-dot';
+        dot.style.background = ds.borderColor || '#65a6fa';
+
+        const label = document.createElement('span');
+        label.textContent = ds.label;
+
+        item.appendChild(dot);
+        item.appendChild(label);
+
+        item.onclick = () => {
+        const visible = chart.isDatasetVisible(index);
+        chart.setDatasetVisibility(index, !visible);
+
+        item.style.opacity = visible ? '0.4' : '1';
+        item.style.textDecoration = visible ? 'line-through' : 'none';
+
+        chart.update('active');
+        };
+
+        container.appendChild(item);
+    });
+  }
+
   destroy('line1');
   charts.line1 = new Chart(
     document.getElementById('chartEvolucaoFinanceira'),
     {
-      type: 'line',
-      data: {
-        labels: data.evolucao.labels,
+        type: 'line',
+        data: {
+        labels: data.evolucao.labels, // ex: ['2025-09', '2025-10']
         datasets: [{
-          label: 'Resultado Mensal',
-          data: data.evolucao.resultado,
-          tension: 0.3
+            label: 'Resultado Mensal',
+            data: data.evolucao.resultado,
+            tension: 0.3,
+            // linha
+            borderColor: '#6ce5e8',
+            borderWidth: 3,
+            // bolinhas
+            pointRadius: 3,
+            pointHoverRadius: 9,
+            pointHitRadius: 20,
+            pointBackgroundColor: '#6ce5e8',
+            pointBorderColor: '#6ce5e8',
+            pointBorderWidth: 2,
+            backgroundColor: 'rgba(101,166,250,0.15)',
+            fill: false
         }]
-      }
+        },
+        options: {
+        responsive: true,
+        interaction: {
+            mode: 'nearest',
+            intersect: true
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#111827',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                padding: 14,
+                cornerRadius: 10,
+                titleFont: { size: 14, weight: '700' },
+                bodyFont: { size: 13, weight: '600' },
+                callbacks: {
+                    title: (items) => {
+                    const raw = items[0].label;
+                    const [year, month] = raw.split('-');
+                    const date = new Date(year, month - 1);
+
+                    const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
+                    const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
+
+                    return `${mesFormatado} de ${year}`;
+                    },
+                    label: (ctx) => {
+                    return ` R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+            grid: {
+                display: false
+            },
+            ticks: {
+                color: '#111827',
+                font: { size: 15, weight: '600' },
+                callback: (value, index) => {
+                const raw = data.evolucao.labels[index];
+                const [year, month] = raw.split('-');
+                const date = new Date(year, month - 1);
+
+                const mes = date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+                const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
+
+                return [mesFormatado, year]; 
+                }
+            }
+            },
+            y: {
+            grid: {
+                color: 'rgba(0,0,0,0.08)'
+            },
+            ticks: {
+                color: '#111827',
+                font: { size: 15, weight: '600' },
+                callback: v => v.toLocaleString('pt-BR')
+            }
+            }
+        }
+        }
     }
   );
+  renderLineLegend(charts.line1, 'evolucaoLegend');
 
   // ===== Saldo Acumulado =====
   destroy('line2');
