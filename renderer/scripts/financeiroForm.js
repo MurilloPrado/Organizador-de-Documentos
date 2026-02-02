@@ -202,6 +202,11 @@ function redirectBack() {
     return;
   }
 
+  if (from === 'dashboard') {
+    window.location.href = `dashboard.html?focus=topCustosSection`;
+    return;
+  }
+
   window.location.href = 'financeiro.html';
 }
 

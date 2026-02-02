@@ -5,6 +5,7 @@ module.exports = (ipcMain, db) => {
     // ================= Base unificada =================
     const rows = db.prepare(`
       SELECT
+        l.idLancamento                AS id,
         l.valor                       AS valor,
         l.tipoLancamento              AS categoria,
         'custo'                       AS tipo,
@@ -17,6 +18,7 @@ module.exports = (ipcMain, db) => {
       UNION ALL
 
       SELECT
+        p.idPagamento                 AS id,
         p.valor                       AS valor,
         p.metodoPagamento             AS categoria,
         'pagamento'                   AS tipo,
@@ -88,6 +90,7 @@ module.exports = (ipcMain, db) => {
       .sort((a, b) => b.valor - a.valor)
       .slice(0, 5)
       .map(r => ({
+        id: r.id,
         titulo: r.titulo,
         categoria: r.categoria,
         valor: r.valor,

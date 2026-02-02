@@ -101,7 +101,6 @@ h2 {
 }
 
 .legend-item:hover {
-  padding: 8px;
   border-radius: 10px;
   font-weight: bold;
   background: rgba(66, 66, 66, 0.37); 
@@ -125,9 +124,7 @@ h2 {
 
 /* ===== Tabela ===== */
 .table-section {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 20px;
 }
 
 .top-costs {
@@ -135,20 +132,20 @@ h2 {
   border-collapse: collapse;
 }
 
-.top-costs th,
+.top-costs th {
+  font-size: 20px;
+  color: white;
+  background-color: #004aad;
+  text-align: left;
+  padding: 16px;
+}
+
 .top-costs td {
+  font-size: 16px;
   text-align: left;
   padding: 12px;
   border-bottom: 1px solid #e5e7eb;
-}
-
-.top-costs th {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.top-costs td {
-  font-size: 14px;
+  cursor: pointer;
 }
 
 /* ===== Tooltip ===== */

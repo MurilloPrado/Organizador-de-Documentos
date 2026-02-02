@@ -377,7 +377,7 @@ async function loadDashboard() {
   );
   renderPieLegend(charts.pie, 'custosLegend');
 
-    // ===== Evolução Financeira =====
+  // ===== Evolução Financeira =====
   function renderLineLegend(chart, containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
@@ -617,6 +617,31 @@ async function loadDashboard() {
     );
 
   // ===== Top Custos =====
+  function normalizeCategoriaTabela(label) {
+    const map = {
+        taxa: 'Taxa',
+        despesas: 'Despesa Processual',
+        outros: 'Outros'
+    };
+
+    return map[label] || label;
+  }
+
+  function applyDashboardFocus() {
+    const params = new URLSearchParams(window.location.search);
+    const focus = params.get('focus');
+
+    if (focus === 'topCustosSection') {
+        const section = document.getElementById('topCustosSection');
+        if (!section) return;
+
+        section.scrollIntoView({
+        behavior: 'instant',
+        block: 'start'
+        });
+    }
+  }
+
   const tbody = document.getElementById('topCustosTable');
   tbody.innerHTML = '';
 
@@ -624,12 +649,17 @@ async function loadDashboard() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${i.titulo || '-'}</td>
-      <td>${i.categoria || '-'}</td>
+      <td>${normalizeCategoriaTabela(i.categoria) || '-'}</td>
       <td>${formatCurrency(i.valor)}</td>
       <td>${new Date(i.createdAt).toLocaleDateString('pt-BR')}</td>
     `;
+    tr.addEventListener('click', () => {
+        window.location.href = `financeiroForm.html?id=${i.id}&tipo=custo&mode=view&from=dashboard&focus=topCustosSection`;
+    });
     tbody.appendChild(tr);
   });
+
+  applyDashboardFocus();
 }
 
 loadDashboard();
