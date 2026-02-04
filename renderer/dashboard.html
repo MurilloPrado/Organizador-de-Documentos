@@ -21,49 +21,57 @@
         </header>
 
         <main>
-            <!-- Busca + Filtro
-            <div class="search-bar">
-            <div class="search-box">
-                <img src="assets/search.png">
-                <input type="text" placeholder="Buscar">
-            </div>
-
-            <div class="filter">
-                <button class="filter-btn" aria-expanded="false">
-                <img src="assets/filtro.png">
-                </button>
-            </div> -->
-
             <div class="dashboard">
                 <!-- VISÃO GERAL -->
                 <section class="overview">
                     <h2>Visão Geral</h2>
 
                     <div class="overview-grid">
-                        <div class="card ganhos">
-                        <span class="label">Total de Ganhos</span>
-                        <strong class="value" id="totalGanhos">R$ 0,00</strong>
+                        <div class="card ganhos has-tooltip">
+                            <span class="tooltip-content">
+                                Valor total das receitas recebidas no período.
+                            </span>
+                            <div class="label">
+                                Total de Ganhos
+                            </div>
+                            <strong class="value" id="totalGanhos">R$ 0,00</strong>
                         </div>
 
-                        <div class="card resultado">
-                        <span class="label">Resultado Final</span>
-                        <strong class="value" id="resultadoFinal">R$ 0,00</strong>
+                        <div class="card resultado has-tooltip">
+                            <span class="tooltip-content">
+                                Resultado líquido do período, obtido pela diferença entre receitas e despesas. (Ganhos - Custos)
+                            </span>
+                            <span class="label">Resultado Final</span>
+                            <strong class="value" id="resultadoFinal">R$ 0,00</strong>
                         </div>
 
-                        <div class="card custos">
-                        <span class="label">Total de Custos</span>
-                        <strong class="value" id="totalCustos">R$ 0,00</strong>
+                        <div class="card custos has-tooltip">
+                            <span class="tooltip-content">
+                                Soma total das despesas registradas no período, incluindo taxas, despesas processuais e outros custos.
+                            </span>
+                            <span class="label">Total de Custos</span>
+                            <strong class="value" id="totalCustos">R$ 0,00</strong>
                         </div>
 
-                        <div class="card margem">
-                        <span class="label">Margem de Lucro</span>
-                        <strong class="value" id="margemLucro">0%</strong>
+                        <div class="card margem has-tooltip">
+                            <span class="tooltip-content">
+                               Percentual de lucro em relação aos ganhos, calculada com base no resultado líquido em relação ao total de ganhos.
+                            </span>
+                            <span class="label">Margem de Lucro</span>
+                            <strong class="value" id="margemLucro">0%</strong>
                         </div>
                     </div>
                 </section>
 
                 <!-- GANHOS X CUSTOS -->
-                <h2>Ganhos x Custos</h2>
+                <div class="chart-title has-tooltip">
+                    <h2>Ganhos x Custos</h2>
+                    <span class="tooltip-content">
+                        Ganhos x Custos compara, ao longo do período selecionado, os valores recebidos e os valores gastos.
+                        Identifica a relação entre receitas e despesas, demonstrando o equilíbrio financeiro.
+                    </span>
+                </div>
+                
                 <section class="chart-section">
                     <div class="chart-legend" id="ganhosCustosLegend"></div>
                     <div class="chart-box">
@@ -72,7 +80,14 @@
                     </section>
 
                 <!-- DISTRIBUIÇÃO DE CUSTOS -->
-                <h2>Distribuição de Custos</h2>
+                <div class="chart-title has-tooltip">
+                    <h2>Distribuição de Custos</h2>
+                    <span class="tooltip-content">
+                        Distribuição de Custos apresenta a composição das despesas por categoria.
+                        Mostra como os custos estão distribuídos e quais categorias têm maior impacto financeiro.
+                    </span>
+                </div>
+
                 <section class="chart-section">
                     <div class="chart-legend" id="custosLegend"></div>
                     <div class="chart-box chart-box--square">
@@ -81,7 +96,14 @@
                 </section>
 
                 <!-- EVOLUÇÃO FINANCEIRA -->
-                <h2>Evolução Financeira</h2>
+                <div class="chart-title has-tooltip">
+                    <h2>Evolução Financeira</h2>
+                    <span class="tooltip-content">
+                        Evolução Financeira representa a variação dos resultados ao longo do tempo.
+                        Indica a tendência de desempenho financeiro, evidenciando crescimento ou queda nos resultados mensais.
+                    </span>
+                </div>
+
                 <section class="chart-section">
                     <div class="chart-legend" id="evolucaoLegend"></div>
                     <div class="chart-box">
@@ -94,9 +116,10 @@
                     <h2>Saldo Acumulado</h2>
                     <span class="tooltip-content">
                         Saldo acumulado representa a soma dos resultados mensais ao longo do tempo.
-                        Ele indica quanto foi acumulado (lucro ou prejuízo) até o período atual.
+                        Indica quanto foi acumulado (lucro ou prejuízo) até o período atual.
                     </span>
                 </div>
+
                 <section class="chart-section">
                     <div class="chart-box">
                         <canvas id="chartSaldoAcumulado"></canvas>
@@ -104,7 +127,14 @@
                 </section>
 
                 <!-- TOP CUSTOS -->
-                <h2>Maiores Custos</h2>
+                <div class="chart-title has-tooltip">
+                    <h2>Maiores Custos</h2>
+                    <span class="tooltip-content">
+                        Maiores Custos lista as despesas de maior valor registradas no período.
+                        Facilita a visualização das despesas que mais impactam o desempenho financeiro.
+                    </span>
+                </div>
+
                 <section class="table-section" id="topCustosSection">
 
                     <table class="top-costs">
