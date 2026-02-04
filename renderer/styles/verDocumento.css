@@ -72,10 +72,10 @@
   font-size: 20px;
 }
 
-.status-dot-pendente{ background:#ffde59; }
+.status-dot-pendente{ background:#ffd631; }
 .status-dot-andamento{ background:#0cc0df; }
 .status-dot-concluido{ background:#00bf63; }
-.status-dot-orçamento{ background:#0205b4; }
+.status-dot-orçamento{ background:#004aad; }
 .status-dropdown{
   position:absolute;
   background:#fff;

@@ -133,7 +133,7 @@
   
   /* Cores específicas */
   .status-bar.pending {
-    background-color: #ffde59; /* amarelo */
+    background-color: #ffd631; /* amarelo */
   }
   
   .status-bar.completed {
@@ -145,7 +145,7 @@
   }
 
   .status-bar.budget {
-    background-color: #0205b4; /* azul escuro */
+    background-color: #004aad; /* azul escuro */
   }
   
   .doc-content div {
