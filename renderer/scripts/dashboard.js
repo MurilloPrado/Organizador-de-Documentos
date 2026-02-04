@@ -178,22 +178,41 @@ async function loadDashboard() {
                 displayColors: true,
 
                 callbacks: {
-                title: (items) => {
-                    const label = items[0].label;
-                    if (Array.isArray(label)) {
-                    return `${label[0]}, ${label[1]}`;
+                    title: (items) => {
+                        const label = items[0].label;
+
+                        if (typeof label === 'string' && label.includes(',')) {
+                            const [mesAbrev, ano] = label.split(',');
+
+                            const map = {
+                            Jan: 'Janeiro',
+                            Fev: 'Fevereiro',
+                            Mar: 'Março',
+                            Abr: 'Abril',
+                            Mai: 'Maio',
+                            Jun: 'Junho',
+                            Jul: 'Julho',
+                            Ago: 'Agosto',
+                            Set: 'Setembro',
+                            Out: 'Outubro',
+                            Nov: 'Novembro',
+                            Dez: 'Dezembro'
+                            };
+
+                            return `${map[mesAbrev]} de ${ano}`;
+                        }
+
+                        return label;
+                    },
+
+                    label: (ctx) => {
+                        const valor = Number(ctx.raw || 0).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                        });
+
+                        return `${ctx.dataset.label}: R$ ${valor}`;
                     }
-                    return label;
-                },
-
-                label: (ctx) => {
-                    const valor = Number(ctx.raw || 0).toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                    });
-
-                    return `${ctx.dataset.label}: R$ ${valor}`;
-                }
                 }
             },
         },
@@ -548,31 +567,35 @@ async function loadDashboard() {
         },
         plugins: {
             legend: {
-            display: false
+                display: false
             },
             title: {
-            display: false,
+                display: false,
             },
             tooltip: {
-            backgroundColor: '#111827',
-            titleColor: '#ffffff',
-            bodyColor: '#ffffff',
-            padding: 14,
-            cornerRadius: 10,
-            callbacks: {
-                title: (items) => {
-                const raw = items[0].label;
-                const [year, month] = raw.split('-');
-                const date = new Date(year, month - 1);
-                const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
-                return `${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${year}`;
-                },
-                label: (ctx) =>
-                `R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                })}`
-            }
+                backgroundColor: '#111827',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                padding: 14,
+                cornerRadius: 10,
+
+                titleFont: { size: 14, weight: '700' },
+                bodyFont: { size: 13, weight: '600' },
+
+                callbacks: {
+                    title: (items) => {
+                    const raw = items[0].label;
+                    const [year, month] = raw.split('-');
+                    const date = new Date(year, month - 1);
+                    const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
+                    return `${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${year}`;
+                    },
+                    label: (ctx) =>
+                    ` R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}`
+                }
             }
         },
         scales: {
