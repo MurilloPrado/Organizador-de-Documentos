@@ -30,9 +30,6 @@ async function loadDashboard() {
   document.getElementById('margemLucro').textContent =
     `${data.cards.margem.toFixed(2)}%`;
 
-  document.getElementById('resultadoFinal').style.color =
-    data.cards.resultado >= 0 ? '#16a34a' : '#dc2626';
-
   // ===== Ganhos x Custos =====
   let activeDatasetIndex = null;
 
