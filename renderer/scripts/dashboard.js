@@ -1,5 +1,6 @@
 let charts = {};
 
+// ================= Utils =================
 function formatCurrency(v) {
   return Number(v || 0).toLocaleString('pt-BR', {
     style: 'currency',
@@ -14,24 +15,107 @@ function destroy(key) {
   }
 }
 
-async function loadDashboard() {
-  const data = await window.api.dashboard.getData();
+// ================= Elementos =================
+const filterBtn = document.getElementById('overviewFilterBtn');
+const panel = document.getElementById('dashboardFilterPanel');
+const label = document.getElementById('overviewFilterLabel');
 
-  // ===== Cards =====
+// ================= Filtro=================
+const chartFilters = {
+  overview: null,
+  ganhosCustos: null,
+  evolucao: null,
+  saldo: null,
+  distribuicao: null,
+  topCustos: null
+};
+
+filterBtn.addEventListener('click', () => {
+  panel.hidden = !panel.hidden;
+});
+
+// aplica filtro
+document
+  .getElementById('applyOverviewFilter')
+  .addEventListener('click', async () => {
+
+    const selected = document.querySelector(
+      'input[name="periodo"]:checked'
+    ).value;
+
+    let filter;
+
+    if (selected === 'monthly') {
+      const now = new Date();
+      filter = {
+        mode: 'monthly',
+        year: now.getFullYear(),
+        month: now.getMonth() + 1
+      };
+    }
+
+    if (selected === 'yearly') {
+      filter = {
+        mode: 'yearly',
+        year: new Date().getFullYear()
+      };
+    }
+
+    if (selected === '30' || selected === '90') {
+      filter = {
+        mode: 'last',
+        last: Number(selected)
+      };
+    }
+
+    overviewFilter = filter;
+
+    updateOverviewLabel(filter);
+    await loadOverview(filter);
+
+    panel.hidden = true;
+  });
+
+// ================= Label =================
+function updateOverviewLabel(filter) {
+  if (!filter || filter.mode === 'monthly') {
+    label.textContent = 'Mensal · Mês atual';
+    return;
+  }
+
+  if (filter.mode === 'yearly') {
+    label.textContent = `Ano · ${filter.year}`;
+    return;
+  }
+
+  if (filter.mode === 'last') {
+    label.textContent = `Últimos ${filter.last} dias`;
+  }
+}
+
+// ================= Geração de gráficos =================
+// ===== Visão Geral =====
+async function loadOverview(filter = null) {
+  const data = await window.api.dashboard.getOverview(filter);
+
   document.getElementById('totalGanhos').textContent =
-    formatCurrency(data.cards.ganhos);
+    formatCurrency(data.ganhos);
 
   document.getElementById('totalCustos').textContent =
-    formatCurrency(data.cards.custos);
+    formatCurrency(data.custos);
 
   document.getElementById('resultadoFinal').textContent =
-    formatCurrency(data.cards.resultado);
+    formatCurrency(data.resultado);
 
   document.getElementById('margemLucro').textContent =
-    `${data.cards.margem.toFixed(2)}%`;
+    `${data.margem.toFixed(2)}%`;
+}
 
-  // ===== Ganhos x Custos =====
-  let activeDatasetIndex = null;
+async function loadGanhosCustosChart(filter = null) {
+  const data = await window.api.dashboard.getGanhosCustos(filter);
+
+// ===== Ganhos x Custos =====
+let activeDatasetIndex = null;
 
   function applyFocus(chart, focusIndex) {
     chart.data.datasets.forEach((ds, i) => {
@@ -105,18 +189,18 @@ async function loadDashboard() {
     {
         type: 'bar',
         data: {
-        labels: data.ganhosVsCustos.labels,
+        labels: data.labels,
         datasets: [
             {
                 label: 'Ganhos',
-                data: data.ganhosVsCustos.ganhos,
+                data: data.ganhos,
                 backgroundColor: '#65a6fa',
                 borderRadius: 5,
                 borderSkipped: false,
             },
             {
                 label: 'Custos',
-                data: data.ganhosVsCustos.custos,
+                data: data.custos,
                 backgroundColor: '#004aad',
                 borderRadius: 5,
                 borderSkipped: false,
@@ -264,422 +348,445 @@ async function loadDashboard() {
     );
 
     renderLegend(charts.bar, 'ganhosCustosLegend');
-
-  // ===== Distribuição de Custos =====
-  function normalizeCategoria(label) {
-    const map = {
-        taxa: 'Taxas',
-        despesas: 'Despesas Processuais',
-        outros: 'Outros',
-    };
-
-    return map[label] || label;
-  }
-
-  function renderPieLegend(chart, containerId) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-
-    const meta = chart.getDatasetMeta(0);
-
-    chart.data.labels.forEach((label, index) => {
-        const item = document.createElement('div');
-        item.className = 'legend-item';
-
-        const dot = document.createElement('span');
-        dot.className = 'legend-dot';
-        dot.style.background = chart.data.datasets[0].backgroundColor[index];
-
-        const text = document.createElement('span');
-        text.textContent = label;
-
-        item.appendChild(dot);
-        item.appendChild(text);
-
-        // estado inicial
-        if (meta.data[index].hidden) {
-        item.style.opacity = '0.4';
-        }
-
-        item.onclick = () => {
-        const element = meta.data[index];
-
-        element.hidden = !element.hidden;
-        item.style.opacity = element.hidden ? '0.4' : '1';
-        item.style.textDecoration = element.hidden ? 'line-through' : 'none';
-
-        chart.update('active');
-        };
-
-        container.appendChild(item);
-    });
-    }
-
-  destroy('pie');
-  charts.pie = new Chart(
-    document.getElementById('chartDistribuicaoCustos'),
-    {
-        type: 'pie',
-        data: {
-        labels: data.distribuicaoCustos.labels.map(normalizeCategoria),
-        datasets: [{
-            data: data.distribuicaoCustos.valores,
-            backgroundColor: [
-            '#40d9ff', // Taxas
-            '#6ce5e8', // Despesas
-            '#2f7497', // Outros
-            ],
-            borderWidth: 0,
-            hoverBorderWidth: 0 
-        }]
-        },
-        options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 1,
-
-        animation: {
-            duration: 400,
-            easing: 'easeOutQuart'
-        },
-
-        plugins: {
-            legend: {
-            display: false
-            },
-
-            tooltip: {
-            backgroundColor: '#111827',
-            titleColor: '#ffffff',
-            bodyColor: '#ffffff',
-            padding: 14,
-            cornerRadius: 10,
-
-            titleFont: {
-                size: 14,
-                weight: '700'
-            },
-
-            bodyFont: {
-                size: 13,
-                weight: '600'
-            },
-
-            callbacks: {
-                title: (items) => items[0].label,
-                label: (ctx) => {
-                    const dataset = ctx.chart.data.datasets[0];
-                    const meta = ctx.chart.getDatasetMeta(0);
-
-                    const total = dataset.data.reduce((sum, value, index) => {
-                        return meta.data[index].hidden ? sum : sum + value;
-                    }, 0);
-
-                    const valor = ctx.raw || 0;
-                    const percent = total > 0 ? (valor / total) * 100 : 0;
-
-                    const valorFormatado = Number(valor).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-
-                    return ` R$ ${valorFormatado} (${percent.toFixed(1)}%)`;
-                }
-            }
-            }
-        }
-        }
-    }
-  );
-  renderPieLegend(charts.pie, 'custosLegend');
-
-  // ===== Evolução Financeira =====
-  function renderLineLegend(chart, containerId) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-
-    chart.data.datasets.forEach((ds, index) => {
-        const item = document.createElement('div');
-        item.className = 'legend-item';
-
-        const dot = document.createElement('span');
-        dot.className = 'legend-dot';
-        dot.style.background = ds.borderColor || '#65a6fa';
-
-        const label = document.createElement('span');
-        label.textContent = ds.label;
-
-        item.appendChild(dot);
-        item.appendChild(label);
-
-        item.onclick = () => {
-        const visible = chart.isDatasetVisible(index);
-        chart.setDatasetVisibility(index, !visible);
-
-        item.style.opacity = visible ? '0.4' : '1';
-        item.style.textDecoration = visible ? 'line-through' : 'none';
-
-        chart.update('active');
-        };
-
-        container.appendChild(item);
-    });
-  }
-
-  destroy('line1');
-  charts.line1 = new Chart(
-    document.getElementById('chartEvolucaoFinanceira'),
-    {
-        type: 'line',
-        data: {
-        labels: data.evolucao.labels, // ex: ['2025-09', '2025-10']
-        datasets: [{
-            label: 'Resultado Mensal',
-            data: data.evolucao.resultado,
-            tension: 0.3,
-            // linha
-            borderColor: '#6ce5e8',
-            borderWidth: 3,
-            // bolinhas
-            pointRadius: 3,
-            pointHoverRadius: 9,
-            pointHitRadius: 20,
-            pointBackgroundColor: '#6ce5e8',
-            pointBorderColor: '#6ce5e8',
-            pointBorderWidth: 2,
-            backgroundColor: 'rgba(101,166,250,0.15)',
-            fill: false
-        }]
-        },
-        options: {
-        responsive: true,
-        interaction: {
-            mode: 'nearest',
-            intersect: true
-        },
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: '#111827',
-                titleColor: '#ffffff',
-                bodyColor: '#ffffff',
-                padding: 14,
-                cornerRadius: 10,
-                titleFont: { size: 14, weight: '700' },
-                bodyFont: { size: 13, weight: '600' },
-                callbacks: {
-                    title: (items) => {
-                    const raw = items[0].label;
-                    const [year, month] = raw.split('-');
-                    const date = new Date(year, month - 1);
-
-                    const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
-                    const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
-
-                    return `${mesFormatado} de ${year}`;
-                    },
-                    label: (ctx) => {
-                    return ` R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    })}`;
-                    }
-                }
-            }
-        },
-        scales: {
-            x: {
-            grid: {
-                display: false
-            },
-            ticks: {
-                color: '#111827',
-                font: { size: 15, weight: '600' },
-                callback: (value, index) => {
-                const raw = data.evolucao.labels[index];
-                const [year, month] = raw.split('-');
-                const date = new Date(year, month - 1);
-
-                const mes = date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-                const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
-
-                return [mesFormatado, year]; 
-                }
-            }
-            },
-            y: {
-            grid: {
-                color: 'rgba(0,0,0,0.08)'
-            },
-            ticks: {
-                color: '#111827',
-                font: { size: 15, weight: '600' },
-                callback: v => v.toLocaleString('pt-BR')
-            }
-            }
-        }
-        }
-    }
-  );
-  renderLineLegend(charts.line1, 'evolucaoLegend');
-
-  // ===== Saldo Acumulado =====
-  destroy('line2');
-  charts.line2 = new Chart(
-    document.getElementById('chartSaldoAcumulado'),
-    {
-        type: 'line',
-        data: {
-        labels: data.saldoAcumulado.labels, // '2025-01'
-        datasets: [{
-            label: 'Saldo Acumulado',
-            data: data.saldoAcumulado.valores,
-            tension: 0.3,
-            borderWidth: 3,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            pointHitRadius: 20,
-            fill: false,
-
-            // cor dinâmica por ponto
-            borderColor: (ctx) => {
-            const value = ctx.raw;
-            return value >= 0 ? '#16a34a' : '#dc2626';
-            },
-            pointBackgroundColor: (ctx) => {
-            const value = ctx.raw;
-            return value >= 0 ? '#16a34a' : '#dc2626';
-            },
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-        }]
-        },
-        options: {
-        responsive: true,
-        interaction: {
-            mode: 'nearest',
-            intersect: true
-        },
-        plugins: {
-            legend: {
-                display: false
-            },
-            title: {
-                display: false,
-            },
-            tooltip: {
-                backgroundColor: '#111827',
-                titleColor: '#ffffff',
-                bodyColor: '#ffffff',
-                padding: 14,
-                cornerRadius: 10,
-
-                titleFont: { size: 14, weight: '700' },
-                bodyFont: { size: 13, weight: '600' },
-
-                callbacks: {
-                    title: (items) => {
-                    const raw = items[0].label;
-                    const [year, month] = raw.split('-');
-                    const date = new Date(year, month - 1);
-                    const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
-                    return `${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${year}`;
-                    },
-                    label: (ctx) =>
-                    ` R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    })}`
-                }
-            }
-        },
-        scales: {
-            x: {
-            grid: {
-                display: false
-            },
-            ticks: {
-                color: '#111827',
-                font: { size: 15, weight: '600' },
-                callback: (value, index) => {
-                const raw = data.saldoAcumulado.labels[index];
-                const [year, month] = raw.split('-');
-                const date = new Date(year, month - 1);
-                const mes = date
-                    .toLocaleDateString('pt-BR', { month: 'short' })
-                    .replace('.', '');
-                return [
-                    mes.charAt(0).toUpperCase() + mes.slice(1),
-                    year
-                ];
-                }
-            }
-            },
-            y: {
-            grid: {
-                color: (ctx) =>
-                ctx.tick.value === 0
-                    ? 'rgba(0,0,0,0.35)' // linha zero destacada
-                    : 'rgba(0,0,0,0.08)',
-                lineWidth: (ctx) => (ctx.tick.value === 0 ? 2 : 1)
-            },
-            ticks: {
-                color: '#111827',
-                font: { size: 15, weight: '600' },
-                callback: v => v.toLocaleString('pt-BR')
-            }
-            }
-        }
-        }
-    }
-    );
-
-  // ===== Top Custos =====
-  function normalizeCategoriaTabela(label) {
-    const map = {
-        taxa: 'Taxa',
-        despesas: 'Despesa Processual',
-        outros: 'Outros'
-    };
-
-    return map[label] || label;
-  }
-
-  function applyDashboardFocus() {
-    const params = new URLSearchParams(window.location.search);
-    const focus = params.get('focus');
-
-    if (focus === 'topCustosSection') {
-        const section = document.getElementById('topCustosSection');
-        if (!section) return;
-
-        section.scrollIntoView({
-        behavior: 'instant',
-        block: 'start'
-        });
-    }
-  }
-
-  const tbody = document.getElementById('topCustosTable');
-  tbody.innerHTML = '';
-
-  data.topCustos.forEach(i => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${i.titulo || '-'}</td>
-      <td>${normalizeCategoriaTabela(i.categoria) || '-'}</td>
-      <td>${formatCurrency(i.valor)}</td>
-      <td>${new Date(i.createdAt).toLocaleDateString('pt-BR')}</td>
-    `;
-    tr.addEventListener('click', () => {
-        window.location.href = `financeiroForm.html?id=${i.id}&tipo=custo&mode=view&from=dashboard&focus=topCustosSection`;
-    });
-    tbody.appendChild(tr);
-  });
-
-  applyDashboardFocus();
 }
 
-loadDashboard();
+// ===== Distribuição de Custos =====
+async function loadDistribuicaoCustosChart(filter = null) {
+    const data = await window.api.dashboard.getDistribuicaoCustos(filter);
+
+    function normalizeCategoria(label) {
+        const map = {
+            taxa: 'Taxas',
+            despesas: 'Despesas Processuais',
+            outros: 'Outros',
+        };
+
+        return map[label] || label;
+    }
+
+    function renderPieLegend(chart, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        const meta = chart.getDatasetMeta(0);
+
+        chart.data.labels.forEach((label, index) => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+
+            const dot = document.createElement('span');
+            dot.className = 'legend-dot';
+            dot.style.background = chart.data.datasets[0].backgroundColor[index];
+
+            const text = document.createElement('span');
+            text.textContent = label;
+
+            item.appendChild(dot);
+            item.appendChild(text);
+
+            // estado inicial
+            if (meta.data[index].hidden) {
+            item.style.opacity = '0.4';
+            }
+
+            item.onclick = () => {
+            const element = meta.data[index];
+
+            element.hidden = !element.hidden;
+            item.style.opacity = element.hidden ? '0.4' : '1';
+            item.style.textDecoration = element.hidden ? 'line-through' : 'none';
+
+            chart.update('active');
+            };
+
+            container.appendChild(item);
+        });
+        }
+
+    destroy('pie');
+    charts.pie = new Chart(
+        document.getElementById('chartDistribuicaoCustos'),
+        {
+            type: 'pie',
+            data: {
+            labels: data.labels.map(normalizeCategoria),
+            datasets: [{
+                data: data.valores,
+                backgroundColor: [
+                '#40d9ff', // Taxas
+                '#6ce5e8', // Despesas
+                '#2f7497', // Outros
+                ],
+                borderWidth: 0,
+                hoverBorderWidth: 0 
+            }]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1,
+
+            animation: {
+                duration: 400,
+                easing: 'easeOutQuart'
+            },
+
+            plugins: {
+                legend: {
+                display: false
+                },
+
+                tooltip: {
+                backgroundColor: '#111827',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                padding: 14,
+                cornerRadius: 10,
+
+                titleFont: {
+                    size: 14,
+                    weight: '700'
+                },
+
+                bodyFont: {
+                    size: 13,
+                    weight: '600'
+                },
+
+                callbacks: {
+                    title: (items) => items[0].label,
+                    label: (ctx) => {
+                        const dataset = ctx.chart.data.datasets[0];
+                        const meta = ctx.chart.getDatasetMeta(0);
+
+                        const total = dataset.data.reduce((sum, value, index) => {
+                            return meta.data[index].hidden ? sum : sum + value;
+                        }, 0);
+
+                        const valor = ctx.raw || 0;
+                        const percent = total > 0 ? (valor / total) * 100 : 0;
+
+                        const valorFormatado = Number(valor).toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+
+                        return ` R$ ${valorFormatado} (${percent.toFixed(1)}%)`;
+                    }
+                }
+                }
+            }
+            }
+        }
+    );
+    renderPieLegend(charts.pie, 'custosLegend');
+}
+
+// ===== Evolução Financeira =====
+async function loadEvolucaoChart(filter = null) {
+    const data = await window.api.dashboard.getEvolucao(filter);
+
+    function renderLineLegend(chart, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        chart.data.datasets.forEach((ds, index) => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+
+            const dot = document.createElement('span');
+            dot.className = 'legend-dot';
+            dot.style.background = ds.borderColor || '#65a6fa';
+
+            const label = document.createElement('span');
+            label.textContent = ds.label;
+
+            item.appendChild(dot);
+            item.appendChild(label);
+
+            item.onclick = () => {
+            const visible = chart.isDatasetVisible(index);
+            chart.setDatasetVisibility(index, !visible);
+
+            item.style.opacity = visible ? '0.4' : '1';
+            item.style.textDecoration = visible ? 'line-through' : 'none';
+
+            chart.update('active');
+            };
+
+            container.appendChild(item);
+        });
+    }
+
+    destroy('line1');
+    charts.line1 = new Chart(
+        document.getElementById('chartEvolucaoFinanceira'),
+        {
+            type: 'line',
+            data: {
+            labels: data.labels, // ex: ['2025-09', '2025-10']
+            datasets: [{
+                label: 'Resultado Mensal',
+                data: data.resultado,
+                tension: 0.3,
+                // linha
+                borderColor: '#6ce5e8',
+                borderWidth: 3,
+                // bolinhas
+                pointRadius: 3,
+                pointHoverRadius: 9,
+                pointHitRadius: 20,
+                pointBackgroundColor: '#6ce5e8',
+                pointBorderColor: '#6ce5e8',
+                pointBorderWidth: 2,
+                backgroundColor: 'rgba(101,166,250,0.15)',
+                fill: false
+            }]
+            },
+            options: {
+            responsive: true,
+            interaction: {
+                mode: 'nearest',
+                intersect: true
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#111827',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    padding: 14,
+                    cornerRadius: 10,
+                    titleFont: { size: 14, weight: '700' },
+                    bodyFont: { size: 13, weight: '600' },
+                    callbacks: {
+                        title: (items) => {
+                        const raw = items[0].label;
+                        const [year, month] = raw.split('-');
+                        const date = new Date(year, month - 1);
+
+                        const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
+                        const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
+
+                        return `${mesFormatado} de ${year}`;
+                        },
+                        label: (ctx) => {
+                        return ` R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: '#111827',
+                    font: { size: 15, weight: '600' },
+                    callback: (value, index) => {
+                    const raw = data.labels[index];
+                    const [year, month] = raw.split('-');
+                    const date = new Date(year, month - 1);
+
+                    const mes = date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+                    const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
+
+                    return [mesFormatado, year]; 
+                    }
+                }
+                },
+                y: {
+                grid: {
+                    color: 'rgba(0,0,0,0.08)'
+                },
+                ticks: {
+                    color: '#111827',
+                    font: { size: 15, weight: '600' },
+                    callback: v => v.toLocaleString('pt-BR')
+                }
+                }
+            }
+            }
+        }
+    );
+    renderLineLegend(charts.line1, 'evolucaoLegend');
+
+}
+
+// ===== Saldo Acumulado =====
+async function loadSaldoChart(filter = null) {
+    const data = await window.api.dashboard.getSaldo(filter);
+
+    destroy('line2');
+    charts.line2 = new Chart(
+        document.getElementById('chartSaldoAcumulado'),
+        {
+            type: 'line',
+            data: {
+            labels: data.labels, // '2025-01'
+            datasets: [{
+                label: 'Saldo Acumulado',
+                data: data.valores,
+                tension: 0.3,
+                borderWidth: 3,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointHitRadius: 20,
+                fill: false,
+
+                // cor dinâmica por ponto
+                borderColor: (ctx) => {
+                const value = ctx.raw;
+                return value >= 0 ? '#16a34a' : '#dc2626';
+                },
+                pointBackgroundColor: (ctx) => {
+                const value = ctx.raw;
+                return value >= 0 ? '#16a34a' : '#dc2626';
+                },
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+            }]
+            },
+            options: {
+            responsive: true,
+            interaction: {
+                mode: 'nearest',
+                intersect: true
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: false,
+                },
+                tooltip: {
+                    backgroundColor: '#111827',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    padding: 14,
+                    cornerRadius: 10,
+
+                    titleFont: { size: 14, weight: '700' },
+                    bodyFont: { size: 13, weight: '600' },
+
+                    callbacks: {
+                        title: (items) => {
+                        const raw = items[0].label;
+                        const [year, month] = raw.split('-');
+                        const date = new Date(year, month - 1);
+                        const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
+                        return `${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${year}`;
+                        },
+                        label: (ctx) =>
+                        ` R$ ${Number(ctx.raw).toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: '#111827',
+                    font: { size: 15, weight: '600' },
+                    callback: (value, index) => {
+                    const raw = data.labels[index];
+                    const [year, month] = raw.split('-');
+                    const date = new Date(year, month - 1);
+                    const mes = date
+                        .toLocaleDateString('pt-BR', { month: 'short' })
+                        .replace('.', '');
+                    return [
+                        mes.charAt(0).toUpperCase() + mes.slice(1),
+                        year
+                    ];
+                    }
+                }
+                },
+                y: {
+                grid: {
+                    color: (ctx) =>
+                    ctx.tick.value === 0
+                        ? 'rgba(0,0,0,0.35)' // linha zero destacada
+                        : 'rgba(0,0,0,0.08)',
+                    lineWidth: (ctx) => (ctx.tick.value === 0 ? 2 : 1)
+                },
+                ticks: {
+                    color: '#111827',
+                    font: { size: 15, weight: '600' },
+                    callback: v => v.toLocaleString('pt-BR')
+                }
+                }
+            }
+            }
+        }
+    );
+}
+
+// ===== Maiores Custos =====
+async function loadTopCustosTable(filter = null) {
+    const data = await window.api.dashboard.getTopCustos(filter);
+
+    function normalizeCategoriaTabela(label) {
+        const map = {
+            taxa: 'Taxa',
+            despesas: 'Despesa Processual',
+            outros: 'Outros'
+        };
+
+        return map[label] || label;
+    }
+
+    function applyDashboardFocus() {
+        const params = new URLSearchParams(window.location.search);
+        const focus = params.get('focus');
+
+        if (focus === 'topCustosSection') {
+            const section = document.getElementById('topCustosSection');
+            if (!section) return;
+
+            section.scrollIntoView({
+            behavior: 'instant',
+            block: 'start'
+            });
+        }
+    }
+
+    const tbody = document.getElementById('topCustosTable');
+    tbody.innerHTML = '';
+
+    data.forEach(i => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td>${i.titulo || '-'}</td>
+        <td>${normalizeCategoriaTabela(i.categoria) || '-'}</td>
+        <td>${formatCurrency(i.valor)}</td>
+        <td>${new Date(i.createdAt).toLocaleDateString('pt-BR')}</td>
+        `;
+        tr.addEventListener('click', () => {
+            window.location.href = `financeiroForm.html?id=${i.id}&tipo=custo&mode=view&from=dashboard&focus=topCustosSection`;
+        });
+        tbody.appendChild(tr);
+    });
+
+    applyDashboardFocus();
+}
+
+// ================= Inicialização =================
+loadOverview();
+loadGanhosCustosChart();
+loadDistribuicaoCustosChart();
+loadEvolucaoChart();
+loadSaldoChart();
+loadTopCustosTable();

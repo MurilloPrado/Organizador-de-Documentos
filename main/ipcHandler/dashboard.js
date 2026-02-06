@@ -1,15 +1,51 @@
 module.exports = (ipcMain, db) => {
 
-  ipcMain.handle('dashboard:getData', async () => {
+  // ================= Utils compartilhados =================
+  function applyDateFilter(rows, filter) {
+    if (!filter) return rows;
 
-    // ================= Base unificada =================
+    return rows.filter(r => {
+      const d = new Date(r.createdAt);
+
+      if (filter.mode === 'monthly') {
+        return d.getFullYear() === filter.year &&
+               d.getMonth() + 1 === filter.month;
+      }
+
+      if (filter.mode === 'yearly') {
+        return d.getFullYear() === filter.year;
+      }
+
+      if (filter.mode === 'range') {
+        return d >= new Date(filter.start) &&
+               d <= new Date(filter.end);
+      }
+
+      if (filter.mode === 'last') {
+        const from = new Date();
+        from.setDate(from.getDate() - filter.last);
+        return d >= from;
+      }
+
+      return true;
+    });
+  }
+
+  function limitMonthlyLabels(labels, filter) {
+    if (filter?.mode === 'monthly') return labels.slice(-1);
+    if (filter?.mode === 'yearly') return labels.slice(-12);
+    if (filter?.mode === 'range')  return labels;
+    return labels.slice(-6); // padrão
+  }
+
+  function getBaseRows() {
     const rows = db.prepare(`
       SELECT
-        l.idLancamento                AS id,
-        l.valor                       AS valor,
-        l.tipoLancamento              AS categoria,
-        'custo'                       AS tipo,
-        l.tituloLancamento            AS titulo,
+        l.idLancamento AS id,
+        l.valor AS valor,
+        l.tipoLancamento AS categoria,
+        'custo' AS tipo,
+        l.tituloLancamento AS titulo,
         COALESCE(l.createdAt, d.dataCriado) AS createdAt
       FROM lancamentos l
       LEFT JOIN documentos d ON d.idDocumento = l.idDocumento
@@ -18,25 +54,53 @@ module.exports = (ipcMain, db) => {
       UNION ALL
 
       SELECT
-        p.idPagamento                 AS id,
-        p.valor                       AS valor,
-        p.metodoPagamento             AS categoria,
-        'pagamento'                   AS tipo,
-        p.tituloPagamento             AS titulo,
+        p.idPagamento AS id,
+        p.valor AS valor,
+        p.metodoPagamento AS categoria,
+        'pagamento' AS tipo,
+        p.tituloPagamento AS titulo,
         COALESCE(p.dataPagamento, d.dataCriado) AS createdAt
       FROM pagamentos p
       LEFT JOIN documentos d ON d.idDocumento = p.idDocumento
     `).all();
 
-    // Garantir que os valores são numéricos
+    rows.forEach(r => r.valor = Number(r.valor) || 0);
+    return rows;
+  }
+
+  function groupMonthly(rows, filter) {
+    const monthly = {};
+    const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
     rows.forEach(r => {
-        r.valor = Number(r.valor) || 0;
+      const d = new Date(r.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}`;
+
+      if (!monthly[key]) {
+        monthly[key] = {
+          ganhos: 0,
+          custos: 0,
+          label: [monthNames[d.getMonth()], String(d.getFullYear())]
+        };
+      }
+
+      if (r.tipo === 'pagamento') monthly[key].ganhos += r.valor;
+      if (r.tipo === 'custo') monthly[key].custos += r.valor;
     });
 
-    // ================= Totais =================
-    let ganhos = 0;
-    let custos = 0;
+    const allLabels = Object.keys(monthly).sort();
+    const labels = limitMonthlyLabels(allLabels, filter);
 
+    return { monthly, labels };
+  }
+
+  // ================= IPCs =================
+
+  // ---- Visão Geral (cards)
+  ipcMain.handle('dashboard:getOverview', (_, filter) => {
+    let rows = applyDateFilter(getBaseRows(), filter);
+
+    let ganhos = 0, custos = 0;
     rows.forEach(r => {
       if (r.tipo === 'pagamento') ganhos += r.valor;
       if (r.tipo === 'custo') custos += r.valor;
@@ -45,50 +109,72 @@ module.exports = (ipcMain, db) => {
     const resultado = ganhos - custos;
     const margem = ganhos > 0 ? (resultado / ganhos) * 100 : 0;
 
-    // ================= Agrupamento mensal =================
-    const monthly = {};
-    const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    return { ganhos, custos, resultado, margem };
+  });
 
-    rows.forEach(r => {
-    const d = new Date(r.createdAt);
+  // ---- Ganhos x Custos
+  ipcMain.handle('dashboard:getGanhosCustos', (_, filter) => {
+    const rows = applyDateFilter(getBaseRows(), filter);
+    const { monthly, labels } = groupMonthly(rows, filter);
 
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return {
+      labels: labels.map(l => monthly[l].label),
+      ganhos: labels.map(l => monthly[l].ganhos),
+      custos: labels.map(l => monthly[l].custos)
+    };
+  });
+  
+  // ---- Distribuição de Custos
+  ipcMain.handle('dashboard:getDistribuicaoCustos', (_, filter) => {
+    const rows = applyDateFilter(getBaseRows(), filter);
 
-    if (!monthly[key]) {
-        monthly[key] = {
-        ganhos: 0,
-        custos: 0,
-        label: [monthNames[d.getMonth()], String(d.getFullYear())]
-        };
-    }
-
-    if (r.tipo === 'pagamento') monthly[key].ganhos += r.valor;
-    if (r.tipo === 'custo') monthly[key].custos += r.valor;
-    });
-
-    const labels = Object.keys(monthly).sort();
-
-    // ================= Distribuição de custos =================
-    const custosPorCategoria = {};
-    rows
-      .filter(r => r.tipo === 'custo')
+    const map = {};
+    rows.filter(r => r.tipo === 'custo')
       .forEach(r => {
         const key = r.categoria || 'Outros';
-        custosPorCategoria[key] = (custosPorCategoria[key] || 0) + r.valor;
+        map[key] = (map[key] || 0) + r.valor;
       });
 
-    // ================= Saldo acumulado =================
+    return {
+      labels: Object.keys(map),
+      valores: Object.values(map)
+    };
+  });
+
+  // ---- Evolução Financeira
+  ipcMain.handle('dashboard:getEvolucao', (_, filter) => {
+    const rows = applyDateFilter(getBaseRows(), filter);
+    const { monthly, labels } = groupMonthly(rows, filter);
+
+    return {
+      labels,
+      resultado: labels.map(l => monthly[l].ganhos - monthly[l].custos)
+    };
+  });
+
+  // ---- Saldo Acumulado
+  ipcMain.handle('dashboard:getSaldo', (_, filter) => {
+    const rows = applyDateFilter(getBaseRows(), filter);
+    const { monthly, labels } = groupMonthly(rows, filter);
+
     let saldo = 0;
-    const saldoAcumulado = labels.map(l => {
+    const valores = labels.map(l => {
       saldo += monthly[l].ganhos - monthly[l].custos;
       return saldo;
     });
 
-    // ================= Top custos =================
-    const topCustos = rows
+    return { labels, valores };
+  });
+
+
+  // ---- Top Custos
+  ipcMain.handle('dashboard:getTopCustos', (_, filter) => {
+    const rows = applyDateFilter(getBaseRows(), filter);
+
+    return rows
       .filter(r => r.tipo === 'custo')
-      .sort((a, b) => b.valor - a.valor)
-      .slice(0, 5)
+      .sort((a,b) => b.valor - a.valor)
+      .slice(0,5)
       .map(r => ({
         id: r.id,
         titulo: r.titulo,
@@ -96,38 +182,6 @@ module.exports = (ipcMain, db) => {
         valor: r.valor,
         createdAt: r.createdAt
       }));
-
-    // ================= Payload final =================
-    return {
-      cards: {
-        ganhos,
-        custos,
-        resultado,
-        margem
-      },
-
-      ganhosVsCustos: {
-        labels: labels.map(k => monthly[k].label),
-        ganhos: labels.map(l => monthly[l].ganhos),
-        custos: labels.map(l => monthly[l].custos)
-      },
-
-      distribuicaoCustos: {
-        labels: Object.keys(custosPorCategoria),
-        valores: Object.values(custosPorCategoria)
-      },
-
-      evolucao: {
-        labels,
-        resultado: labels.map(l => monthly[l].ganhos - monthly[l].custos)
-      },
-
-      saldoAcumulado: {
-        labels,
-        valores: saldoAcumulado
-      },
-
-      topCustos
-    };
   });
+
 };

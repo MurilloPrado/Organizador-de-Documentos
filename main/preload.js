@@ -77,7 +77,12 @@ contextBridge.exposeInMainWorld('api', {
         searchDocumentos: (query) => ipcRenderer.invoke('financeiro:searchDocumentos', query),
     },
     dashboard: {
-        getData: () => ipcRenderer.invoke('dashboard:getData'),
+        getOverview: (filter) => ipcRenderer.invoke('dashboard:getOverview', filter),
+        getGanhosCustos: (filter) => ipcRenderer.invoke('dashboard:getGanhosCustos', filter),
+        getDistribuicaoCustos: (filter) => ipcRenderer.invoke('dashboard:getDistribuicaoCustos', filter),
+        getEvolucao: (filter) => ipcRenderer.invoke('dashboard:getEvolucao', filter),
+        getSaldo: (filter) => ipcRenderer.invoke('dashboard:getSaldo', filter),
+        getTopCustos: (filter) => ipcRenderer.invoke('dashboard:getTopCustos', filter),
     },
     //os outros ipcs irão aqui...
 })

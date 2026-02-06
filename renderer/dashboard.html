@@ -24,7 +24,20 @@
             <div class="dashboard">
                 <!-- VISÃO GERAL -->
                 <section class="overview">
-                    <h2>Visão Geral</h2>
+                    <div class="section-header" data-section="overview">
+                        <h2>Visão Geral</h2>
+
+                        <div class="section-filter">
+                            <div class="filter-label" id="overviewFilterLabel">
+                                <img src="assets/sort.png"> 
+                                Mensal · Mês atual
+                            </div>
+
+                            <button class="filter-btn" id="overviewFilterBtn">
+                                <img src="assets/dashboard_filter.png">
+                            </button>
+                        </div>
+                    </div>
 
                     <div class="overview-grid">
                         <div class="card ganhos has-tooltip">
@@ -64,24 +77,52 @@
                 </section>
 
                 <!-- GANHOS X CUSTOS -->
-                <div class="chart-title has-tooltip">
-                    <h2>Ganhos x Custos</h2>
+                <section class="chart-title has-tooltip">
+                    <div class="section-header" data-section="ganhosCustos">
+                        <h2>Ganhos x Custos</h2>
+
+                        <div class="section-filter">
+                            <div class="filter-label" id="overviewFilterLabel">
+                                <img src="assets/sort.png"> 
+                                Mensal · Mês atual
+                            </div>
+
+                            <button class="filter-btn" id="overviewFilterBtn">
+                                <img src="assets/dashboard_filter.png">
+                            </button>
+                        </div>
+                    </div>
+                        
                     <span class="tooltip-content">
                         Ganhos x Custos compara, ao longo do período selecionado, os valores recebidos e os valores gastos.
                         Identifica a relação entre receitas e despesas, demonstrando o equilíbrio financeiro.
                     </span>
-                </div>
+                </section>
                 
                 <section class="chart-section">
                     <div class="chart-legend" id="ganhosCustosLegend"></div>
                     <div class="chart-box">
                         <canvas id="chartGanhosCustos"></canvas>
                     </div>
-                    </section>
+                </section>
 
                 <!-- DISTRIBUIÇÃO DE CUSTOS -->
                 <div class="chart-title has-tooltip">
-                    <h2>Distribuição de Custos</h2>
+                    <div class="section-header" data-section="distribuicaoCustos">
+                        <h2>Distribuição de Custos</h2>
+
+                        <div class="section-filter">
+                            <div class="filter-label" id="overviewFilterLabel">
+                                <img src="assets/sort.png"> 
+                                Mensal · Mês atual
+                            </div>
+
+                            <button class="filter-btn" id="overviewFilterBtn">
+                                <img src="assets/dashboard_filter.png">
+                            </button>
+                        </div>
+                    </div>
+                    
                     <span class="tooltip-content">
                         Distribuição de Custos apresenta a composição das despesas por categoria.
                         Mostra como os custos estão distribuídos e quais categorias têm maior impacto financeiro.
@@ -97,7 +138,21 @@
 
                 <!-- EVOLUÇÃO FINANCEIRA -->
                 <div class="chart-title has-tooltip">
-                    <h2>Evolução Financeira</h2>
+                    <div class="section-header" data-section="evolucaoFinanceira">
+                        <h2>Evolução Financeira</h2>
+
+                        <div class="section-filter">
+                            <div class="filter-label" id="overviewFilterLabel">
+                                <img src="assets/sort.png"> 
+                                Mensal · Mês atual
+                            </div>
+
+                            <button class="filter-btn" id="overviewFilterBtn">
+                                <img src="assets/dashboard_filter.png">
+                            </button>
+                        </div>
+                    </div>
+                    
                     <span class="tooltip-content">
                         Evolução Financeira representa a variação dos resultados ao longo do tempo.
                         Indica a tendência de desempenho financeiro, evidenciando crescimento ou queda nos resultados mensais.
@@ -113,7 +168,21 @@
 
                 <!-- SALDO ACUMULADO -->
                 <div class="chart-title has-tooltip">
-                    <h2>Saldo Acumulado</h2>
+                    <div class="section-header" data-section="saldoAcumulado">
+                        <h2>Saldo Acumulado</h2>
+
+                        <div class="section-filter">
+                            <div class="filter-label" id="overviewFilterLabel">
+                                <img src="assets/sort.png"> 
+                                Mensal · Mês atual
+                            </div>
+
+                            <button class="filter-btn" id="overviewFilterBtn">
+                                <img src="assets/dashboard_filter.png">
+                            </button>
+                        </div>
+                    </div>
+                    
                     <span class="tooltip-content">
                         Saldo acumulado representa a soma dos resultados mensais ao longo do tempo.
                         Indica quanto foi acumulado (lucro ou prejuízo) até o período atual.
@@ -128,7 +197,21 @@
 
                 <!-- TOP CUSTOS -->
                 <div class="chart-title has-tooltip">
-                    <h2>Maiores Custos</h2>
+                    <div class="section-header" data-section="topCustos">
+                        <h2>Maiores Custos</h2>
+
+                        <div class="section-filter">
+                            <div class="filter-label" id="overviewFilterLabel">
+                                <img src="assets/sort.png"> 
+                                Mensal · Mês atual
+                            </div>
+
+                            <button class="filter-btn" id="overviewFilterBtn">
+                                <img src="assets/dashboard_filter.png">
+                            </button>
+                        </div>
+                    </div>
+                    
                     <span class="tooltip-content">
                         Maiores Custos lista as despesas de maior valor registradas no período.
                         Facilita a visualização das despesas que mais impactam o desempenho financeiro.
@@ -151,6 +234,37 @@
                         </tbody>
                     </table>
                 </section>
+            </div>
+
+            <!-- FILTRO -->
+            <div id="dashboardFilterPanel" class="filter-panel" hidden>
+                <h4>Filtrar período</h4>
+
+                <label>
+                    <input type="radio" name="periodo" value="monthly" checked>
+                    Mês atual
+                </label>
+
+                <label>
+                    <input type="radio" name="periodo" value="yearly">
+                    Ano atual
+                </label>
+
+                <label>
+                    <input type="radio" name="periodo" value="30">
+                    Últimos 30 dias
+                </label>
+
+                <label>
+                    <input type="radio" name="periodo" value="90">
+                    Últimos 90 dias
+                </label>
+
+                <hr>
+
+                <button id="applyOverviewFilter">
+                    Aplicar
+                </button>
             </div>
 
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
