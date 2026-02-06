@@ -77,9 +77,16 @@
                 </section>
 
                 <!-- GANHOS X CUSTOS -->
-                <section class="chart-title has-tooltip">
+                <section class="ganhos-custos">
                     <div class="section-header" data-section="ganhosCustos">
-                        <h2>Ganhos x Custos</h2>
+                        <div class="chart-title has-tooltip">
+                            <h2>Ganhos x Custos</h2>
+
+                            <span class="tooltip-content">
+                                Ganhos x Custos compara, ao longo do período selecionado, os valores recebidos e os valores gastos.
+                                Identifica a relação entre receitas e despesas, demonstrando o equilíbrio financeiro.
+                            </span>
+                        </div>
 
                         <div class="section-filter">
                             <div class="filter-label" id="overviewFilterLabel">
@@ -92,11 +99,6 @@
                             </button>
                         </div>
                     </div>
-                        
-                    <span class="tooltip-content">
-                        Ganhos x Custos compara, ao longo do período selecionado, os valores recebidos e os valores gastos.
-                        Identifica a relação entre receitas e despesas, demonstrando o equilíbrio financeiro.
-                    </span>
                 </section>
                 
                 <section class="chart-section">
@@ -107,9 +109,15 @@
                 </section>
 
                 <!-- DISTRIBUIÇÃO DE CUSTOS -->
-                <div class="chart-title has-tooltip">
+                <section class="distribuicao-custos">
                     <div class="section-header" data-section="distribuicaoCustos">
-                        <h2>Distribuição de Custos</h2>
+                        <div class="chart-title has-tooltip">
+                            <h2>Distribuição de Custos</h2>
+                            <span class="tooltip-content">
+                                Distribuição de Custos apresenta a composição das despesas por categoria.
+                                Mostra como os custos estão distribuídos e quais categorias têm maior impacto financeiro.
+                            </span>
+                        </div>
 
                         <div class="section-filter">
                             <div class="filter-label" id="overviewFilterLabel">
@@ -122,12 +130,7 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <span class="tooltip-content">
-                        Distribuição de Custos apresenta a composição das despesas por categoria.
-                        Mostra como os custos estão distribuídos e quais categorias têm maior impacto financeiro.
-                    </span>
-                </div>
+                </section>
 
                 <section class="chart-section">
                     <div class="chart-legend" id="custosLegend"></div>
@@ -137,9 +140,15 @@
                 </section>
 
                 <!-- EVOLUÇÃO FINANCEIRA -->
-                <div class="chart-title has-tooltip">
+                <section class="evolucao-financeira">
                     <div class="section-header" data-section="evolucaoFinanceira">
-                        <h2>Evolução Financeira</h2>
+                        <div class="chart-title has-tooltip">
+                            <h2>Evolução Financeira</h2>
+                                <span class="tooltip-content">
+                                    Evolução Financeira representa a variação dos resultados ao longo do tempo.
+                                    Indica a tendência de desempenho financeiro, evidenciando crescimento ou queda nos resultados mensais.
+                            </span>
+                        </div>
 
                         <div class="section-filter">
                             <div class="filter-label" id="overviewFilterLabel">
@@ -152,13 +161,7 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <span class="tooltip-content">
-                        Evolução Financeira representa a variação dos resultados ao longo do tempo.
-                        Indica a tendência de desempenho financeiro, evidenciando crescimento ou queda nos resultados mensais.
-                    </span>
-                </div>
-
+                </section>
                 <section class="chart-section">
                     <div class="chart-legend" id="evolucaoLegend"></div>
                     <div class="chart-box">
@@ -167,9 +170,15 @@
                 </section>
 
                 <!-- SALDO ACUMULADO -->
-                <div class="chart-title has-tooltip">
+                <section class="saldo-acumulado">
                     <div class="section-header" data-section="saldoAcumulado">
-                        <h2>Saldo Acumulado</h2>
+                        <div class="chart-title has-tooltip">
+                            <h2>Saldo Acumulado</h2>
+                            <span class="tooltip-content">
+                                Saldo acumulado representa a soma dos resultados mensais ao longo do tempo.
+                                Indica quanto foi acumulado (lucro ou prejuízo) até o período atual.
+                            </span>
+                        </div>
 
                         <div class="section-filter">
                             <div class="filter-label" id="overviewFilterLabel">
@@ -182,12 +191,7 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <span class="tooltip-content">
-                        Saldo acumulado representa a soma dos resultados mensais ao longo do tempo.
-                        Indica quanto foi acumulado (lucro ou prejuízo) até o período atual.
-                    </span>
-                </div>
+                </section>
 
                 <section class="chart-section">
                     <div class="chart-box">
@@ -196,27 +200,29 @@
                 </section>
 
                 <!-- TOP CUSTOS -->
-                <div class="chart-title has-tooltip">
+                <section class="top-custos">
                     <div class="section-header" data-section="topCustos">
-                        <h2>Maiores Custos</h2>
-
-                        <div class="section-filter">
-                            <div class="filter-label" id="overviewFilterLabel">
-                                <img src="assets/sort.png"> 
-                                Mensal · Mês atual
+                            <div class="chart-title has-tooltip">
+                                <h2>Maiores Custos</h2>
+                                <span class="tooltip-content">
+                                    Maiores Custos lista as despesas de maior valor registradas no período.
+                                    Facilita a visualização das despesas que mais impactam o desempenho financeiro.
+                                </span>
                             </div>
 
-                            <button class="filter-btn" id="overviewFilterBtn">
-                                <img src="assets/dashboard_filter.png">
-                            </button>
+                            <div class="section-filter">
+                                <div class="filter-label" id="overviewFilterLabel">
+                                    <img src="assets/sort.png"> 
+                                    Mensal · Mês atual
+                                </div>
+
+                                <button class="filter-btn" id="overviewFilterBtn">
+                                    <img src="assets/dashboard_filter.png">
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    
-                    <span class="tooltip-content">
-                        Maiores Custos lista as despesas de maior valor registradas no período.
-                        Facilita a visualização das despesas que mais impactam o desempenho financeiro.
-                    </span>
-                </div>
+                </section>
 
                 <section class="table-section" id="topCustosSection">
 
