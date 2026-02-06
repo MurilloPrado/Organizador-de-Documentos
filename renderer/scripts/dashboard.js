@@ -16,11 +16,9 @@ function destroy(key) {
 }
 
 // ================= Elementos =================
-const filterBtn = document.getElementById('overviewFilterBtn');
 const panel = document.getElementById('dashboardFilterPanel');
-const label = document.getElementById('overviewFilterLabel');
 
-// ================= Filtro=================
+// ================= Filtro =================
 const chartFilters = {
   overview: null,
   ganhosCustos: null,
@@ -30,66 +28,149 @@ const chartFilters = {
   topCustos: null
 };
 
-filterBtn.addEventListener('click', () => {
-  panel.hidden = !panel.hidden;
+let activeFilterTarget = null;
+let activeFilterButton = null;
+
+function openFilterPanelBelowButton(button) {
+  const rect = button.getBoundingClientRect();
+
+  panel.style.position = 'absolute';
+  panel.style.top = `${rect.bottom + window.scrollY + 8}px`; // 8px de espaço
+  panel.style.right = `30px`;
+  panel.style.zIndex = 9999;
+
+  panel.hidden = false;
+}
+
+document.addEventListener('click', (e) => {
+  const filterArea = e.target.closest('.section-filter');
+  if (!filterArea) return;
+
+  const header = filterArea.closest('.section-header');
+  if (!header) return;
+
+  const section = header.dataset.section;
+  const button = filterArea.querySelector('.filter-btn');
+
+  // se clicar no MESMO filtro já aberto → fecha
+  if (!panel.hidden && activeFilterTarget === section) {
+    panel.hidden = true;
+    activeFilterTarget = null;
+    activeFilterButton = null;
+    return;
+  }
+
+  // abrir para nova seção
+  activeFilterTarget = section;
+  activeFilterButton = button;
+
+  openFilterPanelBelowButton(button);
+});
+
+document.addEventListener('click', (e) => {
+  if (panel.hidden) return;
+
+  if (
+    !panel.contains(e.target) &&
+    !e.target.closest('.section-filter')
+  ) {
+    panel.hidden = true;
+    activeFilterButton = null;
+  }
 });
 
 // aplica filtro
-document
-  .getElementById('applyOverviewFilter')
-  .addEventListener('click', async () => {
+panel.addEventListener('change', async (e) => {
+  if (!e.target.matches('input[name="periodo"]')) return;
+  if (!activeFilterTarget) return;
 
-    const selected = document.querySelector(
-      'input[name="periodo"]:checked'
-    ).value;
+  const filter = buildFilterFromUI();
 
-    let filter;
+  chartFilters[activeFilterTarget] = filter;
 
-    if (selected === 'monthly') {
-      const now = new Date();
-      filter = {
-        mode: 'monthly',
-        year: now.getFullYear(),
-        month: now.getMonth() + 1
-      };
-    }
+  updateFilterLabel(activeFilterTarget, filter);
 
-    if (selected === 'yearly') {
-      filter = {
-        mode: 'yearly',
-        year: new Date().getFullYear()
-      };
-    }
+  await dispatchLoad(activeFilterTarget, filter);
 
-    if (selected === '30' || selected === '90') {
-      filter = {
-        mode: 'last',
-        last: Number(selected)
-      };
-    }
+  activeFilterButton = null;
+});
 
-    overviewFilter = filter;
+// altera nome do filtro
+function updateFilterLabel(section, filter) {
+  const label = document.querySelector(
+    `.section-header[data-section="${section}"] .filter-label`
+  );
+  if (!label) return;
 
-    updateOverviewLabel(filter);
-    await loadOverview(filter);
-
-    panel.hidden = true;
-  });
-
-// ================= Label =================
-function updateOverviewLabel(filter) {
   if (!filter || filter.mode === 'monthly') {
-    label.textContent = 'Mensal · Mês atual';
+    label.innerHTML = `<img src="assets/sort.png"> Mês atual`;
     return;
   }
 
   if (filter.mode === 'yearly') {
-    label.textContent = `Ano · ${filter.year}`;
+    label.innerHTML = `<img src="assets/sort.png"> Ano atual`;
     return;
   }
 
   if (filter.mode === 'last') {
-    label.textContent = `Últimos ${filter.last} dias`;
+    label.innerHTML = `<img src="assets/sort.png"> Últimos ${filter.last} dias`;
+  }
+}
+
+function buildFilterFromUI() {
+  const selected = document.querySelector(
+    'input[name="periodo"]:checked'
+  ).value;
+
+  if (selected === 'monthly') {
+    const now = new Date();
+    return {
+      mode: 'monthly',
+      year: now.getFullYear(),
+      month: now.getMonth() + 1
+    };
+  }
+
+  if (selected === 'yearly') {
+    return {
+      mode: 'yearly',
+      year: new Date().getFullYear()
+    };
+  }
+
+  if (selected === '30' || selected === '90') {
+    return {
+      mode: 'last',
+      last: Number(selected)
+    };
+  }
+}
+
+async function dispatchLoad(section, filter) {
+  switch (section) {
+    case 'overview':
+      await loadOverview(filter);
+      break;
+
+    case 'ganhosCustos':
+      await loadGanhosCustosChart(filter);
+      break;
+
+    case 'distribuicao':
+      await loadDistribuicaoCustosChart(filter);
+      break;
+
+    case 'evolucao':
+      await loadEvolucaoChart(filter);
+      break;
+
+    case 'saldo':
+      await loadSaldoChart(filter);
+      break;
+
+    case 'topCustos':
+      await loadTopCustosTable(filter);
+      break;
   }
 }
 
