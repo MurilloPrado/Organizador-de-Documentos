@@ -67,6 +67,7 @@ h2 {
 }
 
 .chart-box {
+  position: relative;
   width: 100%;
   max-width: 1100px;
   border-radius: 12px;
@@ -80,6 +81,27 @@ h2 {
 .chart-box canvas {
   width: 100% !important;
   height: 100% !important;
+}
+
+.chart-box::after {
+  content: 'Sem dados no período selecionado';
+  position: absolute;
+  inset: 0;
+  background: rgba(230, 230, 230, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* estado vazio */
+.chart-box.is-empty::after {
+  opacity: 1;
 }
 
 .chart-legend {
@@ -125,6 +147,7 @@ h2 {
 
 /* ===== Tabela ===== */
 .table-section {
+  position: relative;
   margin-top: 20px;
   border-radius: 20px;
 }
@@ -148,6 +171,26 @@ h2 {
   padding: 12px;
   border-bottom: 1px solid #e5e7eb;
   cursor: pointer;
+}
+
+.table-section::after {
+  content: 'Sem dados no período selecionado';
+  position: absolute;
+  inset: 0;
+  background: rgba(230, 230, 230, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.table-section.is-empty::after {
+  opacity: 1;
 }
 
 /* ===== Tooltip ===== */

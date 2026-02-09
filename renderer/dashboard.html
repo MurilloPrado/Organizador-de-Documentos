@@ -246,32 +246,37 @@
             <div id="dashboardFilterPanel" class="filter-panel" hidden>
                 <h4>Filtrar período</h4>
 
-                <label>
+                <label data-filter="monthly">
                     <input type="radio" name="periodo" value="monthly" checked>
                     Mês atual
                 </label>
 
-                <label>
+                <label data-filter="lastMonths5">
+                    <input type="radio" name="periodo" value="lastMonths5">
+                    Últimos 5 meses
+                </label>
+
+                <label data-filter="yearly">
                     <input type="radio" name="periodo" value="yearly">
                     Ano atual
                 </label>
 
-                <label>
+                <label data-filter="30">
                     <input type="radio" name="periodo" value="30">
                     Últimos 30 dias
                 </label>
 
-                <label>
+                <label data-filter="60">
                     <input type="radio" name="periodo" value="60">
                     Últimos 60 dias
                 </label>
 
-                <label>
+                <label data-filter="90">
                     <input type="radio" name="periodo" value="90">
                     Últimos 90 dias
                 </label>
 
-                <label>
+                <label data-filter="all">
                     <input type="radio" name="periodo" value="all">
                     Desde sempre
                 </label>

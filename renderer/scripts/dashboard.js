@@ -15,6 +15,23 @@ function destroy(key) {
   }
 }
 
+function setChartEmpty(chartId, isEmpty) {
+  const box = document
+    .getElementById(chartId)
+    ?.closest('.chart-box');
+
+  if (!box) return;
+
+  box.classList.toggle('is-empty', isEmpty);
+}
+
+function setTableEmpty(sectionId, isEmpty) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  section.classList.toggle('is-empty', isEmpty);
+}
+
 // ================= Elementos =================
 const panel = document.getElementById('dashboardFilterPanel');
 
@@ -63,6 +80,8 @@ document.addEventListener('click', (e) => {
   // abrir para nova seção
   activeFilterTarget = section;
   activeFilterButton = button;
+  configureFilterPanel(section); 
+  syncCheckedRadio(section);
 
   openFilterPanelBelowButton(button);
 });
@@ -95,9 +114,72 @@ panel.addEventListener('change', async (e) => {
   activeFilterButton = null;
 });
 
-panel.addEventListener('change', (e) => {
-  console.log('radio value:', e.target.value);
-});
+function configureFilterPanel(section) {
+  const labels = panel.querySelectorAll('label[data-filter]');
+
+  // reset geral
+  labels.forEach(label => {
+    label.style.display = 'none';
+    const input = label.querySelector('input');
+    if (input) input.disabled = true;
+  });
+
+  // regras por gráfico
+  let allowed;
+
+  if (section === 'ganhosCustos' || section === 'evolucao' || section === 'saldo') {
+    allowed = ['lastMonths5', 'yearly']; // período depois
+  } else {
+    allowed = ['monthly', 'yearly', '30', '60', '90', 'all'];
+  }
+
+  allowed.forEach(value => {
+    const label = panel.querySelector(`label[data-filter="${value}"]`);
+    if (!label) return;
+
+    label.style.display = 'block';
+    const input = label.querySelector('input');
+    if (input) input.disabled = false;
+  });
+}
+
+function syncCheckedRadio(section) {
+  const radios = panel.querySelectorAll('input[name="periodo"]');
+
+  // limpa tudo
+  radios.forEach(r => r.checked = false);
+
+  const filter = chartFilters[section];
+
+  // Ganhos x Custos / Evolução / Saldo → default visual
+  if (!filter && (section === 'ganhosCustos' || section === 'evolucao' || section === 'saldo')) {
+    const r = panel.querySelector('input[value="lastMonths5"]');
+    if (r) r.checked = true;
+    return;
+  }
+
+  if (!filter) {
+    const r = panel.querySelector('input[value="all"]');
+    if (r) r.checked = true;
+    return;
+  }
+
+  if (filter.mode === 'monthly') {
+    panel.querySelector('input[value="monthly"]').checked = true;
+  }
+
+  if (filter.mode === 'yearly') {
+    panel.querySelector('input[value="yearly"]').checked = true;
+  }
+
+  if (filter.mode === 'last') {
+    panel.querySelector(`input[value="${filter.last}"]`).checked = true;
+  }
+
+  if (filter.mode === 'lastMonths') {
+    panel.querySelector('input[value="lastMonths5"]').checked = true;
+  }
+}
 
 // altera nome do filtro
 function updateFilterLabel(section, filter) {
@@ -106,10 +188,11 @@ function updateFilterLabel(section, filter) {
   );
   if (!label) return;
 
-  if (!filter) {
-    label.innerHTML = `<img src="assets/sort.png"> Desde sempre`;
+  
+  if (!filter && section === 'ganhosCustos' || section === 'evolucao' || section === 'saldo') {
+    label.innerHTML = `<img src="assets/sort.png"> Últimos 5 meses`;
     return;
-  }
+  }   
 
   if (filter.mode === 'monthly') {
     const date = new Date(filter.year, filter.month - 1);
@@ -123,6 +206,11 @@ function updateFilterLabel(section, filter) {
     return;
   }
 
+  if (filter.mode === 'lastMonths') {
+    label.innerHTML = `<img src="assets/sort.png"> Últimos ${filter.count} meses`;
+    return;
+  }
+
   if (filter.mode === 'yearly') {
     label.innerHTML = `<img src="assets/sort.png"> Ano atual · ${filter.year}`;
     return;
@@ -132,7 +220,10 @@ function updateFilterLabel(section, filter) {
     label.innerHTML = `<img src="assets/sort.png"> Últimos ${filter.last} dias`;
   }
 
-  console.log('Filtro atualizado:', filter);
+  if (!filter) {
+    label.innerHTML = `<img src="assets/sort.png"> Desde sempre`;
+    return;
+  }
 }
 
 function buildFilterFromUI() {
@@ -148,6 +239,13 @@ function buildFilterFromUI() {
       mode: 'monthly',
       year: now.getFullYear(),
       month: now.getMonth() + 1
+    };
+  }
+
+  if (selected === 'lastMonths5') {
+    return {
+        mode: 'lastMonths',
+        count: 5
     };
   }
 
@@ -220,9 +318,11 @@ async function loadOverview(filter = null) {
 
 async function loadGanhosCustosChart(filter = null) {
   const data = await window.api.dashboard.getGanhosCustos(filter);
+  const isEmpty = !data.ganhos.some(v => v > 0) && !data.custos.some(v => v > 0);
+  setChartEmpty('chartGanhosCustos', isEmpty);
 
 // ===== Ganhos x Custos =====
-let activeDatasetIndex = null;
+  let activeDatasetIndex = null;
 
   function applyFocus(chart, focusIndex) {
     chart.data.datasets.forEach((ds, i) => {
@@ -460,6 +560,7 @@ let activeDatasetIndex = null;
 // ===== Distribuição de Custos =====
 async function loadDistribuicaoCustosChart(filter = null) {
     const data = await window.api.dashboard.getDistribuicaoCustos(filter);
+    setChartEmpty('chartDistribuicaoCustos',!data.valores.some(v => v > 0));
 
     function normalizeCategoria(label) {
         const map = {
@@ -592,6 +693,8 @@ async function loadDistribuicaoCustosChart(filter = null) {
 // ===== Evolução Financeira =====
 async function loadEvolucaoChart(filter = null) {
     const data = await window.api.dashboard.getEvolucao(filter);
+    const isEmpty = !data.resultado.some(v => v !== 0);
+    setChartEmpty('chartEvolucaoFinanceira', isEmpty);
 
     function renderLineLegend(chart, containerId) {
         const container = document.getElementById(containerId);
@@ -729,6 +832,8 @@ async function loadEvolucaoChart(filter = null) {
 // ===== Saldo Acumulado =====
 async function loadSaldoChart(filter = null) {
     const data = await window.api.dashboard.getSaldo(filter);
+    const isEmpty = !data.valores.some(v => v !== 0);
+    setChartEmpty('chartSaldoAcumulado', isEmpty);
 
     destroy('line2');
     charts.line2 = new Chart(
@@ -844,6 +949,8 @@ async function loadSaldoChart(filter = null) {
 // ===== Maiores Custos =====
 async function loadTopCustosTable(filter = null) {
     const data = await window.api.dashboard.getTopCustos(filter);
+    const isEmpty = data.length === 0;
+    setTableEmpty('topCustosSection', isEmpty);
 
     function normalizeCategoriaTabela(label) {
         const map = {
@@ -872,6 +979,7 @@ async function loadTopCustosTable(filter = null) {
 
     const tbody = document.getElementById('topCustosTable');
     tbody.innerHTML = '';
+    if (isEmpty) return;
 
     data.forEach(i => {
         const tr = document.createElement('tr');
@@ -901,22 +1009,22 @@ const defaultFilter = (() => {
 })();
 
 chartFilters.overview = defaultFilter;
-chartFilters.ganhosCustos = defaultFilter;
+chartFilters.ganhosCustos = null;
 chartFilters.distribuicao = defaultFilter;
-chartFilters.evolucao = defaultFilter;
-chartFilters.saldo = defaultFilter;
+chartFilters.evolucao = null;
+chartFilters.saldo = null;
 chartFilters.topCustos = defaultFilter;
 
 updateFilterLabel('overview', defaultFilter);
-updateFilterLabel('ganhosCustos', defaultFilter);
+updateFilterLabel('ganhosCustos', null);
 updateFilterLabel('distribuicao', defaultFilter);
 updateFilterLabel('evolucao', defaultFilter);
 updateFilterLabel('saldo', defaultFilter);
 updateFilterLabel('topCustos', defaultFilter);
 
 loadOverview(defaultFilter);
-loadGanhosCustosChart(defaultFilter);
+loadGanhosCustosChart(null);
 loadDistribuicaoCustosChart(defaultFilter);
-loadEvolucaoChart(defaultFilter);
-loadSaldoChart(defaultFilter);
+loadEvolucaoChart(null);
+loadSaldoChart(null);
 loadTopCustosTable(defaultFilter);

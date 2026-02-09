@@ -34,6 +34,7 @@ module.exports = (ipcMain, db) => {
   function limitMonthlyLabels(labels, filter) {
     if (filter?.mode === 'monthly') return labels.slice(-1);
     if (filter?.mode === 'yearly') return labels.slice(-12);
+    if (filter?.mode === 'lastMonths') return labels.slice(-filter.count);
     if (filter?.mode === 'range')  return labels;
     return labels.slice(-6); // padrão
   }
