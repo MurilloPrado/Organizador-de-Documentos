@@ -415,7 +415,11 @@ async function loadGanhosCustosChart(filter = null) {
         ]
         },
         options: {
-        responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            responsive: true,
         animation: {
             duration: 400,
             easing: 'easeOutQuart'
