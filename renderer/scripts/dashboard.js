@@ -95,6 +95,10 @@ panel.addEventListener('change', async (e) => {
   activeFilterButton = null;
 });
 
+panel.addEventListener('change', (e) => {
+  console.log('radio value:', e.target.value);
+});
+
 // altera nome do filtro
 function updateFilterLabel(section, filter) {
   const label = document.querySelector(
@@ -102,25 +106,41 @@ function updateFilterLabel(section, filter) {
   );
   if (!label) return;
 
-  if (!filter || filter.mode === 'monthly') {
-    label.innerHTML = `<img src="assets/sort.png"> Mês atual`;
+  if (!filter) {
+    label.innerHTML = `<img src="assets/sort.png"> Desde sempre`;
+    return;
+  }
+
+  if (filter.mode === 'monthly') {
+    const date = new Date(filter.year, filter.month - 1);
+
+    let mes = date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+    mes = mes.charAt(0).toUpperCase() + mes.slice(1);
+
+    const ano = filter.year;
+
+    label.innerHTML = `<img src="assets/sort.png"> Mês atual · ${mes}/${ano}`;
     return;
   }
 
   if (filter.mode === 'yearly') {
-    label.innerHTML = `<img src="assets/sort.png"> Ano atual`;
+    label.innerHTML = `<img src="assets/sort.png"> Ano atual · ${filter.year}`;
     return;
   }
 
   if (filter.mode === 'last') {
     label.innerHTML = `<img src="assets/sort.png"> Últimos ${filter.last} dias`;
   }
+
+  console.log('Filtro atualizado:', filter);
 }
 
 function buildFilterFromUI() {
   const selected = document.querySelector(
     'input[name="periodo"]:checked'
   ).value;
+
+  const now = new Date();
 
   if (selected === 'monthly') {
     const now = new Date();
@@ -134,16 +154,22 @@ function buildFilterFromUI() {
   if (selected === 'yearly') {
     return {
       mode: 'yearly',
-      year: new Date().getFullYear()
+      year: now.getFullYear()
     };
   }
 
-  if (selected === '30' || selected === '90') {
+  if (['30','60','90'].includes(selected)) {
     return {
       mode: 'last',
       last: Number(selected)
     };
   }
+
+  if (selected === 'all') {
+    return null;
+  }
+
+  return null;
 }
 
 async function dispatchLoad(section, filter) {
@@ -865,9 +891,32 @@ async function loadTopCustosTable(filter = null) {
 }
 
 // ================= Inicialização =================
-loadOverview();
-loadGanhosCustosChart();
-loadDistribuicaoCustosChart();
-loadEvolucaoChart();
-loadSaldoChart();
-loadTopCustosTable();
+const defaultFilter = (() => {
+  const now = new Date();
+  return {
+    mode: 'monthly',
+    year: now.getFullYear(),
+    month: now.getMonth() + 1
+  };
+})();
+
+chartFilters.overview = defaultFilter;
+chartFilters.ganhosCustos = defaultFilter;
+chartFilters.distribuicao = defaultFilter;
+chartFilters.evolucao = defaultFilter;
+chartFilters.saldo = defaultFilter;
+chartFilters.topCustos = defaultFilter;
+
+updateFilterLabel('overview', defaultFilter);
+updateFilterLabel('ganhosCustos', defaultFilter);
+updateFilterLabel('distribuicao', defaultFilter);
+updateFilterLabel('evolucao', defaultFilter);
+updateFilterLabel('saldo', defaultFilter);
+updateFilterLabel('topCustos', defaultFilter);
+
+loadOverview(defaultFilter);
+loadGanhosCustosChart(defaultFilter);
+loadDistribuicaoCustosChart(defaultFilter);
+loadEvolucaoChart(defaultFilter);
+loadSaldoChart(defaultFilter);
+loadTopCustosTable(defaultFilter);
