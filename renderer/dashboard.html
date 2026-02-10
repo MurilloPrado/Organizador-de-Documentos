@@ -212,9 +212,16 @@
                             </div>
 
                             <div class="section-filter">
-                                <div class="filter-label" id="topCustosFilterLabel">
-                                    <img src="assets/sort.png"> 
-                                    Mensal · Mês atual
+                                <div class="filter-label-group">
+                                    <div class="filter-label" id="topCustosCategoryLabel">
+                                        <img src="assets/sort.png"> 
+                                        Todos
+                                    </div>
+
+                                    <div class="filter-label" id="topCustosFilterLabel">
+                                        <img src="assets/sort.png"> 
+                                        Mensal · Mês atual
+                                    </div>
                                 </div>
 
                                 <button class="filter-btn" id="topCustosFilterBtn">
@@ -245,8 +252,34 @@
 
             <!-- FILTRO -->
             <div id="dashboardFilterPanel" class="filter-panel" hidden>
+                <div class="category-label" data-only="topCustos">
+                    <h4>Categoria</h4>
+
+                    <hr>
+                    
+                    <label>
+                        <input type="radio" name="categoriaTopCustos" value="all" checked>
+                        Todos
+                    </label>
+
+                    <label>
+                        <input type="radio" name="categoriaTopCustos" value="taxa">
+                        Taxas
+                    </label>
+
+                    <label>
+                        <input type="radio" name="categoriaTopCustos" value="despesas">
+                        Despesas processuais
+                    </label>
+
+                    <label>
+                        <input type="radio" name="categoriaTopCustos" value="outros">
+                        Outros
+                    </label>
+                </div>
+
                 <h4>Filtrar período </h4>
-                
+
                 <hr>
 
                 <label data-filter="monthly">

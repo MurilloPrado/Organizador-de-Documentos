@@ -1,4 +1,5 @@
 let charts = {};
+
 const dateRanges = {
   overview: { de: null, ate: null },
   ganhosCustos: { de: null, ate: null },
@@ -6,6 +7,10 @@ const dateRanges = {
   evolucao: { de: null, ate: null },
   saldo: { de: null, ate: null },
   topCustos: { de: null, ate: null }
+};
+
+const topCustosCategory = {
+  value: 'all' // padrão
 };
 
 // ================= Utils =================
@@ -188,6 +193,13 @@ function configureFilterPanel(section) {
     const input = label.querySelector('input');
     if (input) input.disabled = false;
   });
+
+  // bloqueia filtros que não se aplicam à seção atual
+  const categoryBlocks = panel.querySelectorAll('[data-only="topCustos"]');
+
+  categoryBlocks.forEach(el => {
+    el.style.display = section === 'topCustos' ? 'block' : 'none';
+  });
 }
 
 function syncCheckedRadio(section) {
@@ -258,9 +270,16 @@ function getDefaultFilter(section) {
 
 // altera nome do filtro
 function updateFilterLabel(section, filter) {
-  const label = document.querySelector(
-    `.section-header[data-section="${section}"] .filter-label`
-  );
+   let label;
+
+  if (section === 'topCustos') {
+    label = document.getElementById('topCustosFilterLabel');
+  } else {
+    label = document.querySelector(
+      `.section-header[data-section="${section}"] .filter-label`
+    );
+  }
+
   if (!label) return;
 
   
@@ -305,6 +324,20 @@ function updateFilterLabel(section, filter) {
     label.innerHTML = `<img src="assets/sort.png"> Desde sempre`;
     return;
   }
+}
+
+function updateTopCustosCategoryLabel() {
+  const el = document.getElementById('topCustosCategoryLabel');
+  if (!el) return;
+
+  const map = {
+    all: 'Todos',
+    despesas: 'Despesas processuais',
+    taxa: 'Taxas',
+    outros: 'Outros'
+  };
+
+  el.innerHTML = '<img src="assets/sort.png"> ' + (map[topCustosCategory.value] || 'Todos');
 }
 
 function buildFilterFromUI() {
@@ -378,6 +411,24 @@ async function dispatchLoad(section, filter) {
       break;
   }
 }
+
+// bloqueia filtros que não se aplicam à seção atual
+panel.addEventListener('change', async (e) => {
+  if (!e.target.matches('input[name="categoriaTopCustos"]')) return;
+  if (activeFilterTarget !== 'topCustos') return;
+
+  topCustosCategory.value = e.target.value;
+
+  // atualiza label
+  updateTopCustosCategoryLabel();
+
+  // recarrega tabela mantendo o filtro de período atual
+  const filter = chartFilters.topCustos;
+  await loadTopCustosTable({
+    ...filter,
+    categoria: topCustosCategory.value
+  });
+});
 
 // ================= Período específico =================
 dashDateDeBox.addEventListener('click', () => {
@@ -1142,7 +1193,12 @@ async function loadSaldoChart(filter = null) {
 
 // ===== Maiores Custos =====
 async function loadTopCustosTable(filter = null) {
-    const data = await window.api.dashboard.getTopCustos(filter);
+    const payload = {
+        ...filter,
+        categoria: topCustosCategory.value
+    };
+
+    const data = await window.api.dashboard.getTopCustos(payload);
     const isEmpty = data.length === 0;
     setTableEmpty('topCustosSection', isEmpty);
 
@@ -1215,6 +1271,7 @@ updateFilterLabel('distribuicao', defaultFilter);
 updateFilterLabel('evolucao', null);
 updateFilterLabel('saldo', null);
 updateFilterLabel('topCustos', defaultFilter);
+updateTopCustosCategoryLabel();
 
 loadOverview(defaultFilter);
 loadGanhosCustosChart(null);

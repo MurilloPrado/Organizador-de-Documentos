@@ -170,10 +170,15 @@ module.exports = (ipcMain, db) => {
 
   // ---- Top Custos
   ipcMain.handle('dashboard:getTopCustos', (_, filter) => {
-    const rows = applyDateFilter(getBaseRows(), filter);
+    let rows = applyDateFilter(getBaseRows(), filter);
+
+    rows = rows.filter(r => r.tipo === 'custo');
+
+    if (filter?.categoria && filter.categoria !== 'all') {
+      rows = rows.filter(r => r.categoria === filter.categoria);
+    }
 
     return rows
-      .filter(r => r.tipo === 'custo')
       .sort((a,b) => b.valor - a.valor)
       .slice(0,5)
       .map(r => ({

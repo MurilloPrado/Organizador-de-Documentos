@@ -267,3 +267,16 @@ h2 {
   width: 16px;
   height: 16px;
 }
+
+.filter-label-group {
+  display: flex;
+  gap: 8px;
+}
+
+.category-label {
+  margin-bottom: 15px;
+}
+
+.category-label h4 {
+  margin-bottom: 10px;
+}

@@ -90,13 +90,13 @@
     padding: 16px; 
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 5px;
     font-weight: bold;
     z-index: 10;
   }
 
   .filter-panel h4 { 
-    font-size: 16px; 
+    font-size: 16px;
   }
 
   .filter-panel label {
@@ -104,6 +104,7 @@
     align-items: center; 
     gap: 10px; 
     font-size: 15px;
+    margin-top: 8px;
   }
 
   .filter-panel[hidden] { 
