@@ -1,4 +1,12 @@
 let charts = {};
+const dateRanges = {
+  overview: { de: null, ate: null },
+  ganhosCustos: { de: null, ate: null },
+  distribuicao: { de: null, ate: null },
+  evolucao: { de: null, ate: null },
+  saldo: { de: null, ate: null },
+  topCustos: { de: null, ate: null }
+};
 
 // ================= Utils =================
 function formatCurrency(v) {
@@ -32,8 +40,31 @@ function setTableEmpty(sectionId, isEmpty) {
   section.classList.toggle('is-empty', isEmpty);
 }
 
+function parsePickerDate(value) {
+  if (!value) return null;
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0, 0);
+}
+
+function formatDateBR(value) {
+  if (!value) return '';
+  const d = parsePickerDate(value);
+  return d?.toLocaleDateString('pt-BR') || '';
+}
+
 // ================= Elementos =================
 const panel = document.getElementById('dashboardFilterPanel');
+
+const dashDateDeInput  = document.getElementById('dashDateDe');
+const dashDateAteInput = document.getElementById('dashDateAte');
+
+const dashDateDeText  = dashDateDeInput.nextElementSibling;
+const dashDateAteText = dashDateAteInput.nextElementSibling;
+
+const dashDateDeBox  = dashDateDeInput.parentElement;
+const dashDateAteBox = dashDateAteInput.parentElement;
+
+const dashClearDateBtn = document.getElementById('dashClearDate');
 
 // ================= Filtro =================
 const chartFilters = {
@@ -79,6 +110,7 @@ document.addEventListener('click', (e) => {
 
   // abrir para nova seção
   activeFilterTarget = section;
+  syncDateInputs(section);
   activeFilterButton = button;
   configureFilterPanel(section); 
   syncCheckedRadio(section);
@@ -86,6 +118,7 @@ document.addEventListener('click', (e) => {
   openFilterPanelBelowButton(button);
 });
 
+// fechar ao clicar fora
 document.addEventListener('click', (e) => {
   if (panel.hidden) return;
 
@@ -98,20 +131,34 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// evita propagação para não fechar ao clicar dentro do painel
+panel.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
 // aplica filtro
 panel.addEventListener('change', async (e) => {
-  if (!e.target.matches('input[name="periodo"]')) return;
-  if (!activeFilterTarget) return;
+    if (!e.target.matches('input[name="periodo"]')) return;
+    if (!activeFilterTarget) return;
 
-  const filter = buildFilterFromUI();
+    // limpa campo de período
+    dateRanges[activeFilterTarget] = { de: null, ate: null };
 
-  chartFilters[activeFilterTarget] = filter;
+    dashDateDeInput.value = '';
+    dashDateAteInput.value = '';
 
-  updateFilterLabel(activeFilterTarget, filter);
+    dashDateDeText.textContent = '__/__/__';
+    dashDateAteText.textContent = '__/__/__';
 
-  await dispatchLoad(activeFilterTarget, filter);
+    const filter = buildFilterFromUI();
 
-  activeFilterButton = null;
+    chartFilters[activeFilterTarget] = filter;
+
+    updateFilterLabel(activeFilterTarget, filter);
+
+    await dispatchLoad(activeFilterTarget, filter);
+
+    activeFilterButton = null;
 });
 
 function configureFilterPanel(section) {
@@ -164,6 +211,12 @@ function syncCheckedRadio(section) {
     return;
   }
 
+  if (chartFilters[section]?.mode === 'range') {
+    const radios = panel.querySelectorAll('input[name="periodo"]');
+    radios.forEach(r => r.checked = false);
+    return;
+  }
+
   if (filter.mode === 'monthly') {
     panel.querySelector('input[value="monthly"]').checked = true;
   }
@@ -181,6 +234,28 @@ function syncCheckedRadio(section) {
   }
 }
 
+// limpa seleção dos radios
+function clearPeriodoRadios() {
+  const radios = panel.querySelectorAll('input[name="periodo"]');
+  radios.forEach(r => r.checked = false);
+}
+
+// volta filtro padrão
+function getDefaultFilter(section) {
+  const now = new Date();
+
+  // Ganhos x Custos → visual default (últimos meses)
+  if (section === 'ganhosCustos' || section === 'evolucao' || section === 'saldo') {
+    return null;
+  }
+
+  return {
+    mode: 'monthly',
+    year: now.getFullYear(),
+    month: now.getMonth() + 1
+  };
+}
+
 // altera nome do filtro
 function updateFilterLabel(section, filter) {
   const label = document.querySelector(
@@ -189,7 +264,7 @@ function updateFilterLabel(section, filter) {
   if (!label) return;
 
   
-  if (!filter && section === 'ganhosCustos' || section === 'evolucao' || section === 'saldo') {
+  if (!filter && ( section === 'ganhosCustos' || section === 'evolucao' || section === 'saldo')) {
     label.innerHTML = `<img src="assets/sort.png"> Últimos 5 meses`;
     return;
   }   
@@ -218,6 +293,12 @@ function updateFilterLabel(section, filter) {
 
   if (filter.mode === 'last') {
     label.innerHTML = `<img src="assets/sort.png"> Últimos ${filter.last} dias`;
+  }
+
+  if (filter.mode === 'range') {
+    label.innerHTML =
+        `<img src="assets/sort.png"> ${filter.label}`;
+    return;
   }
 
   if (!filter) {
@@ -296,6 +377,115 @@ async function dispatchLoad(section, filter) {
       await loadTopCustosTable(filter);
       break;
   }
+}
+
+// ================= Período específico =================
+dashDateDeBox.addEventListener('click', () => {
+  dashDateDeInput.focus();
+  dashDateDeInput.showPicker?.();
+});
+
+dashDateAteBox.addEventListener('click', () => {
+  dashDateAteInput.focus();
+  dashDateAteInput.showPicker?.();
+});
+
+dashDateDeInput.addEventListener('change', () => {
+  if (!activeFilterTarget) return;
+
+  dateRanges[activeFilterTarget].de =
+    dashDateDeInput.value || null;
+
+  dashDateDeText.textContent =
+    dashDateDeInput.value
+      ? formatDateBR(dashDateDeInput.value)
+      : '__/__/__';
+});
+
+dashDateAteInput.addEventListener('change', () => {
+  if (!activeFilterTarget) return;
+
+  dateRanges[activeFilterTarget].ate =
+    dashDateAteInput.value || null;
+
+  dashDateAteText.textContent =
+    dashDateAteInput.value
+      ? formatDateBR(dashDateAteInput.value)
+      : '__/__/__';
+
+  applyDateRangeFilter();
+});
+
+dashClearDateBtn.addEventListener('click', () => {
+  // limpar datas
+  dateRanges[activeFilterTarget] = { de: null, ate: null };
+
+  dashDateDeInput.value = '';
+  dashDateAteInput.value = '';
+
+  dashDateDeText.textContent = '__/__/__';
+  dashDateAteText.textContent = '__/__/__';
+
+  if (!activeFilterTarget) return;
+
+  // voltar para filtro padrão
+  const defaultFilter = getDefaultFilter(activeFilterTarget);
+
+  chartFilters[activeFilterTarget] = defaultFilter;
+  dateRanges[activeFilterTarget] = { de: null, ate: null };
+
+  // atualizar label
+  updateFilterLabel(activeFilterTarget, defaultFilter);
+
+  // sincronizar radios
+  syncCheckedRadio(activeFilterTarget);
+
+  // recarregar gráfico
+  dispatchLoad(activeFilterTarget, defaultFilter);
+});
+
+function applyDateRangeFilter() {
+  if (!activeFilterTarget) return;
+
+  const range = dateRanges[activeFilterTarget];
+  if (!range.de || !range.ate) return;
+
+  clearPeriodoRadios();
+
+  const start = parsePickerDate(range.de);
+  const end   = parsePickerDate(range.ate);
+
+  end.setHours(23, 59, 59, 999);
+
+  const filter = {
+    mode: 'range',
+    start: start.toISOString(),
+    end: end.toISOString()
+  };
+
+  chartFilters[activeFilterTarget] = filter;
+
+  updateFilterLabel(activeFilterTarget, {
+    mode: 'range',
+    label: `${formatDateBR(range.de)} → ${formatDateBR(range.ate)}`
+  });
+
+  dispatchLoad(activeFilterTarget, filter);
+}
+
+function syncDateInputs(section) {
+  const range = dateRanges[section];
+
+  dashDateDeInput.value = range.de || '';
+  dashDateAteInput.value = range.ate || '';
+
+  dashDateDeText.textContent = range.de
+    ? formatDateBR(range.de)
+    : '__/__/__';
+
+  dashDateAteText.textContent = range.ate
+    ? formatDateBR(range.ate)
+    : '__/__/__';
 }
 
 // ================= Geração de gráficos =================
@@ -1022,8 +1212,8 @@ chartFilters.topCustos = defaultFilter;
 updateFilterLabel('overview', defaultFilter);
 updateFilterLabel('ganhosCustos', null);
 updateFilterLabel('distribuicao', defaultFilter);
-updateFilterLabel('evolucao', defaultFilter);
-updateFilterLabel('saldo', defaultFilter);
+updateFilterLabel('evolucao', null);
+updateFilterLabel('saldo', null);
 updateFilterLabel('topCustos', defaultFilter);
 
 loadOverview(defaultFilter);

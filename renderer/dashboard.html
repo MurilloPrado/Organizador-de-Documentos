@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="styles/style.css">
         <link rel="stylesheet" href="styles/documentos.css">
         <link rel="stylesheet" href="styles/dashboard.css">
+        <link rel="stylesheet" href="styles/financeiro.css">
     </head>
 
     <body>
@@ -244,7 +245,9 @@
 
             <!-- FILTRO -->
             <div id="dashboardFilterPanel" class="filter-panel" hidden>
-                <h4>Filtrar período</h4>
+                <h4>Filtrar período </h4>
+                
+                <hr>
 
                 <label data-filter="monthly">
                     <input type="radio" name="periodo" value="monthly" checked>
@@ -280,6 +283,30 @@
                     <input type="radio" name="periodo" value="all">
                     Desde sempre
                 </label>
+
+                <hr>
+
+                <div class="date-range">
+                    <div class="date-field">
+                        <label>De</label>
+                        <div class="date-box">
+                        <input type="date" id="dashDateDe" class="date-input">
+                        <span class="date-text">__/__/__</span>
+                        </div>
+                    </div>
+
+                    <div class="date-field">
+                        <label>Até</label>
+                        <div class="date-box">
+                        <input type="date" id="dashDateAte" class="date-input">
+                        <span class="date-text">__/__/__</span>
+                        </div>
+                    </div>
+
+                    <button id="dashClearDate" class="clear-btn">
+                        Limpar período
+                    </button>
+                </div>
             </div>
 
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
