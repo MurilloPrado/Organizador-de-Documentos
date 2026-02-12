@@ -93,6 +93,22 @@ function openFilterPanelBelowButton(button) {
   panel.style.zIndex = 9999;
 
   panel.hidden = false;
+
+  // Espera renderizar para medir corretamente
+  requestAnimationFrame(() => {
+    const panelRect = panel.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Se o painel passar do limite da tela
+    if (panelRect.bottom > viewportHeight) {
+      const overflow = panelRect.bottom - viewportHeight + 16;
+
+      window.scrollBy({
+        top: overflow,
+        behavior: 'smooth'
+      });
+    }
+  });
 }
 
 document.addEventListener('click', (e) => {
@@ -158,6 +174,9 @@ panel.addEventListener('change', async (e) => {
     const filter = buildFilterFromUI();
 
     chartFilters[activeFilterTarget] = filter;
+
+    // salva filtros ativos
+    saveDashboardState();
 
     updateFilterLabel(activeFilterTarget, filter);
 
@@ -315,8 +334,14 @@ function updateFilterLabel(section, filter) {
   }
 
   if (filter.mode === 'range') {
+    const start = new Date(filter.start);
+    const end = new Date(filter.end);
+
+    const startBR = start.toLocaleDateString('pt-BR');
+    const endBR = end.toLocaleDateString('pt-BR');
+
     label.innerHTML =
-        `<img src="assets/sort.png"> ${filter.label}`;
+      `<img src="assets/sort.png"> ${startBR} → ${endBR}`;
     return;
   }
 
@@ -419,6 +444,9 @@ panel.addEventListener('change', async (e) => {
 
   topCustosCategory.value = e.target.value;
 
+  // salva filtros ativos
+  saveDashboardState();
+
   // atualiza label
   updateTopCustosCategoryLabel();
 
@@ -443,14 +471,19 @@ dashDateAteBox.addEventListener('click', () => {
 
 dashDateDeInput.addEventListener('change', () => {
   if (!activeFilterTarget) return;
+  const value = dashDateDeInput.value || null;
 
-  dateRanges[activeFilterTarget].de =
-    dashDateDeInput.value || null;
+  dateRanges[activeFilterTarget].de = value;
 
   dashDateDeText.textContent =
-    dashDateDeInput.value
-      ? formatDateBR(dashDateDeInput.value)
-      : '__/__/__';
+    value ? formatDateBR(value) : '__/__/__';
+
+  const range = dateRanges[activeFilterTarget];
+  
+  if (range.de && range.ate) {
+    applyDateRangeFilter();
+    saveDashboardState();
+  }
 });
 
 dashDateAteInput.addEventListener('change', () => {
@@ -485,6 +518,9 @@ dashClearDateBtn.addEventListener('click', () => {
   chartFilters[activeFilterTarget] = defaultFilter;
   dateRanges[activeFilterTarget] = { de: null, ate: null };
 
+  // salva filtros ativos
+  saveDashboardState();
+
   // atualizar label
   updateFilterLabel(activeFilterTarget, defaultFilter);
 
@@ -516,10 +552,10 @@ function applyDateRangeFilter() {
 
   chartFilters[activeFilterTarget] = filter;
 
-  updateFilterLabel(activeFilterTarget, {
-    mode: 'range',
-    label: `${formatDateBR(range.de)} → ${formatDateBR(range.ate)}`
-  });
+  // salva filtros ativos
+  saveDashboardState();
+
+  updateFilterLabel(activeFilterTarget, filter);
 
   dispatchLoad(activeFilterTarget, filter);
 }
@@ -1248,34 +1284,83 @@ async function loadTopCustosTable(filter = null) {
     applyDashboardFocus();
 }
 
+// ================= Persistência =================
+const DASHBOARD_STORAGE_KEY = 'dashboardFiltersV1';
+
+function saveDashboardState() {
+  const state = {
+    chartFilters,
+    dateRanges,
+    topCustosCategory
+  };
+
+  localStorage.setItem(
+    DASHBOARD_STORAGE_KEY,
+    JSON.stringify(state)
+  );
+}
+
+function loadDashboardState() {
+  const raw = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 // ================= Inicialização =================
-const defaultFilter = (() => {
+function buildDefaultMonthlyFilter() {
   const now = new Date();
   return {
     mode: 'monthly',
     year: now.getFullYear(),
     month: now.getMonth() + 1
   };
-})();
+}
 
-chartFilters.overview = defaultFilter;
-chartFilters.ganhosCustos = null;
-chartFilters.distribuicao = defaultFilter;
-chartFilters.evolucao = null;
-chartFilters.saldo = null;
-chartFilters.topCustos = defaultFilter;
+function initializeDashboardState() {
+  const saved = loadDashboardState();
 
-updateFilterLabel('overview', defaultFilter);
-updateFilterLabel('ganhosCustos', null);
-updateFilterLabel('distribuicao', defaultFilter);
-updateFilterLabel('evolucao', null);
-updateFilterLabel('saldo', null);
-updateFilterLabel('topCustos', defaultFilter);
-updateTopCustosCategoryLabel();
+  if (saved) {
+    Object.assign(chartFilters, saved.chartFilters || {});
+    Object.assign(dateRanges, saved.dateRanges || {});
+    Object.assign(topCustosCategory, saved.topCustosCategory || {});
+  }
 
-loadOverview(defaultFilter);
-loadGanhosCustosChart(null);
-loadDistribuicaoCustosChart(defaultFilter);
-loadEvolucaoChart(null);
-loadSaldoChart(null);
-loadTopCustosTable(defaultFilter);
+  // aplica defaults somente onde não existir
+  chartFilters.overview ??= buildDefaultMonthlyFilter();
+  chartFilters.distribuicao ??= buildDefaultMonthlyFilter();
+  chartFilters.topCustos ??= buildDefaultMonthlyFilter();
+
+  chartFilters.ganhosCustos ??= null;
+  chartFilters.evolucao ??= null;
+  chartFilters.saldo ??= null;
+}
+
+function initializeDashboardUI() {
+  updateFilterLabel('overview', chartFilters.overview);
+  updateFilterLabel('ganhosCustos', chartFilters.ganhosCustos);
+  updateFilterLabel('distribuicao', chartFilters.distribuicao);
+  updateFilterLabel('evolucao', chartFilters.evolucao);
+  updateFilterLabel('saldo', chartFilters.saldo);
+  updateFilterLabel('topCustos', chartFilters.topCustos);
+  updateTopCustosCategoryLabel();
+}
+
+async function loadAllSections() {
+  await loadOverview(chartFilters.overview);
+  await loadGanhosCustosChart(chartFilters.ganhosCustos);
+  await loadDistribuicaoCustosChart(chartFilters.distribuicao);
+  await loadEvolucaoChart(chartFilters.evolucao);
+  await loadSaldoChart(chartFilters.saldo);
+  await loadTopCustosTable(chartFilters.topCustos);
+}
+
+// Boot
+initializeDashboardState();
+initializeDashboardUI();
+loadAllSections();
+
