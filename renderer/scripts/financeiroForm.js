@@ -700,6 +700,9 @@ function initializeUI() {
       opt.innerHTML = `<span class="status-dot status-dot-pagamento"></span> ${getDisplayLabel('Pagamento')}`;
     }
   });
+  
+  // Atualizar texto do botão salvar
+  updateSalvarButtonLabel();
 }
 
 async function loadLancamento() {
