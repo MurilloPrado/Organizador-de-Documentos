@@ -137,7 +137,7 @@ function renderPagamentosList(lista = []) {
   if (!el) return;
 
   if (!Array.isArray(lista) || lista.length === 0) {
-    el.innerHTML = '<p>Nenhum pagamento registrado.</p>';
+    el.innerHTML = '<p>Nenhum recebimento registrado.</p>';
     return;
   }
 
@@ -155,7 +155,7 @@ function renderPagamentosList(lista = []) {
     
     return `
       <div class="financeiro-item" data-id="${p.id}" data-tipo="pagamento">
-        ${valor} pago em ${quando}
+        ${valor} recebido em ${quando}
       </div>
     `;
   }).join('');

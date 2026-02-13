@@ -404,7 +404,7 @@ tipoBtn.addEventListener('click', e => {
 tipoDropdown.querySelectorAll('.status-option').forEach(opt => {
   opt.addEventListener('click', () => {
     currentTipo = opt.dataset.status;
-    tipoLabel.textContent = currentTipo;
+    tipoLabel.textContent = getDisplayLabel(currentTipo);
 
     tipoDot.className =
       currentTipo === 'Pagamento'
@@ -437,7 +437,7 @@ function updateSalvarButtonLabel() {
   if (!salvarBtn) return;
 
   if (currentTipo === 'Pagamento') {
-    salvarBtn.textContent = 'Salvar pagamento';
+    salvarBtn.textContent = 'Salvar recebimento';
   } else {
     salvarBtn.textContent = 'Salvar custo';
   }
@@ -686,6 +686,22 @@ function updateDot() {
     : 'status-dot status-dot-custo';
 }
 
+// Funções para renderizar "Recebimento" ao invés de "Pagamento" sem trocar a lógica interna
+function getDisplayLabel(tipo) {
+  return tipo === 'Pagamento' ? 'Recebimento' : tipo;
+}
+function initializeUI() {
+  // Inicializar label superior com texto correto
+  tipoLabel.textContent = getDisplayLabel(currentTipo);
+  
+  // Renderizar opções da dropdown com texto correto
+  tipoDropdown.querySelectorAll('.status-option').forEach(opt => {
+    if (opt.dataset.status === 'Pagamento') {
+      opt.innerHTML = `<span class="status-dot status-dot-pagamento"></span> ${getDisplayLabel('Pagamento')}`;
+    }
+  });
+}
+
 async function loadLancamento() {
   const { id, tipo, mode } = getParams()
   
@@ -702,7 +718,7 @@ async function loadLancamento() {
 
   // tipo
   currentTipo = normalizeTipo(lanc.tipo);
-  tipoLabel.textContent = currentTipo;
+  tipoLabel.textContent = getDisplayLabel(currentTipo);
 
   toggleTipoFields();
   updateSalvarButtonLabel();
@@ -767,7 +783,7 @@ salvarBtn?.addEventListener('click', async () => {
     (!selectedCliente?.idCliente || !selectedProcesso?.idDocumento)
   ) {
     await window.electronAPI.confirm({
-      message: 'Para pagamentos, é obrigatório selecionar cliente e processo/documento.',
+      message: 'Para recebimentos, é obrigatório selecionar cliente e processo/documento.',
       single: true
     });
     return;
@@ -813,5 +829,5 @@ if (id) {
   salvarBtn.style.display = 'block';
 }
 
-
+initializeUI();
 updateHeaderByState();
