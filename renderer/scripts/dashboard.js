@@ -358,7 +358,7 @@ function updateTopCustosCategoryLabel() {
   const map = {
     all: 'Todos',
     despesas: 'Despesas processuais',
-    taxa: 'Taxas',
+    //taxa: 'Taxas',
     outros: 'Outros'
   };
 
@@ -845,7 +845,7 @@ async function loadDistribuicaoCustosChart(filter = null) {
 
     function normalizeCategoria(label) {
         const map = {
-            taxa: 'Taxas',
+            //taxa: 'Taxas',
             despesas: 'Despesas Processuais',
             outros: 'Outros',
         };
@@ -902,7 +902,7 @@ async function loadDistribuicaoCustosChart(filter = null) {
             datasets: [{
                 data: data.valores,
                 backgroundColor: [
-                '#40d9ff', // Taxas
+                //'#40d9ff', // Taxas
                 '#6ce5e8', // Despesas
                 '#2f7497', // Outros
                 ],
@@ -1240,7 +1240,7 @@ async function loadTopCustosTable(filter = null) {
 
     function normalizeCategoriaTabela(label) {
         const map = {
-            taxa: 'Taxa',
+            //taxa: 'Taxa',
             despesas: 'Despesa Processual',
             outros: 'Outros'
         };

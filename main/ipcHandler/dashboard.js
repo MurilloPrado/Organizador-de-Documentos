@@ -50,7 +50,7 @@ module.exports = (ipcMain, db) => {
         COALESCE(l.createdAt, d.dataCriado) AS createdAt
       FROM lancamentos l
       LEFT JOIN documentos d ON d.idDocumento = l.idDocumento
-      WHERE l.tipoLancamento != 'servico'
+      WHERE l.tipoLancamento != 'servico' AND l.tipoLancamento != 'taxa'
 
       UNION ALL
 
