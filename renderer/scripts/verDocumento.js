@@ -28,6 +28,8 @@ const documentFilesContainer = selectOne('#documentFilesContainer');
 const addPagamentoFab = document.getElementById('addPagamentoFab');
 const resultValueElement = selectOne('#resultValue');
 const lastCostList = selectOne('#lastCostsList');
+const totalPaymentElement = selectOne('#totalPayment');
+const totalCostElement = selectOne('#totalCost');
 
 const editDocumentButton = selectOne('#editDocumentButton');
 const deleteDocumentButton = selectOne('#deleteDocumentButton');
@@ -181,7 +183,7 @@ function renderCustosList(lista = [], label = 'custo'){
 
     return `
       <div class="financeiro-item" data-id="${t.idLancamento}" data-tipo="custo">
-        ${valor} pago em ${quando}
+        ${valor} gasto em ${quando}
       </div>
     `;
   }).join('');
@@ -335,6 +337,8 @@ async function loadDocumentAndRender() {
 
   renderFilesReadOnly(somenteArquivos);
 
+
+
   // Resultado 
   const lancs = Array.isArray(loadedDocumentBundle?.lancamentos)
     ? loadedDocumentBundle.lancamentos
@@ -342,7 +346,7 @@ async function loadDocumentAndRender() {
 
   // custos
   const servicos = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'servico');
-  const taxas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'taxa');
+  //const taxas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'taxa');
   const despesas = lancs.filter(l => String(l?.tipoLancamento).toLowerCase() === 'despesas');
 
   // pagamentos
@@ -354,13 +358,12 @@ async function loadDocumentAndRender() {
   // valor total cobrado do cliente
   const totalServicos = servicos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
   // custos do processo
-  const totalTaxas = taxas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
   const totalDespesas = despesas.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
   // pagamentos
   const totalPagamentos = pagamentos.reduce((acc, cur) => acc + (Number(cur?.valor) || 0), 0);
 
   // resultado final
-  const resultadoFinal = totalServicos - (totalTaxas + totalDespesas) + totalPagamentos;
+  const resultadoFinal = totalServicos;
 
   resultValueElement.textContent = `Resultado: ${formatCurrencyToBRL(resultadoFinal)}`;
   if (resultadoFinal > 0) {
@@ -370,9 +373,14 @@ async function loadDocumentAndRender() {
   } else {
     resultValueElement.style.color = 'black'; 
   }
+  
+  const valorTotalRecebido = formatCurrencyToBRL(totalPagamentos);
+  totalPaymentElement.textContent = `Valor total recebido: ${valorTotalRecebido}`;
+  const valorTotalGasto = formatCurrencyToBRL(totalDespesas);
+  totalCostElement.textContent = `Valor total gasto: ${valorTotalGasto}`;
 
   renderPagamentosList(pagamentos);
-  renderCustosList([...taxas, ...despesas], 'custo');
+  renderCustosList([...despesas], 'custo');
 }
 
 // =============== Interações: Status (dropdown) ===============
