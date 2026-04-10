@@ -16,7 +16,7 @@ module.exports = (ipcMain, db) =>{
         const { query = '', status = 'recentes', limit = 100, offset = 0 } = opts;
 
         // Valida status
-        const allowed = new Set(['Pendente', 'Em Andamento', 'Concluído']);
+        const allowed = new Set(['Pendente', 'Em Andamento', 'Concluído', 'Orçamento']);
         const q = String(query || '').trim();
         const normQuery = normalize(query);
 

@@ -1,3 +1,5 @@
+const page = window.location.pathname.split('/').pop();
+
 const listEl = document.querySelector('.list');
 const searchInput = document.querySelector('.search-box input');
 const filterButton = document.querySelector('.filter-btn');
@@ -6,6 +8,10 @@ const filterPanel = document.querySelector('#filterPanel');
 let currentStatus = 'recentes';
 let currentQuery = '';
 let selectedStatus = new Set();
+
+if (page === 'orcamentos.html') {
+    selectedStatus = new Set(['Orçamento']);
+}
 
 function statusClass(s){
     if (s === "Pendente") return 'pending';
@@ -60,7 +66,12 @@ function renderList(items){
 }
 
 async function filtrar(){
-    const status = [...selectedStatus];
+    let status = [...selectedStatus];
+
+    if (page === 'orcamentos.html') {
+        status = ['Orçamento'];
+    }
+
     const rows = await window.api.listDocumentos.list({ query: currentQuery, status, limit:200 });
     renderList(rows);
 }
