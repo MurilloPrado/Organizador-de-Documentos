@@ -2,7 +2,11 @@
 import { KEY, clear, getArray, removeArray } from './common/localStorage.js';
 import { iconFor, openFileExtern, setupSharedModal, pickPaths } from './common/filesSection.js';
 
-const STORAGE_KEY = KEY.arquivos; // troque quando separar os storages
+// reconhecer origem
+const params = new URLSearchParams(window.location.search);
+const origem = params.get('origem');
+
+const STORAGE_KEY = KEY.arquivos;
 
 const listEl      = document.querySelector('.file-preview'); // container inline
 const uploadBtn   = document.getElementById('uploadButton');
@@ -24,6 +28,15 @@ const LS_TAXAS = 'lancamentos_taxas';
 const LS_DESPESAS = 'lancamentos_despesas'
 const LS_CERTIDOES = 'arquivos_certidoes';
 const LS_ARQUIVOS = 'arquivos';
+
+// status do documento baseado pela origem
+let statusDocumento = 'Pendente';
+
+if (origem === 'orcamento') {
+  statusDocumento = 'Orçamento';
+}
+
+console.log('Documento origem:', origem, '-> status definido como:', statusDocumento);
 
 // Função para obter dados do LocalStorage com fallback
 function getJSON(key, fallback = []) {
@@ -327,7 +340,7 @@ async function salvarDocumento() {
         nomeDocumento: payloadCommon.nomeDocumento,
         nomeCliente: payloadCommon.nomeCliente,
         detalhes: payloadCommon.detalhes,
-        statusDocumento: document.getElementById('statusDocumento')?.value || undefined
+        statusDocumento, // mantém o status definido pela origem
       });
 
       // arquivos: se existirem arquivos novos (sem idArquivo) você pode chamar addArquivo.
@@ -357,12 +370,19 @@ async function salvarDocumento() {
       detalhes: detalhesDocumento,
       lancamentos,
       arquivos,
+      statusDocumento,
       createdAt: new Date().toISOString(),
     };
     const res = await window.api.documentos.create(payload);
 
     clearAllStates();
-    window.location.href = 'documentos.html';
+    if (origem === 'orcamento') {
+      window.location.href = `orcamentos.html`;
+      return;
+    } else {
+      window.location.href = "documentos.html";
+      return;
+    }
   } catch (err) {
     console.error('Falha ao salvar documento:', err);
     alert('Não foi possível salvar o documento: ' + (err?.message || err));
@@ -390,7 +410,13 @@ async function handleSair(ev) {
     console.warn('[logout] falha ao limpar cache:', e);
   }
 
-  window.location.href = 'documentos.html';
+  if (origem === 'orcamento') {
+      window.location.href = `orcamentos.html`;
+      return;
+    } else {
+      window.location.href = "documentos.html";
+      return;
+  }
 }
 
 function bindLogoutButtons() {

@@ -70,6 +70,14 @@ async function filtrar(){
 
     if (page === 'orcamentos.html') {
         status = ['Orçamento'];
+    } else {
+        // remove orçamento dos filtros
+        status = status.filter(s => s !== 'Orçamento');
+
+        //se não tiver filtro selecionado mostra todos
+        if (status.length === 0) {
+            status = ['Pendente', 'Em Andamento', 'Concluído'];
+        }
     }
 
     const rows = await window.api.listDocumentos.list({ query: currentQuery, status, limit:200 });
