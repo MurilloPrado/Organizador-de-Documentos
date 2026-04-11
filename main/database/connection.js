@@ -147,6 +147,21 @@ function runMigrations(_db) {
       throw err; // IMPORTANTE: não engolir erro
     }
   }
+
+  // tabela para salvar checklist
+  if (current < 5) {
+    const tx = _db.transaction(() => {
+      try {
+        _db.prepare('ALTER TABLE documentos ADD COLUMN checklist TEXT').run();
+      } catch (err) {
+        if (!/duplicate column/i.test(err.message)) throw err;
+      }
+
+      _db.prepare('PRAGMA user_version = 5').run();
+    });
+
+    tx();
+  }
 }
 
 function initDatabase(app) {

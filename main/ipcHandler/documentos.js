@@ -96,8 +96,8 @@ module.exports = (ipcMain, db) => {
       const createdAt = payload.createdAt || new Date().toISOString();
       // Insere o documento
       const inserirDocumento = db.prepare(`
-        INSERT INTO documentos (idCliente, nomeDocumento, dataCriado, statusDocumento, detalhes)
-        VALUES (?, ?, COALESCE(?, datetime('now')), ?, ?)
+        INSERT INTO documentos (idCliente, nomeDocumento, dataCriado, statusDocumento, detalhes, checklist)
+        VALUES (?, ?, COALESCE(?, datetime('now')), ?, ?, ?)
       `);
       const resultadoDocumento = inserirDocumento.run(
         registroCliente.id,
@@ -105,6 +105,7 @@ module.exports = (ipcMain, db) => {
         payload.createdAt || null,
         payload.statusDocumento || 'Pendente',
         payload.detalhes || null,
+        payload.checklist || null
       );
       const idDocumento = resultadoDocumento.lastInsertRowid;
       // Insere os arquivos relacionados
@@ -171,7 +172,7 @@ module.exports = (ipcMain, db) => {
 
   ipcMain.handle('documentos:getById', async (_event, idDocumento) => {
     const documento = db.prepare(`
-      SELECT d.idDocumento, d.idCliente, d.nomeDocumento, d.dataCriado, d.statusDocumento, d.detalhes
+      SELECT d.idDocumento, d.idCliente, d.nomeDocumento, d.dataCriado, d.statusDocumento, d.detalhes, d.checklist
       FROM documentos d
       WHERE d.idDocumento = ?
     `).get(idDocumento);
@@ -297,13 +298,14 @@ module.exports = (ipcMain, db) => {
     // Atualizar registro do documento
     db.prepare(`
       UPDATE documentos
-      SET idCliente = ?, nomeDocumento = ?, detalhes = ?, statusDocumento = ?
+      SET idCliente = ?, nomeDocumento = ?, detalhes = ?, statusDocumento = ?, checklist = ?
       WHERE idDocumento = ?
     `).run(
       clienteNovo.idCliente,
       nomeDocumento || documentoAtual.nomeDocumento,
       detalhes || null,
       statusDocumento || documentoAtual.statusDocumento,
+      payload.checklist || documentoAtual.checklist,
       idDocumento,
     );
 

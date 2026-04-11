@@ -323,6 +323,14 @@ async function salvarDocumento() {
     const certidoes = getJSON(KEY.certidoes) || getArray(KEY.certidoes) || [];
     const arquivos = [...arquivosInline, ...certidoes];
 
+    // checklist de itens (projeto aprovado, regularização, certidões) - baseado nos inputs de radio
+    const checklist = {
+    projetoAprovado: document.querySelector('input[name="projeto"]:checked')?.value === 'true',
+    regularizacao: document.querySelector('input[name="regularizacao"]:checked')?.value === 'true',
+    certidoes: document.querySelector('input[name="certidoes"]:checked')?.value === 'true'
+    };
+    const checklistJSON = JSON.stringify(checklist);
+
     // payload comum
     const payloadCommon = {
       nomeDocumento,
@@ -341,6 +349,7 @@ async function salvarDocumento() {
         nomeCliente: payloadCommon.nomeCliente,
         detalhes: payloadCommon.detalhes,
         statusDocumento, // mantém o status definido pela origem
+        checklist: checklistJSON,
       });
 
       // arquivos: se existirem arquivos novos (sem idArquivo) você pode chamar addArquivo.
@@ -371,6 +380,7 @@ async function salvarDocumento() {
       lancamentos,
       arquivos,
       statusDocumento,
+      checklist: checklistJSON,
       createdAt: new Date().toISOString(),
     };
     const res = await window.api.documentos.create(payload);
