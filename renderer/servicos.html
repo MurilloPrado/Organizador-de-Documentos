@@ -55,18 +55,40 @@
                     <!-- Itens adicionados aqui -->
                 </div>
 
+                <div id=servicosAdicionais class="servicos-box">
+                    <h2>Serviços Adicionais</h2>
 
-                <footer>
-                    <div class="line"></div>
+                    <label class="check-item">
+                        <input type="checkbox" id="servico-topografia">
+                        <span class="check-custom"></span>
+                        <span class="label-text">Topografia</span>
+                    </label>
 
-                    <p id="subtotal" class="subtotal">Subtotal: R$ 0,00</p>
-                    
-                    <div class="botoes">
-                        <button id="new-item-button" class="servico-button">Adicionar serviço</button>
-                        <button id="save-button" class="servico-button">Salvar serviço</button>
-                    </div>
-                </footer>
+                    <label class="check-item">
+                        <input type="checkbox" id="servico-arquiteto">
+                        <span class="check-custom"></span>
+                        <span class="label-text">Arquiteto</span>
+                    </label>
+
+                    <label class="check-item">
+                        <input type="checkbox" id="servico-engenheiro">
+                        <span class="check-custom"></span>
+                        <span class="label-text">Engenheiro</span>
+                    </label>
+                </div>
             </div>
+
+            <footer>
+                <div class="line"></div>
+
+                <p id="subtotal" class="subtotal">Subtotal: R$ 0,00</p>
+                    
+                <div class="botoes">
+                    <button id="new-item-button" class="servico-button">Adicionar serviço</button>
+                    <button id="save-button" class="servico-button">Salvar serviço</button>
+                </div>
+            </footer>
+            
 
             <script type="module" src="scripts/adicionarLancamento.js"></script>
         </main>      

@@ -243,10 +243,20 @@ function setMode(mode){
 
     if(formContainer) formContainer.style.display = showForm ? 'block' : 'none';
     if(listContainer) listContainer.style.display = showForm ? 'none' : 'block';
+
+    const footer = document.querySelector('footer');
+    if (footer) {
+        footer.style.display = showForm ? 'none' : 'flex';
+    }
+
+
+
     updateTopLink();
 }
 
 function hasItens(){
+    const itens = getAll();
+    console.log('itens =>', itens);
     return getAll().length > 0;
 }
 
@@ -375,8 +385,6 @@ async function refresh() {
     } else {
         setMode('form');
     }
-
-    updateKebabIcon();
 }
 
 if(addButton){
@@ -442,6 +450,7 @@ if(addButton){
             await addLancamentosToDB({ nome, detalhes, valor });
         } else {
             add({ nome, detalhes, valor });
+            console.log(getAll());
         }
 
         if(inputNome) inputNome.value = '';

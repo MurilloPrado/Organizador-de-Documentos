@@ -1,10 +1,13 @@
 main{
     padding: 10px 40px 0 40px;
+    padding-bottom: 220px; 
+    box-sizing: border-box;
 }
 
 #listContainer{
     display: flex;
     flex-direction: column;
+    height: auto;
     min-height: calc(100vh - 200px);
 }
 
@@ -102,7 +105,60 @@ p{
   background-color: #003f99; /* tom mais escuro ao passar o mouse */
 }
 
+.servicos-box {
+    margin-top: 20px;
+}
+
+.servicos-box h2 {
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.check-item input {
+    display: none;
+}
+
+.check-custom {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #000;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    transition: 0.2s;
+    background-color: transparent;
+}
+
+.check-item input:checked + .check-custom {
+    background-color: #ffffff;
+}
+
+/* cria o “miolo branco” */
+.check-item input:checked + .check-custom::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background-color: #000000;
+    border-radius: 2px;
+}
+
+.label-text {
+    font-weight: 600;
+}
+
 footer{
+    background-color: #f2f2f2;
     position: fixed;
     display: flex;
     flex-direction: column;
@@ -111,6 +167,7 @@ footer{
     left: 4px;
     bottom: 90px;
     width: 100%;
+    z-index: 1000;
 }
 
 .subtotal{
@@ -130,13 +187,16 @@ footer{
 
 .botoes{
     position: fixed;
-    bottom: 20px;
+    bottom: 0px;
     left: 0;
     width: 100%;
     display: flex;
+    margin: 0;
     justify-content: center;
     gap: 20px;
     z-index: 1000;
+    background-color: #f2f2f2;
+    padding: 20px
 }
 
 .itemIcons:hover{
