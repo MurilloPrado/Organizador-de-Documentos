@@ -398,6 +398,21 @@ module.exports = (ipcMain, db) => {
     return { ok: true };
   });
 
+  // atualiza somente checklist
+  ipcMain.handle('documentos:updateChecklist', async (_event, { idDocumento, checklist }) => {
+    if (!idDocumento) throw new Error('ID obrigatório');
+
+    console.log(`[documentos:updateChecklist] idDocumento=${idDocumento} checklist=${checklist}`);
+
+    db.prepare(`
+      UPDATE documentos
+      SET checklist = ?
+      WHERE idDocumento = ?
+    `).run(checklist, idDocumento);
+
+    return { ok: true };
+  });
+
   // Lançamentos
   ipcMain.handle('documentos:addLancamento', async (_evt, payload) => {
     const stmt = db.prepare(`

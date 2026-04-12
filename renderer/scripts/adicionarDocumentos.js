@@ -31,6 +31,7 @@ const dataCriacaoEl = document.getElementById("data-criado");
 const LS_SERVICOS = 'lancamentos_servicos';
 const LS_TAXAS = 'lancamentos_taxas';
 const LS_DESPESAS = 'lancamentos_despesas'
+const LS_CHECKLIST = 'checklist';
 const LS_CERTIDOES = 'arquivos_certidoes';
 const LS_ARQUIVOS = 'arquivos';
 
@@ -141,6 +142,8 @@ const loadDraft = (k)  => localStorage.getItem(k);
   const draftCliente  = loadDraft(DRAFT.cliente)  || '';
   const draftDetalhes = loadDraft(DRAFT.detalhes) || '';
 
+  restoreChecklistDraft();
+
   if (tituloInput)   tituloInput.value = draftTitulo;
   if (clienteInput)  clienteInput.value = draftCliente;
   if (detalhesInput) detalhesInput.value = draftDetalhes;
@@ -160,6 +163,7 @@ function clearAllStates(){
   [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.servicosAdicionais, KEY.taxas, KEY.despesas].forEach(k=> localStorage.removeItem(k));
 
   localStorage.removeItem('documento.origem');
+  localStorage.removeItem('draft.checklist');
 }
 
 // Render inline (apenas para adicionarDocumentos)
@@ -296,6 +300,52 @@ clienteInput?.addEventListener('blur', ()=>setTimeout(()=> renderClientSuggestio
   
 renderInline();
 
+// checklist salvo no localStorage
+function getChecklistFromUI() {
+  return {
+    projetoAprovado: document.querySelector('input[name="projeto"]:checked')?.value === 'true',
+    regularizacao: document.querySelector('input[name="regularizacao"]:checked')?.value === 'true',
+    certidoes: document.querySelector('input[name="certidoes"]:checked')?.value === 'true'
+  };
+}
+
+function saveChecklistDraft() {
+  const checklist = getChecklistFromUI();
+  localStorage.setItem(LS_CHECKLIST, JSON.stringify(checklist));
+}
+
+['projeto', 'regularizacao', 'certidoes'].forEach(name => {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(el => {
+    el.addEventListener('change', saveChecklistDraft);
+  });
+});
+
+function restoreChecklistDraft() {
+  const raw = localStorage.getItem(LS_CHECKLIST);
+  if (!raw) return;
+
+  try {
+    const checklist = JSON.parse(raw);
+
+    const map = {
+      projetoAprovado: 'projeto',
+      regularizacao: 'regularizacao',
+      certidoes: 'certidoes'
+    };
+
+    Object.entries(map).forEach(([key, name]) => {
+      const value = checklist[key];
+
+      const el = document.querySelector(
+        `input[name="${name}"][value="${value}"]`
+      );
+
+      if (el) el.checked = true;
+    });
+
+  } catch {}
+}
+
 // Botão salvar documento, envia os dados para o payload
 async function salvarDocumento() {
   try {
@@ -345,9 +395,9 @@ async function salvarDocumento() {
 
     // checklist de itens (projeto aprovado, regularização, certidões) - baseado nos inputs de radio
     const checklist = {
-    projetoAprovado: document.querySelector('input[name="projeto"]:checked')?.value === 'true',
-    regularizacao: document.querySelector('input[name="regularizacao"]:checked')?.value === 'true',
-    certidoes: document.querySelector('input[name="certidoes"]:checked')?.value === 'true'
+      projetoAprovado: document.querySelector('input[name="projeto"]:checked')?.value === 'true',
+      regularizacao: document.querySelector('input[name="regularizacao"]:checked')?.value === 'true',
+      certidoes: document.querySelector('input[name="certidoes"]:checked')?.value === 'true'
     };
     const checklistJSON = JSON.stringify(checklist);
 

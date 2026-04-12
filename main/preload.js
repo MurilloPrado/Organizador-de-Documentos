@@ -56,6 +56,7 @@ contextBridge.exposeInMainWorld('api', {
         getById: (id) => ipcRenderer.invoke('documentos:getById', id),
         updateStatus: ({ id, status }) => ipcRenderer.invoke('documentos:updateStatus', { id, status }),
         update: (payload) => ipcRenderer.invoke('documentos:update', payload),
+        updateChecklist: ({ idDocumento, checklist }) => ipcRenderer.invoke('documentos:updateChecklist', { idDocumento, checklist }),
         delete: (id) => ipcRenderer.invoke('documentos:delete', id),
         addLancamento: (payload) => ipcRenderer.invoke('documentos:addLancamento', payload),
         updateLancamento: (payload) => ipcRenderer.invoke('documentos:updateLancamento', payload),

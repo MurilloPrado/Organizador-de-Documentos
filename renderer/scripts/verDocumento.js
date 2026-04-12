@@ -33,6 +33,7 @@ const totalCostElement = selectOne('#totalCost');
 
 const editDocumentButton = selectOne('#editDocumentButton');
 const deleteDocumentButton = selectOne('#deleteDocumentButton');
+const backButton = selectOne('#backButton');
 
 const addFileFab = document.getElementById('addFileFab');
 
@@ -53,6 +54,31 @@ function getDocumentIdFromUrl() {
   return Number.isFinite(idAsNumber) ? idAsNumber : 0;
 }
 
+// voltar para a origem (documentos ou orçamentos)
+if (backButton) {
+  backButton.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const podeSair = await confirmExitIfEditing();
+
+    if (podeSair) {
+      goBackToOrigin();
+    }
+  });
+}
+
+function goBackToOrigin() {
+  const status = loadedDocumentBundle?.documento?.statusDocumento;
+  console.log('goBackToOrigin, status=', status);
+
+  if (status === 'Orçamento') {
+    window.location.href = 'orcamentos.html';
+  } else {
+    window.location.href = 'documentos.html';
+  }
+}
+
 // botão status
 function toggleElementVisibility(element, shouldShow) {
   element.style.display = shouldShow ? 'block' : 'none';
@@ -63,7 +89,7 @@ function setStatusVisual(statusText) {
   const statusMap = {
     'Pendente': { text: 'Pendente', dotClass: 'status-dot-pendente' },
     'Orçamento': { text: 'Orçamento', dotClass: 'status-dot-orçamento' },
-    'Em Andamento': { text: 'Em andamento', dotClass: 'status-dot-andamento' },
+    'Em Andamento': { text: 'Em Andamento', dotClass: 'status-dot-andamento' },
     'Concluído': { text: 'Concluído', dotClass: 'status-dot-concluido' },
   };
   const info = statusMap[statusText] || statusMap['Pendente'];
@@ -126,6 +152,34 @@ function getLancamentoDate(l){
     l?.updatedAt ||
     null
   );
+}
+
+// checklist
+function restoreChecklist(checklistJSON) {
+  if (!checklistJSON) return;
+
+  let checklist = {};
+
+  try {
+    checklist = JSON.parse(checklistJSON);
+  } catch {
+    return;
+  }
+
+  const map = {
+    projetoAprovado: 'projeto',
+    regularizacao: 'regularizacao',
+    certidoes: 'certidoes'
+  };
+
+  Object.entries(map).forEach(([key, name]) => {
+    const value = checklist[key];
+
+    if (typeof value === 'boolean') {
+      const el = document.querySelector(`input[name="${name}"][value="${value}"]`);
+      if (el) el.checked = true;
+    }
+  });
 }
 
 function goToFinanceiroView({ id, tipo }) {
@@ -294,7 +348,7 @@ async function loadDocumentAndRender() {
   const documentId = getDocumentIdFromUrl();
   if (!documentId) {
     alert('Documento inválido.');
-    window.location.href = 'documentos.html';
+    goBackToOrigin();
     return;
   }
 
@@ -305,13 +359,13 @@ async function loadDocumentAndRender() {
   } catch (error) {
     console.error('Erro ao buscar documento:', error);
     alert('Não foi possível carregar o documento.');
-    window.location.href = 'documentos.html';
+    goBackToOrigin();
     return;
   }
 
   if (!loadedDocumentBundle?.documento) {
     alert('Documento não encontrado.');
-    window.location.href = 'documentos.html';
+    goBackToOrigin();
     return;
   }
 
@@ -327,6 +381,9 @@ async function loadDocumentAndRender() {
   // Status
   setStatusVisual(documento?.statusDocumento || 'Pendente');
 
+  // checklist
+  restoreChecklist(documento?.checklist);
+
   // Detalhes (mantém textarea readonly conforme seu HTML atual)
   documentDetailsTextarea.value = documento?.detalhes || '';
 
@@ -336,8 +393,6 @@ async function loadDocumentAndRender() {
     : [];
 
   renderFilesReadOnly(somenteArquivos);
-
-
 
   // Resultado 
   const lancs = Array.isArray(loadedDocumentBundle?.lancamentos)
@@ -451,6 +506,31 @@ headerDocumentTitleElement.addEventListener('input', () => {
   if (isEditing) hasUnsavedChanges = true;
 });
 
+// checklist
+['projeto', 'regularizacao', 'certidoes'].forEach(name => {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(el => {
+    el.addEventListener('change', async () => {
+      if (isEditing) {
+        hasUnsavedChanges = true;
+        return;
+      }
+
+      // salva direto no banco
+      try {
+        const checklist = getChecklistFromUI();
+
+        window.api.documentos.updateChecklist({
+          idDocumento: getDocumentIdFromUrl(),
+          checklist: JSON.stringify(checklist)
+        });
+
+      } catch (err) {
+        console.error('Erro ao salvar checklist:', err);
+      }
+    });
+  });
+});
+
 documentDetailsTextarea.addEventListener('input', () => {
   if (isEditing) hasUnsavedChanges = true;
 });
@@ -542,7 +622,8 @@ async function confirmExitIfEditing() {
   restoreDocumentView();
   exitEditMode();
   setEditIconToEdit();
-  return false;
+
+  return true;
 }
 
 function setEditIconToClose() {
@@ -576,16 +657,28 @@ editDocumentButton.addEventListener('click', async (e) => {
   setEditIconToEdit();
 });
 
+// função para extrair os dados do checklist da UI
+function getChecklistFromUI() {
+  return {
+    projetoAprovado: document.querySelector('input[name="projeto"]:checked')?.value === 'true',
+    regularizacao: document.querySelector('input[name="regularizacao"]:checked')?.value === 'true',
+    certidoes: document.querySelector('input[name="certidoes"]:checked')?.value === 'true'
+  };
+}
+
 salvarDocumentoButton.addEventListener('click', async () => {
   if (!isEditing) return;
   
   const statusDocumento = statusLabelElement.textContent.trim();
+
+  const checklist = getChecklistFromUI();
 
   await window.api.documentos.update({
     idDocumento: getDocumentIdFromUrl(),
     nomeDocumento: headerDocumentTitleElement.textContent.trim(),
     detalhes: documentDetailsTextarea.value.trim(),
     statusDocumento,
+    checklist: JSON.stringify(checklist),
   });
 
   exitEditMode();
@@ -599,7 +692,7 @@ deleteDocumentButton.addEventListener('click', async () => {
 
   try {
     await window.api.documentos.delete(documentId);
-    window.location.href = 'documentos.html';
+    goBackToOrigin();
   } catch (error) {
     console.error('Falha ao excluir o documento:', error);
     alert('Não foi possível excluir o documento.');

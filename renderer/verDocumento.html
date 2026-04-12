@@ -17,7 +17,7 @@
 
     <body>
         <header class="document-view-header">
-            <a href="documentos.html" class="back-button" aria-label="Voltar">&#x25C0;</a>
+            <div id="backButton" class="back-button" aria-label="Voltar">&#x25C0;</div>
 
             <div class="document-view-header-center">
                 <h1 class="document-view-title" id="headerDocumentTitle">Processo</h1>
@@ -117,6 +117,62 @@
                     
                     <img src="assets/seta.png">
                 </a>
+            </div>
+
+            <div class="section">
+                <span><h2 >Documentos Necessários</h2></span>
+
+                <div class="doc-row">
+                    <div class="doc-title">
+                        <img src=./assets/aprovado.png alt="Projeto Aprovado">
+                        <span>Projeto Aprovado</span>
+                    </div>
+                    <div class="radio-group">
+                        <label class="radio-custom">
+                            <input type="radio" name="projeto" value="true"> 
+                            <span class="circle"></span>SIM
+                        </label>
+                        <label class="radio-custom">
+                            <input type="radio" name="projeto" value="false"> 
+                            <span class="circle"></span>NÃO
+                        </label>
+                    </div>
+                </div>
+
+                <div class="doc-row">
+                    <div class="doc-title">
+                        <img src=./assets/regularization.png alt="Regularização">
+                        <span>Habite-se ou Regularização</span>
+                    </div>
+                    <div class="radio-group">
+                        <label class="radio-custom">
+                            <input type="radio" name="regularizacao" value="true"> 
+                            <span class="circle"></span>SIM
+                        </label>
+                        <label class="radio-custom">
+                            <input type="radio" name="regularizacao" value="false"> 
+                            <span class="circle"></span>NÃO
+                        </label>
+                    </div>
+                </div>
+
+                <div class="doc-row">
+                    <div class="doc-title">
+                        <img src=./assets/stamp.png alt="Certidões">
+                        <span>Certidões Municipais</span>
+                    </div>
+                    <div class="radio-group">
+                        <label class="radio-custom">
+                            <input type="radio" name="certidoes" value="true"> 
+                            <span class="circle"></span>SIM
+                        </label>
+                        <label class="radio-custom">
+                            <input type="radio" name="certidoes" value="false"> 
+                            <span class="circle"></span>NÃO
+                        </label>
+                    </div>
+                </div>
+
             </div>
 
             <!-- DETALHES -->

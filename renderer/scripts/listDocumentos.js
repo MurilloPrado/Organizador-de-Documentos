@@ -1,4 +1,6 @@
+// identificar origem
 const page = window.location.pathname.split('/').pop();
+const origin = page === 'orcamentos.html' ? 'orcamento' : 'documentos';
 
 const listEl = document.querySelector('.list');
 const searchInput = document.querySelector('.search-box input');
