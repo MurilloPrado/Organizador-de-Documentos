@@ -4,7 +4,12 @@ import { iconFor, openFileExtern, setupSharedModal, pickPaths } from './common/f
 
 // reconhecer origem
 const params = new URLSearchParams(window.location.search);
-const origem = params.get('origem');
+const origemParam = params.get('origem');
+const origem = origemParam || localStorage.getItem('documento.origem');
+
+if (origemParam) {
+  localStorage.setItem('documento.origem', origemParam);
+}
 
 const STORAGE_KEY = KEY.arquivos;
 
@@ -153,6 +158,8 @@ detalhesInput?.addEventListener('input', ()=> saveDraft(DRAFT.detalhes, detalhes
 function clearAllStates(){
   [DRAFT.titulo, DRAFT.cliente, DRAFT.detalhes].forEach(k=> localStorage.removeItem(k));
   [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.servicosAdicionais, KEY.taxas, KEY.despesas].forEach(k=> localStorage.removeItem(k));
+
+  localStorage.removeItem('documento.origem');
 }
 
 // Render inline (apenas para adicionarDocumentos)

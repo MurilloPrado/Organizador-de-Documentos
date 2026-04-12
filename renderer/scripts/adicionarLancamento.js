@@ -612,8 +612,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    el.addEventListener('change', handleCheckboxChange);
 });
 
 
