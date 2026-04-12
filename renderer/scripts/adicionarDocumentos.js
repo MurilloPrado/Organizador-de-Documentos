@@ -152,7 +152,7 @@ detalhesInput?.addEventListener('input', ()=> saveDraft(DRAFT.detalhes, detalhes
 // limpar tudo (usar após salvar documento)
 function clearAllStates(){
   [DRAFT.titulo, DRAFT.cliente, DRAFT.detalhes].forEach(k=> localStorage.removeItem(k));
-  [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.taxas, KEY.despesas].forEach(k=> localStorage.removeItem(k));
+  [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.servicosAdicionais, KEY.taxas, KEY.despesas].forEach(k=> localStorage.removeItem(k));
 }
 
 // Render inline (apenas para adicionarDocumentos)
@@ -287,8 +287,6 @@ clienteInput?.addEventListener('input', ()=>{
 });
 clienteInput?.addEventListener('blur', ()=>setTimeout(()=> renderClientSuggestions([]), 200));
   
-
-
 renderInline();
 
 // Botão salvar documento, envia os dados para o payload
@@ -307,8 +305,23 @@ async function salvarDocumento() {
       return;
     }
 
+    // une serviços normais e adicionais 
+    const servicosNormais = getArray(KEY.servicos) || [];
+    const servicosAdicionais = getArray(KEY.servicosAdicionais) || [];
+
+    // merge sem duplicar
+    const map = new Map();
+
+    [...servicosNormais, ...servicosAdicionais].forEach(s => {
+      const key = s.nome.toLowerCase();
+
+      if (!map.has(key) || s.valor > 0) {
+        map.set(key, s);
+      }
+    });
+
     // Junta serviços e taxas
-    const servicos = getArray(KEY.servicos) || [];
+    const servicos = Array.from(map.values());
     const taxas = getArray(KEY.taxas) || [];
     const despesas = getArray(KEY.despesas) || [];
     const lancamentos = [...servicos, ...taxas, ...despesas].map(item => ({

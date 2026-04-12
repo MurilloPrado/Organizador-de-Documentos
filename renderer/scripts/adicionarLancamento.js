@@ -41,6 +41,7 @@ const deleteToggleButton = document.getElementById('deleteToggleButton');
 
 const MAP = {
     servico: KEY.servicos,
+    servicosAdicionais: KEY.servicosAdicionais,
     taxa: KEY.taxas,
     despesas: KEY.despesas,
 }
@@ -280,9 +281,18 @@ function enterEdit(item, index){
     updateTopLink();
 }
 
+// verifica serviços como checkbox
+function isCheckboxServico(nome) {
+  return CHECKBOX_MAP.some(c => c.nome.toLowerCase() === String(nome).toLowerCase());
+}
+
 async function renderList() {
     if(!listContainer) return;
-    const itens = isViewMode ? await fetchLancamentosFromDB() : getAll();
+    let itens = isViewMode ? await fetchLancamentosFromDB() : getAll();
+
+    // remove serviços vindos do checkbox
+    itens = itens.filter(item => !isCheckboxServico(item.nome));
+
     listaElement.innerHTML = '';
 
     if(!itens || itens.length === 0) {
@@ -387,6 +397,95 @@ async function refresh() {
     }
 }
 
+// checklist
+const CHECKBOX_MAP = [
+  { id: 'servico-topografia', nome: 'Topografia' },
+  { id: 'servico-arquiteto', nome: 'Arquiteto' },
+  { id: 'servico-engenheiro', nome: 'Engenheiro' }
+];
+
+function restoreCheckboxes() {
+  const servicos = getArray(KEY.servicosAdicionais) || [];
+
+  const nomes = servicos.map(s => s.nome.toLowerCase());
+
+  CHECKBOX_MAP.forEach(item => {
+    const el = document.getElementById(item.id);
+    if (!el) return;
+
+    el.checked = nomes.includes(item.nome.toLowerCase());
+  });
+}
+
+function getSelecionados() {
+  return CHECKBOX_MAP
+    .filter(c => document.getElementById(c.id)?.checked)
+    .map(c => ({
+      tipo: 'servico',
+      nome: c.nome,
+      detalhes: null,
+      valor: 0
+    }));
+}
+
+function syncServicosCreate() {
+  const atuais = getArray(KEY.servicosAdicionais) || [];
+  const selecionados = getSelecionados();
+
+  const nomesAtuais = atuais.map(s => s.nome.toLowerCase());
+  const nomesSelecionados = selecionados.map(s => s.nome.toLowerCase());
+
+  // mantém só os ainda marcados
+  let atualizados = atuais.filter(s =>
+    nomesSelecionados.includes(s.nome.toLowerCase())
+  );
+
+  // adiciona novos
+  selecionados.forEach(s => {
+    if (!nomesAtuais.includes(s.nome.toLowerCase())) {
+      atualizados.push(s);
+    }
+  });
+
+  setArray(KEY.servicosAdicionais, atualizados);
+}
+
+async function syncServicosView() {
+  const selecionados = getSelecionados();
+  const existentes = (await fetchLancamentosFromDB())
+  .filter(e => CHECKBOX_MAP.some(c => c.nome.toLowerCase() === e.nome.toLowerCase()));
+
+  const nomesExistentes = existentes.map(e => e.nome.toLowerCase());
+  const nomesSelecionados = selecionados.map(s => s.nome.toLowerCase());
+
+  // adiciona novos
+  for (const s of selecionados) {
+    if (!nomesExistentes.includes(s.nome.toLowerCase())) {
+      await window.api.documentos.addLancamento({
+        idDocumento: docId,
+        tipoLancamento: 'servico',
+        tituloLancamento: s.nome,
+        detalhes: null,
+        valor: 0,
+        createdAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  // remove desmarcados
+  for (const e of existentes) {
+    if (!nomesSelecionados.includes(e.nome.toLowerCase())) {
+      await window.api.documentos.deleteLancamento(e.idLancamento);
+    }
+  }
+}
+
+function handleCheckboxChange() {
+  if (isViewMode) return;
+
+  syncServicosCreate();
+}
+
 if(addButton){
     addButton.onclick = async () => {
         const nome = String(inputNome?.value||'').trim();
@@ -477,7 +576,18 @@ if(newItemButton){
 }
 
 if (saveButton){
-  saveButton.onclick = () => {
+  saveButton.onclick = async () => {
+    if (isViewMode && docId) {
+        await syncServicosView();
+    } else {
+        syncServicosCreate();
+    }
+
+    const servicosNormais = getArray(KEY.servicos) || [];
+    const servicosExtras = getArray(KEY.servicosAdicionais) || [];
+
+    const todos = [...servicosNormais, ...servicosExtras];
+
     // se veio do verDocumento (view), volta para ele com o mesmo id; senão, volta para adicionarDocumentos
     const back = isViewMode
       ? (docId ? `verDocumento.html?id=${docId}` : 'verDocumento.html')
@@ -485,5 +595,26 @@ if (saveButton){
     window.location.href = back;
   }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!isViewMode) {
+        restoreCheckboxes();
+    } else {
+        // RESTAURA DO BANCO
+        fetchLancamentosFromDB().then(lancamentos => {
+            const nomes = lancamentos.map(l => l.nome.toLowerCase());
+
+            CHECKBOX_MAP.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (!el) return;
+
+            el.checked = nomes.includes(item.nome.toLowerCase());
+            });
+        });
+    }
+
+    el.addEventListener('change', handleCheckboxChange);
+});
+
 
 refresh();
