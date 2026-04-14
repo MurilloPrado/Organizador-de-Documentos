@@ -163,7 +163,7 @@ function clearAllStates(){
   [KEY.arquivos, KEY.certidoes, KEY.servicos, KEY.servicosAdicionais, KEY.taxas, KEY.despesas].forEach(k=> localStorage.removeItem(k));
 
   localStorage.removeItem('documento.origem');
-  localStorage.removeItem('draft.checklist');
+  localStorage.removeItem(LS_CHECKLIST);
 }
 
 // Render inline (apenas para adicionarDocumentos)
@@ -482,10 +482,7 @@ async function handleSair(ev) {
 
   try {
     // 1) limpa estados conhecidos do app (rascunhos e listas)
-    clearAllStates(); // já existe no arquivo
-
-    // 2) limpa quaisquer outras chaves residuais do localStorage
-    localStorage.clear();
+    clearAllStates(); 
   } catch (e) {
     console.warn('[logout] falha ao limpar cache:', e);
   }

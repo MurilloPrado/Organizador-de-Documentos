@@ -250,6 +250,14 @@
   z-index: 1000;
 }
 
+#orcamentoActions {
+  display: none;
+}
+
+#orcamentoActions.show {
+  display: flex;
+}
+
 .orcamento-actions .save-button {
   display: inline-block;
   margin: 0;

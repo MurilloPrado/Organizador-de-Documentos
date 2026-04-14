@@ -391,9 +391,9 @@ async function loadDocumentAndRender() {
     statusSelectorButton.style.cursor = 'default';
     statusSelectorButton.title = 'Só será possível alterar o status do processo caso o orçamento seja aprovado';
     if (statusCaret) statusCaret.style.color = '#e6e6e6';
-    orcamentoActions.style.display = 'flex';
+    orcamentoActions.classList.add('show');
   } else {
-    orcamentoActions.style.display = 'none';
+    orcamentoActions.classList.remove('show');
   }
 
   // checklist
