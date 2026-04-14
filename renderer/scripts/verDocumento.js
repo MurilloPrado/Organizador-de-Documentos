@@ -18,6 +18,7 @@ const statusSelectorButton = selectOne('#statusSelectorButton');
 const statusOptionsList = selectOne('#statusOptionsList');
 const statusLabelElement = selectOne('#statusLabel');
 const statusDotElement = selectOne('#statusDot');
+const statusCaret = document.querySelector('.status-caret');
 
 const customerNameElement = selectOne('#customerName');
 const documentDetailsTextarea = selectOne('#documentDetails');
@@ -38,6 +39,10 @@ const backButton = selectOne('#backButton');
 const addFileFab = document.getElementById('addFileFab');
 
 const salvarDocumentoButton = document.getElementById('salvarDocumento');
+
+const orcamentoActions = document.getElementById('orcamentoActions');
+const approveBudgetBtn = document.getElementById('approveBudgetBtn');
+const rejectBudgetBtn = document.getElementById('rejectBudgetBtn');
 
 // Estado carregado
 let loadedDocumentBundle = null;
@@ -381,6 +386,16 @@ async function loadDocumentAndRender() {
   // Status
   setStatusVisual(documento?.statusDocumento || 'Pendente');
 
+  // Se for orçamento, bloqueia dropdown de status e mostra ações específicas
+  if (documento?.statusDocumento === 'Orçamento') {
+    statusSelectorButton.style.cursor = 'default';
+    statusSelectorButton.title = 'Só será possível alterar o status do processo caso o orçamento seja aprovado';
+    if (statusCaret) statusCaret.style.color = '#e6e6e6';
+    orcamentoActions.style.display = 'flex';
+  } else {
+    orcamentoActions.style.display = 'none';
+  }
+
   // checklist
   restoreChecklist(documento?.checklist);
 
@@ -440,7 +455,17 @@ async function loadDocumentAndRender() {
 
 // =============== Interações: Status (dropdown) ===============
 statusSelectorButton.addEventListener('click', (event) => {
+  const currentStatus = statusLabelElement.textContent.trim();
+  console.log('Status atual:', currentStatus);
+
+  if (currentStatus === 'Orçamento') {
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+
   event.stopPropagation();
+
   const isOpen = statusOptionsList.style.display === 'block';
   toggleElementVisibility(statusOptionsList, !isOpen);
   statusSelectorButton.setAttribute('aria-expanded', String(!isOpen));
@@ -454,7 +479,7 @@ document.addEventListener('click', (event) => {
 });
 
 selectMany('.status-option').forEach((optionElement) => {
-  optionElement.addEventListener('click', async () => {
+  optionElement.addEventListener('click', async (e) => {  
     const newStatus = optionElement.getAttribute('data-status');
     toggleElementVisibility(statusOptionsList, false);
     statusSelectorButton.setAttribute('aria-expanded', 'false');
@@ -703,6 +728,58 @@ addPagamentoFab.addEventListener('click', () => {
   const documentId = getDocumentIdFromUrl();
   window.location.href =
     `financeiroForm.html?from=processo&processoId=${documentId}`;
+});
+
+// aprovar / rejeitar orçamento
+approveBudgetBtn.addEventListener('click', async () => {
+  const id = getDocumentIdFromUrl();
+
+  const confirmApprove = await window.electronAPI.confirm(
+    'Deseja aprovar este orçamento?'
+  );
+
+  if (!confirmApprove) return;
+
+  try {
+    await window.api.documentos.updateStatus({
+      id,
+      status: 'Pendente'
+    });
+
+    window.location.href = 'documentos.html';
+
+  } catch (err) {
+    console.error(err);
+
+    await window.electronAPI.confirm({
+      message: 'Erro ao aprovar orçamento',
+      single: true
+    });
+  }
+});
+
+rejectBudgetBtn.addEventListener('click', async () => {
+  const id = getDocumentIdFromUrl();
+
+  const confirmDelete = await window.electronAPI.confirm(
+    'Deseja realmente rejeitar este orçamento? O processo será excluído.'
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await window.api.documentos.delete(id);
+
+    window.location.href = 'orcamentos.html';
+
+  } catch (err) {
+    console.error(err);
+
+    await window.electronAPI.confirm({
+      message: 'Erro ao rejeitar orçamento',
+      single: true
+    });
+  }
 });
 
 // 

@@ -50,9 +50,6 @@
                     <div class="status-option" data-status="Pendente">
                         <span class="status-dot status-dot-pendente"></span> Pendente
                     </div>
-                    <div class="status-option" data-status="Orçamento">
-                        <span class="status-dot status-dot-orçamento"></span> Orçamento
-                    </div>
                     <div class="status-option" data-status="Em Andamento">
                         <span class="status-dot status-dot-andamento"></span> Em andamento
                     </div>
@@ -224,7 +221,14 @@
             </div>
             </section>
 
+            <!-- SALVAR DOCUMENTO -->
             <button id="salvarDocumento" class="save-button" style="margin: 0 auto; display: none;">Salvar processo</button>
+
+            <!-- Orçamento -->
+             <div class="orcamento-actions" id="orcamentoActions">
+                 <button id="rejectBudgetBtn" class="save-button btn-reject">Rejeitar Orçamento</button>
+                 <button id="approveBudgetBtn" class="save-button btn-approve">Aprovar Orçamento</button>
+            </div>
         </main>
 
         <footer class="result-footer">
