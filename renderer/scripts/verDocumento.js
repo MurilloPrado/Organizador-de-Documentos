@@ -32,6 +32,7 @@ const lastCostList = selectOne('#lastCostsList');
 const totalPaymentElement = selectOne('#totalPayment');
 const totalCostElement = selectOne('#totalCost');
 
+const gerarRelatorioButton = document.getElementById('gerarRelatorio');
 const editDocumentButton = selectOne('#editDocumentButton');
 const deleteDocumentButton = selectOne('#deleteDocumentButton');
 const backButton = selectOne('#backButton');
@@ -680,6 +681,14 @@ editDocumentButton.addEventListener('click', async (e) => {
   restoreDocumentView();
   exitEditMode();
   setEditIconToEdit();
+});
+
+gerarRelatorioButton.addEventListener('click', async () => {
+  const id = getDocumentIdFromUrl();
+
+  const filePath = await window.api.relatorio.gerarRelatorio(id);
+
+  await window.files.openPath(filePath);
 });
 
 // função para extrair os dados do checklist da UI

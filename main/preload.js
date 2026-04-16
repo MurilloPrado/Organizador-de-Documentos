@@ -63,6 +63,7 @@ contextBridge.exposeInMainWorld('api', {
         deleteLancamento: (id) => ipcRenderer.invoke('documentos:deleteLancamento', id),
         addArquivo: (payload) => ipcRenderer.invoke('documentos:addArquivo', payload),
         removeArquivo: (args) => ipcRenderer.invoke('documentos:removeArquivo', args),
+
     },
     listDocumentos: {
         list: (opts) => ipcRenderer.invoke('listDocumentos:list', opts),
@@ -84,6 +85,9 @@ contextBridge.exposeInMainWorld('api', {
         getEvolucao: (filter) => ipcRenderer.invoke('dashboard:getEvolucao', filter),
         getSaldo: (filter) => ipcRenderer.invoke('dashboard:getSaldo', filter),
         getTopCustos: (filter) => ipcRenderer.invoke('dashboard:getTopCustos', filter),
+    },
+    relatorio: {
+        gerarRelatorio: (documento) => ipcRenderer.invoke('relatorio:gerar', documento),
     },
     //os outros ipcs irão aqui...
 })
