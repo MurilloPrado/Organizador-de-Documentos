@@ -45,6 +45,8 @@ const orcamentoActions = document.getElementById('orcamentoActions');
 const approveBudgetBtn = document.getElementById('approveBudgetBtn');
 const rejectBudgetBtn = document.getElementById('rejectBudgetBtn');
 
+const loadingOverlay = document.getElementById('loadingOverlay');
+
 // Estado carregado
 let loadedDocumentBundle = null;
 
@@ -683,12 +685,37 @@ editDocumentButton.addEventListener('click', async (e) => {
   setEditIconToEdit();
 });
 
+// relatório
+function showLoading() {
+  loadingOverlay.style.display = 'flex';
+}
+
+function hideLoading() {
+  loadingOverlay.style.display = 'none';
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 gerarRelatorioButton.addEventListener('click', async () => {
   const id = getDocumentIdFromUrl();
 
-  const filePath = await window.api.relatorio.gerarRelatorio(id);
+  try {
+    showLoading();
 
-  await window.files.openPath(filePath);
+    await sleep(3000);
+
+    const filePath = await window.api.relatorio.gerarRelatorio(id);
+
+    await window.files.openPath(filePath);
+
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao gerar relatório');
+  } finally {
+    hideLoading();
+  }
 });
 
 // função para extrair os dados do checklist da UI
