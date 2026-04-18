@@ -59,7 +59,7 @@ async function generateExcel(data) {
     contato: 'B4',
     status: 'C11',
     detalhesDocumento: 'A37',
-    valorTotal: 'C42'
+    valorTotal: 'C44'
   };
 
   Object.entries(map).forEach(([key, cell]) => {
@@ -125,9 +125,7 @@ async function generateExcel(data) {
 
   servicosVisiveis.forEach(s => {
     const texto = [
-      s.tituloLancamento,
-      s.detalhes,
-      `R$ ${Number(s.valor).toFixed(2)}`
+      ` - ${s.tituloLancamento}`
     ].filter(Boolean).join('\n');
 
     const cell = ws.getCell(`A${row}`);
@@ -138,8 +136,6 @@ async function generateExcel(data) {
       wrapText: true,
       vertical: 'top'
     };
-
-    ws.getRow(row).height = 60;
 
     row++;
   });
@@ -183,14 +179,6 @@ async function generateExcel(data) {
     vertical: 'top'
   };
 
-  const baseHeight = 15;
-  const minLines = 4;
-
-  const text = data.detalhesDocumento || '';
-  const lines = Math.max(minLines, text.split('\n').length);
-
-  ws.getRow(37).height = lines * baseHeight;
-
   // =========================
   // OUTPUT
   // =========================
@@ -212,7 +200,14 @@ async function generateExcel(data) {
     fs.unlinkSync(output);
   }
 
-  await workbook.xlsx.writeFile(output);
+  try {
+    await workbook.xlsx.writeFile(output);
+  } catch (err) {
+    if (err.code === 'EBUSY') {
+      throw new Error('Feche o arquivo do Excel antes de gerar o relatório.');
+    }
+    throw err;
+  }
   return output;
 }
 

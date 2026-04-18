@@ -602,6 +602,9 @@ function enterEditMode() {
   documentDetailsTextarea.removeAttribute('readonly');
   detalhesBox.classList.add('editing-box');
 
+  approveBudgetBtn.style.display = 'none';
+  rejectBudgetBtn.style.display = 'none';
+
   salvarDocumentoButton.style.display = 'block';
 }
 
@@ -628,6 +631,9 @@ function exitEditMode() {
 
   documentDetailsTextarea.setAttribute('readonly', true);
   detalhesBox.classList.remove('editing-box');
+
+  approveBudgetBtn.style.display = 'flex';
+  rejectBudgetBtn.style.display = 'flex';
 
   salvarDocumentoButton.style.display = 'none';
 }
@@ -704,7 +710,7 @@ gerarRelatorioButton.addEventListener('click', async () => {
   try {
     showLoading();
 
-    await sleep(3000);
+    await sleep(2000);
 
     const filePath = await window.api.relatorio.gerarRelatorio(id);
 
