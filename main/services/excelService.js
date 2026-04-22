@@ -1,5 +1,6 @@
 // src/services/excelService.js
 const ExcelJS = require('exceljs');
+const { app } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -44,7 +45,11 @@ function gerarNomeSeguro(texto) {
 }
 
 async function generateExcel(data) {
-  const template = path.join(__dirname, '../../templates/FICHA DE IMÓVEL.xlsx');
+  const isDev = !app.isPackaged;
+
+  const template = app.isPackaged
+    ? path.join(process.resourcesPath, 'templates/FICHA DE IMÓVEL.xlsx') // BUILD
+    : path.join(__dirname, '../../templates/FICHA DE IMÓVEL.xlsx');     // DEV
 
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(template);

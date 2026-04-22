@@ -21,6 +21,12 @@
       "renderer/**/*",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "templates/",
+        "to": "templates"
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "renderer/assets/J1J.ico"
