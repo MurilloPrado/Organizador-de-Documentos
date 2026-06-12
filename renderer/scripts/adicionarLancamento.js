@@ -282,8 +282,11 @@ function enterEdit(item, index){
 }
 
 // verifica serviços como checkbox
-function isCheckboxServico(nome) {
-  return CHECKBOX_MAP.some(c => c.nome.toLowerCase() === String(nome).toLowerCase());
+function isCheckboxServico(item) {
+  return (
+    tipoLancamento === 'servico' &&
+    String(item.nome).toLowerCase().includes('servadic')
+  );
 }
 
 async function renderList() {
@@ -291,7 +294,7 @@ async function renderList() {
     let itens = isViewMode ? await fetchLancamentosFromDB() : getAll();
 
     // remove serviços vindos do checkbox
-    itens = itens.filter(item => !isCheckboxServico(item.nome));
+    itens = itens.filter(item => !isCheckboxServico(item));
 
     listaElement.innerHTML = '';
 
@@ -450,10 +453,16 @@ function syncServicosCreate() {
   setArray(KEY.servicosAdicionais, atualizados);
 }
 
+// sincroniza os serviços do checkbox com o banco de dados no modo view
 async function syncServicosView() {
   const selecionados = getSelecionados();
   const existentes = (await fetchLancamentosFromDB())
-  .filter(e => CHECKBOX_MAP.some(c => c.nome.toLowerCase() === e.nome.toLowerCase()));
+    .filter(e =>
+        CHECKBOX_MAP.some(
+        c =>
+            `${c.nome}servadic`.toLowerCase() === String(e.nome).toLowerCase()
+        )
+    );
 
   const nomesExistentes = existentes.map(e => e.nome.toLowerCase());
   const nomesSelecionados = selecionados.map(s => s.nome.toLowerCase());
@@ -464,7 +473,7 @@ async function syncServicosView() {
       await window.api.documentos.addLancamento({
         idDocumento: docId,
         tipoLancamento: 'servico',
-        tituloLancamento: s.nome,
+        tituloLancamento: `${s.nome}ServAdic`,
         detalhes: null,
         valor: 0,
         createdAt: new Date().toISOString(),
@@ -602,7 +611,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         // RESTAURA DO BANCO
         fetchLancamentosFromDB().then(lancamentos => {
-            const nomes = lancamentos.map(l => l.nome.toLowerCase());
+            const nomes = lancamentos.map(l =>
+                l.nome
+                    .replace('ServAdic', '')
+                    .toLowerCase()
+                );
 
             CHECKBOX_MAP.forEach(item => {
             const el = document.getElementById(item.id);
