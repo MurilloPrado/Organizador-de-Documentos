@@ -162,6 +162,27 @@ function runMigrations(_db) {
 
     tx();
   }
+
+  // normaliza checklist antigo
+  if (current < 6) {
+    const tx = _db.transaction(() => {
+
+      _db.prepare(`
+        UPDATE lancamentos
+        SET tituloLancamento = tituloLancamento || 'ServAdic'
+        WHERE tituloLancamento IN (
+          'Arquiteto',
+          'Topografia',
+          'Engenheiro'
+        )
+        AND tipoLancamento = 'servico';
+      `).run();
+
+      _db.prepare('PRAGMA user_version = 6').run();
+    });
+
+    tx();
+  }
 }
 
 function initDatabase(app) {
